@@ -7,7 +7,10 @@ ENV TZ Asia/Tokyo
 COPY docker/files /
 
 RUN set -e \
-  && apk add --no-cache bash coreutils git \
+  && apk add --no-cache bash coreutils git icu-libs \
+  && apk add --no-cache --virtual=.build-deps autoconf icu-dev make \
+  && docker-php-ext-install -j$(nproc) intl \
+  && apk del .build-deps \
   && docker-php-source delete \
   && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin/ --filename=composer \
   && mkdir -p /app

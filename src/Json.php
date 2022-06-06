@@ -1,10 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace Kirameki\Utilities;
+namespace Kirameki\Utils;
 
 use function json_decode;
 use function json_encode;
-use function file_get_contents;
 
 class Json
 {
@@ -14,33 +13,25 @@ class Json
         JSON_UNESCAPED_SLASHES;
 
     /**
-     * @param int<1, max> $depth
+     * @param mixed $data
+     * @param bool $formatted
+     * @return string
      */
-    public static function encode(mixed $data, int $options = 0, int $depth = 512): string
+    public static function encode(mixed $data, bool $formatted = false): string
     {
-        return json_encode($data, $options | static::$encodeOptions | JSON_THROW_ON_ERROR, $depth);
-    }
-
-    public static function setEncodeOptions(int $options): void
-    {
-        static::$encodeOptions = $options;
-    }
-
-    public static function getEncodeOptions(): int
-    {
-        return static::$encodeOptions;
+        $options = static::$encodeOptions;
+        if ($formatted) {
+            $options |= JSON_PRETTY_PRINT;
+        }
+        return json_encode($data, $options | JSON_THROW_ON_ERROR);
     }
 
     /**
-     * @param int<1, max> $depth
+     * @param string $json
+     * @return mixed
      */
-    public static function decode(string $json, int $depth = 512): mixed
+    public static function decode(string $json): mixed
     {
-        return json_decode($json, true, $depth, JSON_THROW_ON_ERROR);
-    }
-
-    public static function decodeFile(string $path): mixed
-    {
-        return static::decode((string) file_get_contents($path));
+        return json_decode($json, true, 512, JSON_THROW_ON_ERROR);
     }
 }

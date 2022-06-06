@@ -1,8 +1,10 @@
 <?php declare(strict_types=1);
 
-namespace Kirameki\Utilities;
+namespace Kirameki\Utils;
 
 use Closure;
+use Kirameki\Utils\Exception\DuplicateKeyException;
+use Kirameki\Utils\Support\Miss;
 use LogicException;
 use RuntimeException;
 use Webmozart\Assert\Assert;
@@ -10,6 +12,7 @@ use function abs;
 use function array_column;
 use function array_diff;
 use function array_diff_key;
+use function array_fill;
 use function array_intersect;
 use function array_intersect_key;
 use function array_is_list;
@@ -234,17 +237,19 @@ class Arr
      */
     public static function compact(iterable $iterable, int $depth = 1, ?bool $reindex = null): array
     {
+        if ($reindex === null) {
+            $iterable = static::from($iterable);
+            $reindex = array_is_list($iterable);
+        }
+
         $result = [];
-        foreach (Iter::compact($iterable) as $key => $val) {
+
+        foreach (Iter::compact($iterable, $reindex) as $key => $val) {
             if (is_iterable($val) && $depth > 1) {
                 /** @var TValue $val */
                 $val = static::compact($val, $depth - 1, $reindex); /** @phpstan-ignore-line */
             }
             $result[$key] = $val;
-        }
-
-        if ($reindex ?? array_is_list($result)) {
-            static::reindex($result);
         }
 
         return $result;
@@ -289,7 +294,7 @@ class Arr
             return count($iterable);
         }
         $count = 0;
-        foreach ($iterable as $_) {
+        foreach ($iterable as $ignored) {
             ++$count;
         }
         return $count;
@@ -316,36 +321,45 @@ class Arr
     /**
      * @template TKey of array-key
      * @template TValue
-     * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
-     * @param iterable<TKey, TValue> $items
+     * @param iterable<TKey, TValue> $iterable1 Iterable to be traversed.
+     * @param iterable<TKey, TValue> $iterable2
      * @param bool|null $reindex
      * @return array<TKey, TValue>
      */
-    public static function diff(iterable $iterable, iterable $items, ?bool $reindex = null): array
+    public static function diff(iterable $iterable1, iterable $iterable2, ?bool $reindex = null): array
     {
-        $array = static::from($iterable);
+        $array1 = static::from($iterable1);
+        $array2 = static::from($iterable2);
 
-        $reindex ??= array_is_list($array);
+        $reindex ??= array_is_list($array1);
 
-        $result = array_diff($array, static::from($items));
+        $result = array_diff($array1, $array2);
 
-        if ($reindex) {
-            static::reindex($result);
-        }
-
-        return $result;
+        return $reindex
+            ? static::values($result)
+            : $result;
     }
 
     /**
      * @template TKey of array-key
      * @template TValue
-     * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
-     * @param iterable<TKey, TValue> $items
+     * @param iterable<TKey, TValue> $iterable1 Iterable to be traversed.
+     * @param iterable<TKey, TValue> $iterable2
+     * @param bool|null $reindex
      * @return array<TKey, TValue>
      */
-    public static function diffKeys(iterable $iterable, iterable $items): array
+    public static function diffKeys(iterable $iterable1, iterable $iterable2, ?bool $reindex = null): array
     {
-        return array_diff_key(static::from($iterable), static::from($items));
+        $array1 = static::from($iterable1);
+        $array2 = static::from($iterable2);
+
+        $reindex ??= array_is_list($array1);
+
+        $result = array_diff_key($array1, $array2);
+
+        return $reindex
+            ? static::values($result)
+            : $result;
     }
 
     /**
@@ -353,12 +367,14 @@ class Arr
      * @template TValue
      * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
      * @param int $amount
-     * @param bool $reindex
+     * @param bool|null $reindex
      * @return array<TKey, TValue>
      */
-    public static function drop(iterable $iterable, int $amount, bool $reindex = false): array
+    public static function drop(iterable $iterable, int $amount, ?bool $reindex = null): array
     {
-        return iterator_to_array(Iter::drop($iterable, $amount, $reindex));
+        $array = static::from($iterable);
+        $reindex ??= array_is_list($array);
+        return iterator_to_array(Iter::drop($array, $amount, $reindex));
     }
 
     /**
@@ -366,12 +382,14 @@ class Arr
      * @template TValue
      * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
      * @param Closure(TValue, TKey): bool $condition
-     * @param bool $reindex
+     * @param bool|null $reindex
      * @return array<TKey, TValue>
      */
-    public static function dropUntil(iterable $iterable, Closure $condition, bool $reindex = false): array
+    public static function dropUntil(iterable $iterable, Closure $condition, ?bool $reindex = null): array
     {
-        return iterator_to_array(Iter::dropUntil($iterable, $condition, $reindex));
+        $array = static::from($iterable);
+        $reindex ??= array_is_list($array);
+        return iterator_to_array(Iter::dropUntil($array, $condition, $reindex));
     }
 
     /**
@@ -379,12 +397,14 @@ class Arr
      * @template TValue
      * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
      * @param Closure(TValue, TKey): bool $condition
-     * @param bool $reindex
+     * @param bool|null $reindex
      * @return array<TKey, TValue>
      */
-    public static function dropWhile(iterable $iterable, Closure $condition, bool $reindex = false): array
+    public static function dropWhile(iterable $iterable, Closure $condition, ?bool $reindex = null): array
     {
-        return iterator_to_array(Iter::dropWhile($iterable, $condition, $reindex));
+        $array = static::from($iterable);
+        $reindex ??= array_is_list($array);
+        return iterator_to_array(Iter::dropWhile($array, $condition, $reindex));
     }
 
     /**
@@ -431,7 +451,7 @@ class Arr
      * @template TKey of array-key
      * @template TValue
      * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
-     * @param array<int|string> $keys
+     * @param list<array-key> $keys
      * @param bool|null $reindex
      * @return array<TKey, TValue>
      */
@@ -444,11 +464,9 @@ class Arr
             unset($copy[$key]);
         }
 
-        if ($reindex) {
-            static::reindex($copy);
-        }
-
-        return $copy;
+        return $reindex
+            ? static::values($copy)
+            : $copy;
     }
 
     /**
@@ -601,7 +619,7 @@ class Arr
             Assert::validArrayKey($key);
 
             if (!$overwrite && array_key_exists($key, $flipped)) {
-                throw new DuplicateKeyException($key, $val);
+                throw new DuplicateKeyException($key, $iterable);
             }
 
             $flipped[$key] = $val;
@@ -884,7 +902,7 @@ class Arr
             $newKey = static::ensureKey($callback($val, $oldKey));
 
             if (!$overwrite && array_key_exists($newKey, $result)) {
-                throw new DuplicateKeyException($newKey, $val);
+                throw new DuplicateKeyException($newKey, $iterable);
             }
 
             $result[$newKey] = $val;
@@ -1517,7 +1535,7 @@ class Arr
     /**
      * @template T
      * @param iterable<array-key, T> $iterable Iterable to be traversed.
-     * @param int $times
+     * @param int<0, max> $times
      * @return array<int, T>
      */
     public static function repeat(iterable $iterable, int $times): array
@@ -1962,6 +1980,62 @@ class Arr
     /**
      * @template TKey of array-key
      * @template TValue
+     * @param iterable<TKey, TValue> $iterable1 Iterable to be traversed.
+     * @param iterable<TKey, TValue> $iterable2
+     * @param bool|null $reindex
+     * @return array<TKey, TValue>
+     */
+    public static function symDiff(iterable $iterable1, iterable $iterable2, ?bool $reindex = null): array
+    {
+        $array1 = static::from($iterable1);
+        $array2 = static::from($iterable2);
+
+        $reindex ??= array_is_list($array1) && array_is_list($array2);
+
+        $result = static::merge(
+            array_diff($array1, $array2),
+            array_diff($array2, $array1),
+            $reindex,
+        );
+
+        if ($reindex) {
+            static::reindex($result);
+        }
+
+        return $result;
+    }
+
+    /**
+     * @template TKey of array-key
+     * @template TValue
+     * @param iterable<TKey, TValue> $iterable1 Iterable to be traversed.
+     * @param iterable<TKey, TValue> $iterable2
+     * @param bool|null $reindex
+     * @return array<TKey, TValue>
+     */
+    public static function symDiffKeys(iterable $iterable1, iterable $iterable2, ?bool $reindex = null): array
+    {
+        $array1 = static::from($iterable1);
+        $array2 = static::from($iterable2);
+
+        $reindex ??= array_is_list($array1) && array_is_list($array2);
+
+        $result = static::merge(
+            array_diff_key($array1, $array2),
+            array_diff_key($array2, $array1),
+            $reindex,
+        );
+
+        if ($reindex) {
+            static::reindex($result);
+        }
+
+        return $result;
+    }
+
+    /**
+     * @template TKey of array-key
+     * @template TValue
      * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
      * @param int $amount
      * @return array<TKey, TValue>
@@ -2145,9 +2219,8 @@ class Arr
             return $key;
         }
 
-        $type = Str::typeOf($key);
-        $value = Str::valueOf($key);
-        throw new LogicException("Key of array must be int or string. $value ($type) given.");
+        $type = Type::of($key);
+        throw new LogicException("Key of array must be int or string. $type given.");
     }
 
     /**
@@ -2165,7 +2238,7 @@ class Arr
             is_array($val) => 'a:'.json_encode(array_map(static::valueToKey(...), $val), JSON_THROW_ON_ERROR),
             is_object($val) => 'o:' . spl_object_id($val),
             is_resource($val) => 'r:' . get_resource_id($val),
-            default => throw new LogicException('Invalid Type: ' . Str::typeOf($val)),
+            default => throw new LogicException('Invalid Type: ' . Type::of($val)),
         };
     }
 }

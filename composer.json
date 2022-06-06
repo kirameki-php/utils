@@ -1,17 +1,20 @@
 {
-  "name": "kirameki/utilities",
+  "name": "kirameki/utils",
   "description": "Utility Classes for PHP",
   "type": "project",
   "require": {
     "php": ">= 8.1",
-    "symfony/var-dumper": "^6",
+    "ext-intl": "*",
+    "ext-mbstring": "*",
     "webmozart/assert": "^1.1"
   },
   "require-dev": {
     "phpstan/extension-installer": "^1.1",
     "phpstan/phpstan": "^1.7",
     "phpstan/phpstan-webmozart-assert": "^1.1",
-    "phpunit/phpunit": "~9.0"
+    "phpunit/phpunit": "~9.0",
+    "roave/security-advisories": "dev-latest",
+    "symfony/var-dumper": "^6"
   },
   "replace": {
     "symfony/polyfill-ctype": "*",
@@ -21,12 +24,12 @@
   },
   "autoload": {
     "psr-4": {
-      "Kirameki\\Utilities\\": "src/"
+      "Kirameki\\Utils\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "Tests\\Kirameki\\Utilities\\": "tests/src/"
+      "Tests\\Kirameki\\Utils\\": "tests/src/"
     }
   },
   "config": {

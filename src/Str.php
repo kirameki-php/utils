@@ -1,55 +1,44 @@
 <?php declare(strict_types=1);
 
-namespace Kirameki\Utilities;
+namespace Kirameki\Utils;
 
-use DateTimeInterface;
 use LogicException;
-use RuntimeException;
-use Traversable;
-use UnitEnum;
 use Webmozart\Assert\Assert;
 use function array_map;
 use function ceil;
-use function explode;
 use function floor;
-use function get_resource_type;
 use function grapheme_strlen;
 use function grapheme_strpos;
 use function grapheme_strrpos;
 use function grapheme_substr;
 use function implode;
-use function in_array;
 use function is_array;
-use function is_bool;
-use function is_float;
-use function is_int;
-use function is_null;
-use function is_numeric;
-use function is_object;
-use function is_resource;
 use function is_string;
 use function iterator_to_array;
 use function lcfirst;
 use function ltrim;
 use function mb_strcut;
+use function mb_strlen;
 use function mb_strtolower;
 use function mb_strtoupper;
 use function preg_match;
+use function preg_match_all;
 use function preg_replace;
 use function preg_split;
 use function rtrim;
-use function spl_object_hash;
 use function str_contains;
 use function str_ends_with;
 use function str_repeat;
 use function str_replace;
 use function str_starts_with;
 use function strlen;
+use function strpos;
 use function strrev;
-use function strtolower;
+use function strrpos;
 use function substr_replace;
 use function trim;
 use function ucwords;
+use function wordwrap;
 
 class Str
 {
@@ -253,6 +242,26 @@ class Str
 
     /**
      * @param string $haystack
+     * @param string|list<string> $needle
+     * @return bool
+     */
+    public static function doesNotEndWith(string $haystack, string|array $needle): bool
+    {
+        return !static::endsWith($haystack, $needle);
+    }
+
+    /**
+     * @param string $haystack
+     * @param string|list<string> $needle
+     * @return bool
+     */
+    public static function doesNotStartWith(string $haystack, string|array $needle): bool
+    {
+        return !static::startsWith($haystack, $needle);
+    }
+
+    /**
+     * @param string $haystack
      * @param string|string[] $needle
      * @return bool
      */
@@ -277,6 +286,7 @@ class Str
     {
         return
             grapheme_substr($string, 0, $position) .
+            $insert .
             grapheme_substr($string, $position);
     }
 
@@ -305,7 +315,7 @@ class Str
     public static function kebabCase(string $string): string
     {
         $converting = (string) preg_replace(['/([a-z\d])([A-Z])/', '/([^-])([A-Z][a-z])/'], '$1-$2', $string);
-        $converting = (string) preg_replace('/[-_\s]+/', '-', $converting);
+        $converting = (string) str_replace([' ', '_'], '-', $converting);
         return mb_strtolower($converting, self::Encoding);
     }
 
@@ -404,18 +414,20 @@ class Str
             return $string;
         }
 
+        $strLength = grapheme_strlen($string);
+
         if ($type === STR_PAD_RIGHT) {
             $repeat = (int) ceil($length / $padLength);
-            return (string) grapheme_substr($string . str_repeat($pad, $repeat), 0, $length);
+            return $string . grapheme_substr(str_repeat($pad, $repeat), 0, $length - $strLength);
         }
 
         if ($type === STR_PAD_LEFT) {
             $repeat = (int) ceil($length / $padLength);
-            return (string) grapheme_substr(str_repeat($pad, $repeat), -$length);
+            return grapheme_substr(str_repeat($pad, $repeat), 0, $length - $strLength) . $string;
         }
 
         if ($type === STR_PAD_BOTH) {
-            $halfLengthFraction = ($length - grapheme_strlen($string)) / 2;
+            $halfLengthFraction = ($length - $strLength) / 2;
             $halfRepeat = (int) ceil($halfLengthFraction / $padLength);
             $prefixLength = (int) floor($halfLengthFraction);
             $suffixLength = (int) ceil($halfLengthFraction);
@@ -575,24 +587,22 @@ class Str
 
     /**
      * @param string $string
-     * @param non-empty-string|array<non-empty-string> $separator
+     * @param string|array<string> $separator
      * @param int|null $limit
-     * @return array<int, string>
+     * @return list<string>
      */
     public static function split(string $string, string|array $separator, ?int $limit = null): array
     {
-        if (is_array($separator)) {
-            $pattern = '/(' . implode('|', array_map('preg_quote', $separator)) . ')/';
-            $splits = preg_split($pattern, $string, $limit ?? -1);
-            if ($splits === false) {
-                throw new LogicException('You should never reach here.');
-            }
-            return $splits;
+        if (is_string($separator)) {
+            $separator = [$separator];
         }
 
-        return $limit !== null
-            ? explode($separator, $string, $limit)
-            : explode($separator, $string);
+        $pattern = '/(' . implode('|', array_map(preg_quote(...), $separator)) . ')/';
+        $splits = preg_split($pattern, $string, $limit ?? -1);
+        if ($splits === false) {
+            throw new LogicException('You should never reach here.');
+        }
+        return $splits;
     }
 
     /**
@@ -604,15 +614,6 @@ class Str
     public static function substring(string $string, int $offset, ?int $length = null): string
     {
         return (string) grapheme_substr($string, $offset, $length);
-    }
-
-    /**
-     * @param string $string
-     * @return string
-     */
-    public static function titleize(string $string): string
-    {
-        return ucwords($string);
     }
 
     /**
@@ -648,16 +649,6 @@ class Str
      * @param string $character
      * @return string
      */
-    public static function trimStart(string $string, string $character = " \t\n\r\0\x0B"): string
-    {
-        return ltrim($string, $character);
-    }
-
-    /**
-     * @param string $string
-     * @param string $character
-     * @return string
-     */
     public static function trimEnd(string $string, string $character = " \t\n\r\0\x0B"): string
     {
         return rtrim($string, $character);
@@ -665,188 +656,28 @@ class Str
 
     /**
      * @param string $string
-     * @param int $size
+     * @param string $character
+     * @return string
+     */
+    public static function trimStart(string $string, string $character = " \t\n\r\0\x0B"): string
+    {
+        return ltrim($string, $character);
+    }
+
+    /**
+     * @param string $string
+     * @param int $byteLimit
      * @param string $ellipsis
      * @return string
      */
-    public static function truncate(string $string, int $size, string $ellipsis = '...'): string
+    public static function truncate(string $string, int $byteLimit, string $ellipsis = '...'): string
     {
-        return mb_strcut($string, 0, $size, self::Encoding);
-    }
-
-    /**
-     * @param mixed $value
-     * @return string
-     */
-    public static function typeOf(mixed $value): string
-    {
-        if (is_null($value)) {
-            return 'null';
+        $length = mb_strlen($string);
+        $cut = mb_strcut($string, 0, $byteLimit, self::Encoding);
+        if (mb_strlen($cut) < $length) {
+            $cut .= $ellipsis;
         }
-
-        if (is_bool($value)) {
-            return 'bool';
-        }
-
-        if (is_int($value)) {
-            return 'int';
-        }
-
-        if (is_float($value)) {
-            return 'float';
-        }
-
-        if (is_string($value)) {
-            return 'string';
-        }
-
-        if (is_array($value)) {
-            return 'array';
-        }
-
-        if ($value instanceof DateTimeInterface) {
-            return 'datetime';
-        }
-
-        if ($value instanceof UnitEnum) {
-            return 'enum';
-        }
-
-        if (is_object($value)) {
-            return 'object';
-        }
-
-        if (is_resource($value)) {
-            return "resource";
-        }
-
-        return "unknown type";
-    }
-
-    /**
-     * @param mixed $value
-     * @return string
-     */
-    public static function valueOf(mixed $value): string
-    {
-        if (is_null($value)) {
-            return 'null';
-        }
-
-        if (is_bool($value)) {
-            return $value ? 'true' : 'false';
-        }
-
-        if (is_int($value)) {
-            return (string) $value;
-        }
-
-        if (is_float($value)) {
-            $str = (string) $value;
-            return str_contains($str, '.')
-                ? $str
-                : $str . '.0';
-        }
-
-        if (is_string($value)) {
-            return $value;
-        }
-
-        if (is_array($value)) {
-            return Json::encode($value);
-        }
-
-        if ($value instanceof Traversable) {
-            return Json::encode(iterator_to_array($value));
-        }
-
-        if ($value instanceof DateTimeInterface) {
-            return $value->format(DATE_RFC3339_EXTENDED);
-        }
-
-        if ($value instanceof UnitEnum) {
-            return $value->name;
-        }
-
-        if (is_object($value)) {
-            return $value::class . ':' . spl_object_hash($value);
-        }
-
-        if (is_resource($value)) {
-            return get_resource_type($value);
-        }
-
-        throw new LogicException('Unknown type: ' . $value);
-    }
-
-    /**
-     * Cast string to a more fitting type.
-     *
-     * @param string $string
-     * @return ?scalar
-     */
-    public static function infer(string $string): bool|float|int|string|null
-    {
-        if (is_numeric($string)) {
-            // Use Identity operator to cast to int/float.
-            // @see https://www.php.net/manual/en/language.operators.arithmetic.php
-            return +$string;
-        }
-
-        $lowered = strtolower($string);
-
-        if ($lowered === 'null') {
-            return null;
-        }
-
-        if (in_array($lowered, ['true', 'false'], true)) {
-            return $lowered === 'true';
-        }
-
-        return $string;
-    }
-
-    /**
-     * @param string $string
-     * @return int
-     */
-    public static function toInt(string $string): int
-    {
-        if (is_numeric($string)) {
-            $inferred = +$string;
-            if (is_int($inferred)) {
-                return $inferred;
-            }
-        }
-        throw new RuntimeException("\"$string\" could not be converted to int.");
-    }
-
-    /**
-     * @param string $string
-     * @return float
-     */
-    public static function toFloat(string $string): float
-    {
-        if (is_numeric($string)) {
-            $inferred = +$string;
-            if (is_float($inferred)) {
-                return $inferred;
-            }
-        }
-        throw new RuntimeException("\"$string\" could not be converted to float.");
-    }
-
-    /**
-     * @param string $string
-     * @return bool
-     */
-    public static function toBool(string $string): bool
-    {
-        $lowered = strtolower($string);
-        if (in_array($lowered, ['true', 'false'], true)) {
-            return $lowered === 'true';
-        }
-        throw new RuntimeException("\"$string\" could not be converted to bool.");
+        return $cut;
     }
 
     /**
@@ -856,7 +687,7 @@ class Str
      * @param bool $overflow
      * @return string
      */
-    public static function wrap(string $string, int $width = 80, string $break = "\n", bool $overflow = false): string
+    public static function wordWrap(string $string, int $width = 80, string $break = "\n", bool $overflow = false): string
     {
         return wordwrap($string, $width, $break, !$overflow);
     }
