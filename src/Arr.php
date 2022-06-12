@@ -474,12 +474,14 @@ class Arr
      * @template TValue
      * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
      * @param Closure(TValue, TKey): bool $condition
-     * @param bool $reindex
+     * @param bool|null $reindex
      * @return array<TKey, TValue>
      */
-    public static function filter(iterable $iterable, Closure $condition, bool $reindex = false): array
+    public static function filter(iterable $iterable, Closure $condition, bool $reindex = null): array
     {
-        return iterator_to_array(Iter::filter($iterable, $condition, $reindex));
+        $array = static::from($iterable);
+        $reindex ??= array_is_list($array);
+        return iterator_to_array(Iter::filter($array, $condition, $reindex));
     }
 
     /**

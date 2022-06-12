@@ -7,6 +7,7 @@ use Exception;
 use InvalidArgumentException;
 use Kirameki\Utils\Arr;
 use Kirameki\Utils\Iter;
+use Kirameki\Utils\Str;
 use Kirameki\Utils\Support\Miss;
 use RuntimeException;
 use stdClass;
@@ -591,81 +592,125 @@ class ArrTest extends TestCase
         self::assertEquals(['b' => 2], Arr::except(['a' => 1, 'b' => 2], ['a'], reindex: false));
     }
 
-    /**
     public function test_filter(): void
     {
         // list: removes ones with condition
-        self::assertEquals(['b' => ''], Arr::filter(['a' => null, 'b' => '', 'c' => null], static fn($v) => $v !== null));
+        self::assertEquals([''], Arr::filter([null, ''], static fn($v) => $v === ''));
 
         // assoc: removes ones with condition
-        self::assertEquals([''], Arr::filter([null, ''], static fn($v) => $v === ''));
+        self::assertEquals(['b' => ''], Arr::filter(['a' => null, 'b' => '', 'c' => null], static fn($v) => $v !== null));
+
+        // with first class closure syntax
+        self::assertEquals([], Arr::filter([null, ''], Str::isNotBlank(...)));
+
+        // reindex: true
+        self::assertEquals([''], Arr::filter([null, ''], static fn($v) => $v === '', reindex: true));
+
+        // reindex: false
+        self::assertEquals([1 => ''], Arr::filter([null, ''], static fn($v) => $v === '', reindex: false));
     }
 
-    /**
     public function test_first(): void
     {
-        $seq = $this->seq([]);
-        self::assertEquals(null, $seq->first());
+        // empty
+        self::assertEquals(null, Arr::first([]));
 
-        $seq = $this->seq([1,2]);
-        self::assertEquals(null, $seq->first(fn(int $i) => $i > 2));
+        // no match
+        self::assertEquals(null, Arr::first([1,2], fn(int $i) => $i > 2));
 
-        $seq = $this->seq([10, 20]);
-        self::assertEquals(10, $seq->first());
-        self::assertEquals(20, $seq->first(fn($v, $k) => $k === 1));
-        self::assertEquals(20, $seq->first(fn($v, $k) => $v === 20));
+        // one element
+        self::assertEquals(1, Arr::first([1], fn($v) => true));
+
+        // list
+        self::assertEquals(10, Arr::first([10, 20]));
+        self::assertEquals(20, Arr::first([10, 20], fn($v, $k) => $k === 1));
+        self::assertEquals(20, Arr::first([10, 20], fn($v, $k) => $v === 20));
+
+        // assoc
+        self::assertEquals(10, Arr::first(['a' => 10, 'b' => 20, 'c' => 30]));
+        self::assertEquals(10, Arr::first(['a' => 10, 'b' => 20, 'c' => 30], fn($v, $k) => $k === 'a'));
+        self::assertEquals(20, Arr::first(['a' => 10, 'b' => 20, 'c' => 30], fn($v, $k) => $k === 'b'));
     }
 
     public function test_firstIndex(): void
     {
-        $seq = $this->seq([10, 20, 20, 30]);
-        self::assertEquals(2, $seq->firstIndex(fn($v, $k) => $k === 2));
-        self::assertEquals(1, $seq->firstIndex(fn($v, $k) => $v === 20));
-        self::assertEquals(null, $seq->firstIndex(fn() => false));
+        // empty
+        self::assertEquals(null, Arr::firstIndex([], fn($v, $k) => true));
+
+        // list
+        self::assertEquals(2, Arr::firstIndex([10, 20, 20, 30], fn($v, $k) => $k === 2));
+        self::assertEquals(1, Arr::firstIndex([10, 20, 20, 30], fn($v, $k) => $v === 20));
+        self::assertEquals(null, Arr::firstIndex([10, 20, 20, 30], fn() => false));
+
+        // assoc
+        self::assertEquals(1, Arr::firstIndex(['a' => 1, 'b' => 2, 'c' => 3], fn($v, $k) => $v === 2));
+        self::assertEquals(2, Arr::firstIndex(['a' => 1, 'b' => 2, 'c' => 3], fn($v, $k) => $k === 'c'));
+        self::assertEquals(1, Arr::firstIndex(['a' => 1, 'b' => 2, 'c' => 3], fn($v, $k) => $v > 1));
+        self::assertEquals(null, Arr::firstIndex(['a' => 1, 'b' => 2, 'c' => 3], fn($v, $k) => $v > 10));
     }
 
     public function test_firstKey(): void
     {
-        $seq = $this->seq([10, 20, 30]);
-        self::assertEquals(1, $seq->firstKey(fn($v, $k) => $v === 20));
-        self::assertEquals(2, $seq->firstKey(fn($v, $k) => $k === 2));
+        // empty
+        self::assertEquals(null, Arr::firstKey([], fn($v, $k) => true));
 
-        $seq = $this->seq(['a' => 10, 'b' => 20, 'c' => 30]);
-        self::assertEquals('b', $seq->firstKey(fn($v, $k) => $v === 20));
-        self::assertEquals('c', $seq->firstKey(fn($v, $k) => $k === 'c'));
+        // list
+        self::assertEquals(null, Arr::firstKey([10, 20, 20, 30], fn() => false));
+        self::assertEquals(1, Arr::firstKey([10, 20, 30], fn($v, $k) => $v === 20));
+        self::assertEquals(2, Arr::firstKey([10, 20, 30], fn($v, $k) => $k === 2));
+
+        // assoc
+        self::assertEquals(null, Arr::firstKey(['a' => 1, 'b' => 2, 'c' => 3], fn($v, $k) => $v > 10));
+        self::assertEquals('b', Arr::firstKey(['a' => 1, 'b' => 2, 'c' => 3], fn($v, $k) => $v === 2));
+        self::assertEquals('c', Arr::firstKey(['a' => 1, 'b' => 2, 'c' => 3], fn($v, $k) => $k === 'c'));
     }
 
     public function test_firstOr(): void
     {
-        $seq = $this->seq([10, 20]);
-        self::assertEquals(10, $seq->firstOr(null));
-        self::assertEquals(20, $seq->firstOr(null, fn($v, $k) => $k === 1));
-        self::assertEquals(20, $seq->firstOr(null, fn($v, $k) => $v === 20));
-        self::assertEquals(null, $seq->firstOr(null, fn() => false));
+        // empty
+        self::assertEquals(INF, Arr::firstOr([], INF));
+
+        // list
+        self::assertEquals(1, Arr::firstOr([1, 2], INF));
+        self::assertEquals(2, Arr::firstOr([1, 2], INF, fn($v, $k) => $k === 1));
+        self::assertEquals(2, Arr::firstOr([1, 2], INF, fn($v, $k) => $v === 2));
+        self::assertEquals(INF, Arr::firstOr([1, 2], INF, fn() => false));
+
+        // assoc
+        self::assertEquals(1, Arr::firstOr(['a' => 1, 'b' => 2], INF));
+        self::assertEquals(2, Arr::firstOr(['a' => 1, 'b' => 2], INF, fn($v, $k) => $k === 'b'));
+        self::assertEquals(2, Arr::firstOr(['a' => 1, 'b' => 2], INF, fn($v, $k) => $v === 2));
+        self::assertEquals(INF, Arr::firstOr(['a' => 1, 'b' => 2], INF, fn() => false));
     }
 
     public function test_firstOrFail(): void
     {
-        $seq = $this->seq([10, 20]);
-        self::assertEquals(10, $seq->firstOrFail());
-        self::assertEquals(20, $seq->firstOrFail(fn($v, $k) => $k === 1));
-        self::assertEquals(20, $seq->firstOrFail(fn($v, $k) => $v === 20));
+        // list
+        self::assertEquals(1, Arr::firstOrFail([1, 2]));
+        self::assertEquals(2, Arr::firstOrFail([1, 2], fn($v, $k) => $k === 1));
+        self::assertEquals(2, Arr::firstOrFail([1, 2], fn($v, $k) => $v === 2));
+
+        // assoc
+        self::assertEquals(1, Arr::firstOrFail(['a' => 1, 'b' => 2]));
+        self::assertEquals(2, Arr::firstOrFail(['a' => 1, 'b' => 2], fn($v, $k) => $k === 'b'));
+        self::assertEquals(2, Arr::firstOrFail(['a' => 1, 'b' => 2], fn($v, $k) => $v === 2));
     }
 
     public function test_firstOrFail_empty(): void
     {
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Iterable must contain at least one element.');
-        $this->seq([])->firstOrFail();
+        Arr::firstOrFail([]);
     }
 
     public function test_firstOrFail_bad_condition(): void
     {
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Failed to find matching condition.');
-        $this->seq([1,2])->firstOrFail(fn(int $i) => $i > 2);
+        Arr::firstOrFail([1,2], fn(int $i) => $i > 2);
     }
 
+    /**
     public function test_flatMap(): void
     {
         $seq = $this->seq([1, 2]);
