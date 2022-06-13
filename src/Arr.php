@@ -707,16 +707,19 @@ class Arr
     }
 
     /**
-     * @template TGroupKey as array-key
-     * @template TKey
+     * @template TGroupKey of array-key
+     * @template TKey of array-key
      * @template TValue
      * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
      * @param TGroupKey|Closure(TValue, TKey): TGroupKey $key
-     * @param bool $reindex
+     * @param bool|null $reindex
      * @return array<TGroupKey, array<int|TKey, TValue>>
      */
-    public static function groupBy(iterable $iterable, int|string|Closure $key, bool $reindex = false): array
+    public static function groupBy(iterable $iterable, int|string|Closure $key, ?bool $reindex = null): array
     {
+        $array = static::from($iterable);
+        $reindex ??= array_is_list($array);
+
         $callback = (is_string($key) || is_int($key))
             ? static fn(array $val, $_key) => $val[$key]
             : $key;
@@ -944,20 +947,20 @@ class Arr
      */
     public static function lastIndex(iterable $iterable, Closure $condition): ?int
     {
-        $copy = static::from($iterable);
-        end($copy);
+        $array = static::from($iterable);
+        end($array);
 
-        $count = count($copy);
+        $count = count($array);
 
-        while(($key = key($copy)) !== null) {
+        while(($key = key($array)) !== null) {
             $count--;
-            $val = current($copy);
+            $val = current($array);
             /** @var TKey $key */
             /** @var TValue $val */
             if (static::verify($condition, $key, $val)) {
                 return $count;
             }
-            prev($copy);
+            prev($array);
         }
 
         return null;
@@ -1001,19 +1004,19 @@ class Arr
      */
     public static function lastOr(iterable $iterable, mixed $default, ?Closure $condition = null): mixed
     {
-        $copy = static::from($iterable);
-        end($copy);
+        $array = static::from($iterable);
+        end($array);
 
         $condition ??= static fn($v, $k) => true;
 
-        while(($key = key($copy)) !== null) {
+        while(($key = key($array)) !== null) {
             /** @var TKey $key */
             /** @var TValue $val */
-            $val = current($copy);
+            $val = current($array);
             if (static::verify($condition, $key, $val)) {
                 return $val;
             }
-            prev($copy);
+            prev($array);
         }
 
         return $default;
@@ -1255,17 +1258,17 @@ class Arr
      */
     public static function only(iterable $iterable, iterable $keys, ?bool $reindex = null): array
     {
-        $copy = static::from($iterable);
-        $reindex ??= array_is_list($copy);
+        $array = static::from($iterable);
+        $reindex ??= array_is_list($array);
 
-        $array = [];
+        $result = [];
         foreach ($keys as $key) {
             $reindex
-                ? $array[] = $copy[$key]
-                : $array[$key] = $copy[$key];
+                ? $result[] = $array[$key]
+                : $result[$key] = $array[$key];
         }
 
-        return $array;
+        return $result;
     }
 
     /**
@@ -1425,7 +1428,7 @@ class Arr
     }
 
     /**
-     * @template TKey as array-key
+     * @template TKey of array-key
      * @template TValue
      * @param array<TKey, TValue> $array
      * @param iterable<array-key> $keys
@@ -1743,16 +1746,16 @@ class Arr
         $copy = static::from($iterable);
         $size = count($copy);
         $reindex ??= array_is_list($copy);
-        $array = [];
+        $result = [];
         while ($size > 0) {
             $key = array_rand($copy);
             $reindex
-                ? $array[] = $copy[$key]
-                : $array[$key] = $copy[$key];
+                ? $result[] = $copy[$key]
+                : $result[$key] = $copy[$key];
             unset($copy[$key]);
             --$size;
         }
-        return $array;
+        return $result;
     }
 
     /**
@@ -1761,12 +1764,14 @@ class Arr
      * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
      * @param int $offset
      * @param int $length
-     * @param bool $reindex
+     * @param bool|null $reindex
      * @return array<TKey, TValue>
      */
-    public static function slice(iterable $iterable, int $offset, int $length = PHP_INT_MAX, bool $reindex = false): array
+    public static function slice(iterable $iterable, int $offset, int $length = PHP_INT_MAX, ?bool $reindex = null): array
     {
-        return iterator_to_array(Iter::slice($iterable, $offset, $length, $reindex));
+        $array = static::from($iterable);
+        $reindex ??= array_is_list($array);
+        return iterator_to_array(Iter::slice($array, $offset, $length, $reindex));
     }
 
     /**
