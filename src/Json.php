@@ -7,11 +7,6 @@ use function json_encode;
 
 class Json
 {
-    protected static int $encodeOptions =
-        JSON_PRESERVE_ZERO_FRACTION |
-        JSON_UNESCAPED_UNICODE |
-        JSON_UNESCAPED_SLASHES;
-
     /**
      * @param mixed $data
      * @param bool $formatted
@@ -19,10 +14,14 @@ class Json
      */
     public static function encode(mixed $data, bool $formatted = false): string
     {
-        $options = static::$encodeOptions;
+        $options = JSON_PRESERVE_ZERO_FRACTION |
+                   JSON_UNESCAPED_UNICODE |
+                   JSON_UNESCAPED_SLASHES;
+
         if ($formatted) {
             $options |= JSON_PRETTY_PRINT;
         }
+
         return json_encode($data, $options | JSON_THROW_ON_ERROR);
     }
 
