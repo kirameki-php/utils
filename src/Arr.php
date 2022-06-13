@@ -808,11 +808,9 @@ class Arr
 
         $result = array_intersect($array, static::from($items));
 
-        if ($reindex) {
-            static::reindex($result);
-        }
-
-        return $result;
+        return $reindex
+            ? static::values($result)
+            : $result;
     }
 
     /**
