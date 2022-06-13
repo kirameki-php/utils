@@ -4,6 +4,7 @@ namespace Kirameki\Utils;
 
 use LogicException;
 use Webmozart\Assert\Assert;
+use function abs;
 use function array_map;
 use function ceil;
 use function floor;
@@ -231,6 +232,21 @@ class Str
 
     /**
      * @param string $string
+     * @param int $byteLimit
+     * @param string $ellipsis
+     * @return string
+     */
+    public static function cut(string $string, int $byteLimit, string $ellipsis = ''): string
+    {
+        $cut = mb_strcut($string, 0, $byteLimit, self::Encoding);
+        if ($ellipsis !== '' && mb_strlen($cut) < mb_strlen($string)) {
+            $cut .= $ellipsis;
+        }
+        return $cut;
+    }
+
+    /**
+     * @param string $string
      * @param string $search
      * @param int $limit
      * @return string
@@ -278,6 +294,21 @@ class Str
 
     /**
      * @param string $string
+     * @param string $search
+     * @param int $offset
+     * @return int|false
+     */
+    public static function firstIndexOf(string $string, string $search, int $offset = 0): int|false
+    {
+        $length = grapheme_strlen($string);
+        if (abs($offset) > $length) {
+            return false;
+        }
+        return grapheme_strpos($string, $search, $offset);
+    }
+
+    /**
+     * @param string $string
      * @param string $insert
      * @param int $position
      * @return string
@@ -317,6 +348,21 @@ class Str
         $converting = (string) preg_replace(['/([a-z\d])([A-Z])/', '/([^-])([A-Z][a-z])/'], '$1-$2', $string);
         $converting = (string) str_replace([' ', '_'], '-', $converting);
         return mb_strtolower($converting, self::Encoding);
+    }
+
+    /**
+     * @param string $string
+     * @param string $search
+     * @param int $offset
+     * @return int|false
+     */
+    public static function lastIndexOf(string $string, string $search, int $offset = 0): int|false
+    {
+        $length = grapheme_strlen($string);
+        if (abs($offset) > $length) {
+            return false;
+        }
+        return grapheme_strrpos($string, $search, $offset);
     }
 
     /**
@@ -446,17 +492,6 @@ class Str
     public static function pascalCase(string $string): string
     {
         return str_replace(['-', '_', ' '], '', ucwords($string, '-_ '));
-    }
-
-    /**
-     * @param string $string
-     * @param string $search
-     * @param int $offset
-     * @return bool|int
-     */
-    public static function position(string $string, string $search, int $offset = 0): bool|int
-    {
-        return grapheme_strpos($string, $search, $offset);
     }
 
     /**
@@ -662,22 +697,6 @@ class Str
     public static function trimStart(string $string, string $character = " \t\n\r\0\x0B"): string
     {
         return ltrim($string, $character);
-    }
-
-    /**
-     * @param string $string
-     * @param int $byteLimit
-     * @param string $ellipsis
-     * @return string
-     */
-    public static function truncate(string $string, int $byteLimit, string $ellipsis = '...'): string
-    {
-        $length = mb_strlen($string);
-        $cut = mb_strcut($string, 0, $byteLimit, self::Encoding);
-        if (mb_strlen($cut) < $length) {
-            $cut .= $ellipsis;
-        }
-        return $cut;
     }
 
     /**

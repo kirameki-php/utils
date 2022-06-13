@@ -218,6 +218,28 @@ class StrTest extends TestCase
         self::assertFalse(Str::containsPattern('AB1C', '/\d]$/'));
     }
 
+    public function test_cut(): void
+    {
+        // empty
+        self::assertEquals('', Str::cut('', 0));
+
+        // basic
+        self::assertEquals('a', Str::cut('a', 1));
+        self::assertEquals('a', Str::cut('abc', 1));
+
+        // utf-8
+        self::assertEquals('', Str::cut('あいう', 1));
+        self::assertEquals('あ', Str::cut('あいう', 3));
+
+        // cut and replaced with ellipsis
+        self::assertEquals('a...', Str::cut('abc', 1, '...'));
+        self::assertEquals('...', Str::cut('あいう', 1, '...'));
+        self::assertEquals('あ...', Str::cut('あいう', 3, '...'));
+
+        // cut and replaced with custom ellipsis
+        self::assertEquals('a$', Str::cut('abc', 1, '$'));
+    }
+
     public function test_delete(): void
     {
         self::assertEquals('', Str::delete('aaa', 'a'));
@@ -279,6 +301,41 @@ class StrTest extends TestCase
         self::assertFalse(Str::endsWith("あ\n", 'あ'));
     }
 
+    public function test_firstIndexOf(): void
+    {
+        // empty string
+        self::assertFalse(Str::firstIndexOf('', 'a'));
+
+        // empty search
+        self::assertEquals(0, Str::firstIndexOf('ab', ''));
+
+        // find at 0
+        self::assertEquals(0, Str::firstIndexOf('a', 'a'));
+
+        // multiple matches
+        self::assertEquals(1, Str::firstIndexOf('abb', 'b'));
+
+        // offset (within bound)
+        self::assertEquals(1, Str::firstIndexOf('abb', 'b', 1));
+        self::assertEquals(5, Str::firstIndexOf('aaaaaa', 'a', 5));
+
+        // offset (out of bound)
+        self::assertEquals(false, Str::firstIndexOf('abb', 'b', 4));
+
+        // offset (negative)
+        self::assertEquals(2, Str::firstIndexOf('abb', 'b', -1));
+
+        // offset (negative)
+        self::assertEquals(false, Str::firstIndexOf('abb', 'b', -100));
+
+        // offset utf-8
+        self::assertEquals(0, Str::firstIndexOf('👨‍👨‍👧‍👦', '👨‍👨‍👧‍👦'));
+        self::assertFalse(Str::firstIndexOf('👨‍👨‍👧‍👦', '👨'));
+        self::assertEquals(1, Str::firstIndexOf('あいう', 'い', 1));
+        self::assertEquals(1, Str::firstIndexOf('🏴󠁧󠁢󠁳󠁣󠁴󠁿👨‍👨‍👧‍👦', '👨‍👨‍👧‍👦', 1));
+        self::assertFalse(Str::firstIndexOf('🏴󠁧󠁢󠁳󠁣󠁴󠁿👨‍👨‍👧‍👦', '👨‍👨‍👧‍👦', 2));
+    }
+
     public function test_insert(): void
     {
         self::assertEquals('xyzabc', Str::insert('abc', 'xyz', 0));
@@ -319,6 +376,41 @@ class StrTest extends TestCase
         self::assertEquals('test-test-test', Str::kebabCase('test test test'));
         self::assertEquals('-test--test--', Str::kebabCase(' test  test  '));
         self::assertEquals('--test-test-test--', Str::kebabCase("--test_test-test__"));
+    }
+
+    public function test_lastIndexOf(): void
+    {
+        // empty string
+        self::assertFalse(Str::lastIndexOf('', 'a'));
+
+        // empty search
+        self::assertEquals(2, Str::lastIndexOf('ab', ''));
+
+        // find at 0
+        self::assertEquals(0, Str::lastIndexOf('a', 'a'));
+
+        // multiple matches
+        self::assertEquals(2, Str::lastIndexOf('abb', 'b'));
+
+        // offset (within bound)
+        self::assertEquals(2, Str::lastIndexOf('abb', 'b', 1));
+        self::assertEquals(5, Str::lastIndexOf('aaaaaa', 'a', 5));
+
+        // offset (out of bound)
+        self::assertEquals(false, Str::lastIndexOf('abb', 'b', 4));
+
+        // offset (negative)
+        self::assertEquals(3, Str::lastIndexOf('abbb', 'b', -1));
+
+        // offset (negative)
+        self::assertEquals(false, Str::lastIndexOf('abb', 'b', -100));
+
+        // offset utf-8
+        self::assertEquals(0, Str::lastIndexOf('👨‍👨‍👧‍👦', '👨‍👨‍👧‍👦'));
+        self::assertFalse(Str::lastIndexOf('👨‍👨‍👧‍👦', '👨'));
+        self::assertEquals(1, Str::lastIndexOf('あいう', 'い', 1));
+        self::assertEquals(1, Str::lastIndexOf('🏴󠁧󠁢󠁳󠁣󠁴󠁿👨‍👨‍👧‍👦', '👨‍👨‍👧‍👦', 1));
+        self::assertFalse(Str::lastIndexOf('🏴󠁧󠁢󠁳󠁣󠁴󠁿👨‍👨‍👧‍👦', '👨‍👨‍👧‍👦', 2));
     }
 
     public function test_length(): void
@@ -413,12 +505,6 @@ class StrTest extends TestCase
         self::assertEquals('TestMe', Str::pascalCase('TestMe'));
         self::assertEquals('TestMe', Str::pascalCase(' test_me '));
         self::assertEquals('TestMeNow!', Str::pascalCase('test_me now-!'));
-    }
-
-    public function test_position(): void
-    {
-        self::assertEquals(0, Str::position('a', 'a'));
-        self::assertEquals(1, Str::position('ab', 'b'));
     }
 
     public function test_repeat(): void
@@ -689,26 +775,6 @@ class StrTest extends TestCase
 
         // custom multiple
         self::assertEquals('b_a_', Str::trimStart("_ab_a_", 'a_'));
-    }
-
-    public function test_truncate(): void
-    {
-        // empty
-        self::assertEquals('', Str::truncate('', 0));
-
-        // basic
-        self::assertEquals('a', Str::truncate('a', 1));
-        self::assertEquals('a...', Str::truncate('abc', 1));
-
-        // utf-8
-        self::assertEquals('...', Str::truncate('あいう', 1));
-        self::assertEquals('あ...', Str::truncate('あいう', 3));
-
-        // cut and replaced with ellipsis
-        self::assertEquals('a...', Str::truncate('abc', 1));
-
-        // cut and replaced with custom ellipsis
-        self::assertEquals('a$', Str::truncate('abc', 1, '$'));
     }
 
     public function test_wordWrap(): void
