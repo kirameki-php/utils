@@ -2,7 +2,7 @@
 
 namespace Kirameki\Utils\Support;
 
-final class Miss
+final class Nil
 {
     /**
      * @var self|null

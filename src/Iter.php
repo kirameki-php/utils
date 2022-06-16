@@ -215,7 +215,7 @@ class Iter
     }
 
     /**
-     * @template TKey
+     * @template TKey of array-key
      * @param iterable<TKey, mixed> $iterable Iterable to be traversed.
      * @return Iterator<int, TKey>
      */
@@ -227,7 +227,7 @@ class Iter
     }
 
     /**
-     * @template TKey
+     * @template TKey of array-key
      * @template TValue
      * @template TMapValue
      * @param iterable<TKey, TValue> $iterable Iterable to be traversed.

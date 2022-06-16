@@ -4,7 +4,7 @@ namespace Kirameki\Utils;
 
 use Closure;
 use Kirameki\Utils\Exception\DuplicateKeyException;
-use Kirameki\Utils\Support\Miss;
+use Kirameki\Utils\Support\Nil;
 use LogicException;
 use RuntimeException;
 use Webmozart\Assert\Assert;
@@ -25,10 +25,12 @@ use function array_reverse;
 use function array_shift;
 use function array_splice;
 use function array_unshift;
+use function array_values;
 use function arsort;
 use function asort;
 use function count;
 use function current;
+use function dump;
 use function end;
 use function get_resource_id;
 use function http_build_query;
@@ -139,11 +141,11 @@ class Arr
      */
     public static function atOrFail(iterable $iterable, int $position): mixed
     {
-        $miss = Miss::instance();
+        $miss = Nil::instance();
 
         $result = static::atOr($iterable, $position, $miss);
 
-        if ($result instanceof Miss) {
+        if ($result instanceof Nil) {
             throw new RuntimeException("Index out of bounds. position: $position");
         }
 
@@ -154,10 +156,10 @@ class Arr
      * @template TKey of array-key
      * @template TValue of float|int
      * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
-     * @param bool $allowEmpty Allow iterable to be empty. In which case it will return 0.
+     * @param bool $zeroOnEmpty Allow iterable to be empty. In which case it will return 0.
      * @return float|int
      */
-    public static function average(iterable $iterable, bool $allowEmpty = true): float|int
+    public static function average(iterable $iterable, bool $zeroOnEmpty = true): float|int
     {
         $size = 0;
         $sum = 0;
@@ -166,7 +168,7 @@ class Arr
             ++$size;
         }
 
-        if ($size === 0 && $allowEmpty) {
+        if ($size === 0 && $zeroOnEmpty) {
             return 0;
         }
 
@@ -285,31 +287,19 @@ class Arr
 
     /**
      * @template TKey of array-key
-     * @param iterable<TKey, mixed> $iterable Iterable to be traversed.
-     * @return int
-     */
-    public static function count(iterable $iterable): int
-    {
-        if (is_countable($iterable)) {
-            return count($iterable);
-        }
-        $count = 0;
-        foreach ($iterable as $ignored) {
-            ++$count;
-        }
-        return $count;
-    }
-
-    /**
-     * @template TKey of array-key
      * @template TValue
-     * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
+     * @param iterable<TKey, mixed> $iterable Iterable to be traversed.
      * @param Closure(TValue, TKey): bool $condition
      * @return int
      */
-    public static function countBy(iterable $iterable, Closure $condition): int
+    public static function count(iterable $iterable, ?Closure $condition = null): int
     {
+        if ($condition === null && is_countable($iterable)) {
+            return count($iterable);
+        }
+
         $count = 0;
+        $condition ??= static fn() => true;
         foreach ($iterable as $key => $val) {
             if (static::verify($condition, $key, $val)) {
                 ++$count;
@@ -336,7 +326,7 @@ class Arr
         $result = array_diff($array1, $array2);
 
         return $reindex
-            ? static::values($result)
+            ? array_values($result)
             : $result;
     }
 
@@ -358,7 +348,7 @@ class Arr
         $result = array_diff_key($array1, $array2);
 
         return $reindex
-            ? static::values($result)
+            ? array_values($result)
             : $result;
     }
 
@@ -465,7 +455,7 @@ class Arr
         }
 
         return $reindex
-            ? static::values($copy)
+            ? array_values($copy)
             : $copy;
     }
 
@@ -566,11 +556,11 @@ class Arr
      */
     public static function firstOrFail(iterable $iterable, ?Closure $condition = null): mixed
     {
-        $miss = Miss::instance();
+        $miss = Nil::instance();
 
         $result = static::firstOr($iterable, $miss, $condition);
 
-        if ($result instanceof Miss) {
+        if ($result instanceof Nil) {
             $message = ($condition !== null)
                 ? 'Failed to find matching condition.'
                 : 'Iterable must contain at least one element.';
@@ -696,10 +686,10 @@ class Arr
      */
     public static function getOrFail(iterable $iterable, int|string $key)
     {
-        $miss = Miss::instance();
+        $miss = Nil::instance();
         $result = static::getOr($iterable, $key, $miss);
 
-        if ($result instanceof Miss) {
+        if ($result instanceof Nil) {
             throw new RuntimeException("Undefined array key $key");
         }
 
@@ -809,7 +799,7 @@ class Arr
         $result = array_intersect($array, static::from($items));
 
         return $reindex
-            ? static::values($result)
+            ? array_values($result)
             : $result;
     }
 
@@ -940,25 +930,30 @@ class Arr
      * @template TKey of array-key
      * @template TValue
      * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
-     * @param Closure(TValue, TKey): bool $condition
+     * @param Closure(TValue, TKey): bool|null $condition
      * @return int|null
      */
-    public static function lastIndex(iterable $iterable, Closure $condition): ?int
+    public static function lastIndex(iterable $iterable, ?Closure $condition = null): ?int
     {
         $array = static::from($iterable);
-        end($array);
 
         $count = count($array);
 
-        while(($key = key($array)) !== null) {
-            $count--;
-            $val = current($array);
-            /** @var TKey $key */
-            /** @var TValue $val */
-            if (static::verify($condition, $key, $val)) {
-                return $count;
+        if ($count > 0) {
+            if ($condition === null) {
+                return $count - 1;
             }
-            prev($array);
+            end($array);
+            while(($key = key($array)) !== null) {
+                --$count;
+                $val = current($array);
+                /** @var TKey $key */
+                /** @var TValue $val */
+                if (static::verify($condition, $key, $val)) {
+                    return $count;
+                }
+                prev($array);
+            }
         }
 
         return null;
@@ -1029,11 +1024,11 @@ class Arr
      */
     public static function lastOrFail(iterable $iterable, ?Closure $condition = null): mixed
     {
-        $miss = Miss::instance();
+        $miss = Nil::instance();
 
         $result = static::lastOr($iterable, $miss, $condition);
 
-        if ($result instanceof Miss) {
+        if ($result instanceof Nil) {
             $message = ($condition !== null)
                 ? 'Failed to find matching condition.'
                 : 'Iterable must contain at least one element.';
@@ -1044,7 +1039,7 @@ class Arr
     }
 
     /**
-     * @template TKey
+     * @template TKey of array-key
      * @template TValue
      * @template TMapValue
      * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
@@ -1057,33 +1052,21 @@ class Arr
     }
 
     /**
-     * @template T
-     * @param iterable<array-key, T> $iterable Iterable to be traversed.
-     * @return T
-     */
-    public static function max(iterable $iterable): mixed
-    {
-        $result = static::maxBy($iterable, static fn(mixed $val): mixed => $val);
-        if ($result === null) {
-            throw new RuntimeException('$iterable must contain at least one value');
-        }
-        return $result;
-    }
-
-    /**
-     * @template TKey
+     * @template TKey of array-key
      * @template TValue
      * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
-     * @param Closure(TValue, TKey): mixed $callback
+     * @param Closure(TValue, TKey): mixed|null $by
      * @return TValue
      */
-    public static function maxBy(iterable $iterable, Closure $callback)
+    public static function max(iterable $iterable, ?Closure $by = null)
     {
+        $by ??= static fn(mixed $val, int|string $key): mixed => $val;
+
         $maxResult = null;
-        $maxValue = null;
+        $maxVal = null;
 
         foreach ($iterable as $key => $val) {
-            $result = $callback($val, $key);
+            $result = $by($val, $key);
 
             if ($result === null) {
                 throw new RuntimeException("Non-comparable value \"null\" returned for key: $key");
@@ -1091,15 +1074,15 @@ class Arr
 
             if ($maxResult === null || $result > $maxResult) {
                 $maxResult = $result;
-                $maxValue = $val;
+                $maxVal = $val;
             }
         }
 
-        if ($maxValue === null) {
+        if ($maxVal === null) {
             throw new RuntimeException('$iterable must contain at least one value');
         }
 
-        return $maxValue;
+        return $maxVal;
     }
 
     /**
@@ -1146,35 +1129,22 @@ class Arr
     /**
      * @template TKey of array-key
      * @template TValue
-     * @param iterable<TKey, TValue> $iterable
-     * @return TValue
-     */
-    public static function min(iterable $iterable): mixed
-    {
-        $result = static::minBy($iterable, static fn(mixed $val): mixed => $val);
-        if ($result === null) {
-            throw new RuntimeException('$iterable must contain at least one value');
-        }
-        return $result;
-    }
-
-    /**
-     * @template TKey of array-key
-     * @template TValue
      * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
-     * @param Closure(TValue, TKey): mixed $callback
+     * @param Closure(TValue, TKey): mixed|null $by
      * @return TValue|null
      */
-    public static function minBy(iterable $iterable, Closure $callback)
+    public static function min(iterable $iterable, ?Closure $by = null): mixed
     {
+        $by ??= static fn(mixed $val, int|string $key): mixed => $val;
+
         $minResult = null;
         $minVal = null;
 
         foreach ($iterable as $key => $val) {
-            $result = $callback($val, $key);
+            $result = $by($val, $key);
 
             if ($result === null) {
-                throw new RuntimeException("Non-comparable value \"null\" returned for key: $key");
+                throw new RuntimeException("Non-comparable type \"null\"");
             }
 
             if ($minResult === null || $result < $minResult) {
@@ -1183,34 +1153,54 @@ class Arr
             }
         }
 
+        if ($minVal === null) {
+            throw new RuntimeException('$iterable must contain at least one value');
+        }
+
         return $minVal;
     }
 
     /**
-     * @template T
-     * @param iterable<array-key, T> $iterable Iterable to be traversed.
-     * @return array{ min: T, max: T }
+     * @template TKey of array-key
+     * @template TValue
+     * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
+     * @param Closure(TValue, TKey): mixed|null $by
+     * @return array{ min: TValue, max: TValue }
      */
-    public static function minMax(iterable $iterable): array
+    public static function minMax(iterable $iterable, ?Closure $by = null): array
     {
-        $min = null;
-        $max = null;
-        foreach ($iterable as $val) {
-            if ($min === null || $min > $val) {
-                $min = $val;
+        $by ??= static fn(mixed $val, int|string $key): mixed => $val;
+
+        $minResult = null;
+        $minVal = null;
+        $maxResult = null;
+        $maxVal = null;
+
+        foreach ($iterable as $key => $val) {
+            $result = $by($val, $key);
+
+            if ($result === null) {
+                throw new RuntimeException("Non-comparable type \"null\"");
             }
-            if ($max === null || $max < $val) {
-                $max = $val;
+
+            if ($minResult === null || $result < $minResult) {
+                $minResult = $result;
+                $minVal = $val;
+            }
+
+            if ($maxResult === null || $result > $maxResult) {
+                $maxResult = $result;
+                $maxVal = $val;
             }
         }
 
-        if ($min === null || $max === null) {
-            throw new RuntimeException('Iterable must contain at least one element.');
+        if ($minVal === null || $maxVal === null) {
+            throw new RuntimeException('$iterable must contain at least one value');
         }
 
         return [
-            'min' => $min,
-            'max' => $max,
+            'min' => $minVal,
+            'max' => $maxVal,
         ];
     }
 
@@ -1360,11 +1350,9 @@ class Arr
 
         $result = static::merge($prioritized, $remains);
 
-        if ($reindex) {
-            static::reindex($result);
-        }
-
-        return $result;
+        return $reindex
+            ? array_values($result)
+            : $result;
     }
 
     /**
@@ -1417,9 +1405,9 @@ class Arr
      */
     public static function pullOrFail(array &$array, int|string $key, ?bool $reindex = null): mixed
     {
-        $miss = Miss::instance();
+        $miss = Nil::instance();
         $result = static::pullOr($array, $key, $miss, $reindex);
-        if ($result instanceof Miss) {
+        if ($result instanceof Nil) {
             throw new RuntimeException("Tried to pull undefined array key \"$key\"");
         }
         return $result;
@@ -1485,9 +1473,17 @@ class Arr
      */
     public static function reindex(array &$array): void
     {
-        $size = count($array);
-        if ($size > 0) {
-            array_splice($array, $size);
+        if (array_is_list($array)) {
+            return;
+        }
+
+        $placeholder = [];
+        foreach ($array as $key => $val) {
+            unset($array[$key]);
+            $placeholder[] = $val;
+        }
+        foreach ($placeholder as $i => $val) {
+            $array[$i] = $val;
         }
     }
 
@@ -1593,11 +1589,9 @@ class Arr
             $result[$key] = $val;
         }
 
-        if ($reindex ?? array_is_list($array)) {
-            static::reindex($result);
-        }
-
-        return $result;
+        return ($reindex ?? array_is_list($array))
+            ? array_values($result)
+            : $result;
     }
 
     /**
@@ -1799,50 +1793,16 @@ class Arr
      * @template TKey of array-key
      * @template TValue
      * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
+     * @param Closure(TValue, TKey): mixed|null $by
      * @param int $flag
      * @param bool|null $reindex
      * @return array<TKey, TValue>
      */
-    public static function sort(iterable $iterable, int $flag = SORT_REGULAR, ?bool $reindex = null): array
+    public static function sort(iterable $iterable, ?Closure $by = null, int $flag = SORT_REGULAR, ?bool $reindex = null): array
     {
-        $copy = static::from($iterable);
-        $reindex ??= array_is_list($copy);
-
-        asort($copy, $flag);
-
-        if ($reindex) {
-            static::reindex($copy);
-        }
-
-        return $copy;
-    }
-
-    /**
-     * @template TKey of array-key
-     * @template TValue
-     * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
-     * @param Closure(TValue, TKey): mixed $callback
-     * @param int $flag
-     * @param bool|null $reindex
-     * @return array<TKey, TValue>
-     */
-    public static function sortBy(iterable $iterable, Closure $callback, int $flag = SORT_REGULAR, ?bool $reindex = null): array
-    {
-        return static::sortByInternal($iterable, $callback, $flag, true, $reindex);
-    }
-
-    /**
-     * @template TKey of array-key
-     * @template TValue
-     * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
-     * @param Closure(TValue, TKey): mixed $callback
-     * @param int $flag
-     * @param bool|null $reindex
-     * @return array<TKey, TValue>
-     */
-    public static function sortByDesc(iterable $iterable, Closure $callback, int $flag = SORT_REGULAR, ?bool $reindex = null): array
-    {
-        return static::sortByInternal($iterable, $callback, $flag, false, $reindex);
+        return $by !== null
+            ? static::sortByInternal($iterable, $by, $flag, true, $reindex)
+            : static::sortInternal($iterable, true, $flag, $reindex);
     }
 
     /**
@@ -1877,58 +1837,16 @@ class Arr
      * @template TKey of array-key
      * @template TValue
      * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
-     * @param Closure(TValue, TKey): mixed $callback
-     * @param int $flag
-     * @param bool $ascending
-     * @param bool|null $reindex
-     * @return array<TKey, TValue>
-     */
-    protected static function sortByInternal(iterable $iterable, Closure $callback, int $flag, bool $ascending, ?bool $reindex): array
-    {
-        $copy = static::from($iterable);
-        $reindex ??= array_is_list($copy);
-
-        $refs = [];
-        foreach ($copy as $key => $item) {
-            $refs[$key] = $callback($item, $key);
-        }
-
-        $ascending
-            ? asort($refs, $flag)
-            : arsort($refs, $flag);
-
-        $sorted = [];
-        foreach ($refs as $key => $_) {
-            $sorted[$key] = $copy[$key];
-        }
-
-        if ($reindex) {
-            static::reindex($sorted);
-        }
-
-        return $sorted;
-    }
-
-    /**
-     * @template TKey of array-key
-     * @template TValue
-     * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
+     * @param Closure(TValue, TKey): mixed|null $by
      * @param int $flag
      * @param bool|null $reindex
      * @return array<TKey, TValue>
      */
-    public static function sortDesc(iterable $iterable, int $flag = SORT_REGULAR, ?bool $reindex = null): array
+    public static function sortDesc(iterable $iterable, ?Closure $by = null, int $flag = SORT_REGULAR, ?bool $reindex = null): array
     {
-        $copy = static::from($iterable);
-        $reindex ??= array_is_list($copy);
-
-        arsort($copy, $flag);
-
-        if ($reindex) {
-            static::reindex($copy);
-        }
-
-        return $copy;
+        return $by !== null
+            ? static::sortByInternal($iterable, $by, $flag, false, $reindex)
+            : static::sortInternal($iterable, false, $flag, $reindex);
     }
 
     /**
@@ -1946,11 +1864,9 @@ class Arr
 
         uasort($copy, $comparison);
 
-        if ($reindex) {
-            static::reindex($copy);
-        }
-
-        return $copy;
+        return $reindex
+            ? array_values($copy)
+            : $copy;
     }
 
     /**
@@ -2003,11 +1919,9 @@ class Arr
             $reindex,
         );
 
-        if ($reindex) {
-            static::reindex($result);
-        }
-
-        return $result;
+        return $reindex
+            ? array_values($result)
+            : $result;
     }
 
     /**
@@ -2031,11 +1945,9 @@ class Arr
             $reindex,
         );
 
-        if ($reindex) {
-            static::reindex($result);
-        }
-
-        return $result;
+        return $reindex
+            ? array_values($result)
+            : $result;
     }
 
     /**
@@ -2089,73 +2001,20 @@ class Arr
     }
 
     /**
-     * @template TKey of array-key
-     * @template TValue
-     * @param iterable<TKey, TValue> $iterable1 Iterable to be traversed.
-     * @param iterable<TKey, TValue> $iterable2
-     * @param bool|null $reindex
-     * @return array<TKey, TValue>
-     */
-    public static function union(iterable $iterable1, iterable $iterable2, ?bool $reindex = null): array
-    {
-        return static::unionRecursive($iterable1, $iterable2, 1, $reindex);
-    }
-
-    /**
-     * @template TKey of array-key
-     * @template TValue
-     * @param iterable<TKey, TValue> $iterable1 Iterable to be traversed.
-     * @param iterable<TKey, TValue> $iterable2
-     * @param int<1, max> $depth
-     * @param bool|null $reindex
-     * @return array<TKey, TValue>
-     */
-    public static function unionRecursive(iterable $iterable1, iterable $iterable2, int $depth = PHP_INT_MAX, ?bool $reindex = null): array
-    {
-        $union = static::from($iterable1);
-        $reindex ??= array_is_list($union);
-
-        foreach ($iterable2 as $key => $val) {
-            if ($reindex) {
-                $union[] = $val;
-            } else if (!array_key_exists($key, $union)) {
-                $union[$key] = $val;
-            } else if ($depth > 1 && is_iterable($union[$key]) && is_iterable($val)) {
-                $union[$key] = static::unionRecursive($union[$key], $val, $depth - 1);
-            }
-        }
-
-        /** @var array<TKey, TValue> $union */
-        return $union;
-    }
-
-    /**
-     * @see uniqueBy for details
-     *
-     * @template TKey of array-key
-     * @template TValue
-     * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
-     * @param bool|null $reindex
-     * @return array<TKey, TValue>
-     */
-    public static function unique(iterable $iterable, ?bool $reindex = null): array
-    {
-        return static::uniqueBy($iterable, static fn($val) => $val, $reindex);
-    }
-
-    /**
      * Must do custom unique because array_unique does a string conversion before comparing.
      * For example, `[1, true, null, false]` will result in: `[0 => 1, 2 => null]` 🤦
      *
      * @template TKey of array-key
      * @template TValue
      * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
-     * @param Closure(TValue, TKey): bool $callback
+     * @param Closure(TValue, TKey): bool|null $by
      * @param bool|null $reindex
      * @return array<TKey, TValue>
      */
-    public static function uniqueBy(iterable $iterable, Closure $callback, ?bool $reindex = null): array
+    public static function unique(iterable $iterable, ?Closure $by = null, ?bool $reindex = null): array
     {
+        $by ??= static fn(mixed $val, int|string $key) => $val;
+
         $array = static::from($iterable);
         $reindex ??= array_is_list($array);
 
@@ -2163,7 +2022,7 @@ class Arr
         $preserved = [];
 
         foreach ($array as $key => $val) {
-            $ref = static::valueToKey($callback($val, $key));
+            $ref = static::valueToKey($by($val, $key));
             if (!array_key_exists($ref, $refs)) {
                 $refs[$ref] = null;
                 $reindex
@@ -2202,19 +2061,6 @@ class Arr
     }
 
     /**
-     * @template TKey of array-key
-     * @template TValue
-     * @param Closure(TValue, TKey): bool $condition
-     * @param TKey $key
-     * @param TValue $val
-     * @return bool
-     */
-    protected static function verify(Closure $condition, mixed $key, mixed $val): bool
-    {
-        return $condition($val, $key);
-    }
-
-    /**
      * @param mixed $key
      * @return int|string
      */
@@ -2226,6 +2072,63 @@ class Arr
 
         $type = Type::of($key);
         throw new LogicException("Key of array must be int or string. $type given.");
+    }
+
+    /**
+     * @template TKey of array-key
+     * @template TValue
+     * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
+     * @param Closure(TValue, TKey): mixed $callback
+     * @param int $flag
+     * @param bool $ascending
+     * @param bool|null $reindex
+     * @return array<TKey, TValue>
+     */
+    protected static function sortByInternal(iterable $iterable, Closure $callback, int $flag, bool $ascending, ?bool $reindex): array
+    {
+        $copy = static::from($iterable);
+        $reindex ??= array_is_list($copy);
+
+        $refs = [];
+        foreach ($copy as $key => $item) {
+            $refs[$key] = $callback($item, $key);
+        }
+
+        $ascending
+            ? asort($refs, $flag)
+            : arsort($refs, $flag);
+
+        $sorted = [];
+        foreach ($refs as $key => $_) {
+            $sorted[$key] = $copy[$key];
+        }
+
+        return $reindex
+            ? array_values($sorted)
+            : $sorted;
+    }
+
+    /**
+     * @template TKey of array-key
+     * @template TValue
+     * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
+     * @param int $flag
+     * @param bool $ascending
+     * @param bool|null $reindex
+     * @return array<TKey, TValue>
+     */
+    protected static function sortInternal(iterable $iterable, bool $ascending = true, int $flag = SORT_REGULAR, ?bool $reindex = null): array
+    {
+        $copy = static::from($iterable);
+        $reindex ??= array_is_list($copy);
+
+        $ascending
+            ? asort($copy, $flag)
+            : arsort($copy, $flag);
+
+        return $reindex
+            ? array_values($copy)
+            : $copy;
     }
 
     /**
@@ -2245,5 +2148,18 @@ class Arr
             is_resource($val) => 'r:' . get_resource_id($val),
             default => throw new LogicException('Invalid Type: ' . Type::of($val)),
         };
+    }
+
+    /**
+     * @template TKey of array-key
+     * @template TValue
+     * @param Closure(TValue, TKey): bool $condition
+     * @param TKey $key
+     * @param TValue $val
+     * @return bool
+     */
+    protected static function verify(Closure $condition, mixed $key, mixed $val): bool
+    {
+        return $condition($val, $key);
     }
 }
