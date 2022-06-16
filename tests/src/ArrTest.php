@@ -21,6 +21,7 @@ use function dd;
 use function dump;
 use function in_array;
 use function json_encode;
+use function strlen;
 
 class ArrTest extends TestCase
 {
@@ -1124,13 +1125,16 @@ class ArrTest extends TestCase
     public function test_merge(): void
     {
         // empty
+        self::assertEquals([], Arr::merge([], []));
+
+        // empty left
         self::assertEquals([1, [2]], Arr::merge([], [1, [2]]));
 
         // merge list
-        self::assertSame([1, 2, 3, 4], Arr::merge([1, 2], [3, 4]));
+        self::assertEquals([1, 2, 3, 4], Arr::merge([1, 2], [3, 4]));
 
         // merge assoc
-        self::assertSame([3, 2, 'a' => 4], Arr::merge([1, 2], [3, 'a' => 4]));
+        self::assertEquals([1, 2, 3, 'a' => 4], Arr::merge([1, 2], [3, 'a' => 4]));
 
         // merge assoc with list
         self::assertEquals(['0' => 1, 1, [2]], Arr::merge(['0' => 1], [1, [2]]));
@@ -1139,155 +1143,159 @@ class ArrTest extends TestCase
         self::assertEquals([1, [2], 'a' => 1], Arr::merge([1, [2]], ['a' => 1]));
 
         // latter array takes precedence
-        self::assertSame(['a' => [3]], Arr::merge(['a' => [1, 2]], ['a' => [3]]));
-
-        // no recursive merge
+        self::assertEquals(['a' => [3]], Arr::merge(['a' => [1, 2]], ['a' => [3]]));
     }
 
-    /**
     public function test_mergeRecursive(): void
     {
-        $seq = $this->seq([])->mergeRecursive([]);
-        self::assertEquals([], $seq->toArray());
+        // empty
+        self::assertEquals([], Arr::mergeRecursive([], []));
 
-        $seq = $this->seq([1, 2])->mergeRecursive([3]);
-        self::assertEquals([1, 2, 3], $seq->toArray());
+        // basic merge list
+        self::assertEquals([1, 2, 3], Arr::mergeRecursive([1, 2], [3]));
 
-        $seq = $this->seq(['a' => 1])->mergeRecursive(['a' => 2]);
-        self::assertEquals(['a' => 2], $seq->toArray());
+        // basic merge assoc
+        self::assertEquals(['a' => 1, 'b' => 2], Arr::mergeRecursive(['a' => 1], ['b' => 2]));
 
-        $seq = $this->seq(['a' => 1])->mergeRecursive(['b' => 2, 'a' => 2]);
-        self::assertEquals(['a' => 2, 'b' => 2], $seq->toArray());
+        // latter takes precedence
+        self::assertEquals(['a' => 2], Arr::mergeRecursive(['a' => 1], ['a' => 2]));
 
-        $seq = $this->seq(['a' => 1])->mergeRecursive(['b' => 2]);
-        self::assertEquals(['a' => 1, 'b' => 2], $seq->toArray());
+        // don't mix value types like array_merge
+        self::assertEquals(['a' => ['c' => 1]], Arr::mergeRecursive(['a' => 1], ['a' => ['c' => 1]]));
 
-        $seq = $this->seq(['a' => 1])->mergeRecursive(['a' => ['c' => 1]]);
-        self::assertEquals(['a' => ['c' => 1]], $seq->toArray());
+        // merge inner arrays
+        self::assertEquals(['a' => [1, 2, 'c' => 1]], Arr::mergeRecursive(['a' => [1, 2]], ['a' => ['c' => 1]]));
 
-        $seq = $this->seq(['a' => [1,2]])->mergeRecursive(['a' => ['c' => 1]]);
-        self::assertEquals(['a' => [1, 2, 'c' => 1]], $seq->toArray());
-
-        $seq = $this->seq(['a' => ['b' => 1], 'd' => 4])->mergeRecursive(['a' => ['c' => 2], 'b' => 3]);
-        self::assertEquals(['a' => ['b' => 1, 'c' => 2], 'b' => 3, 'd' => 4], $seq->toArray());
+        // complex merge
+        $merged = Arr::mergeRecursive(['a' => ['b' => 1], 'd' => 4], ['a' => ['c' => 2], 'b' => 3]);
+        self::assertEquals(['a' => ['b' => 1, 'c' => 2], 'b' => 3, 'd' => 4], $merged);
     }
 
     public function test_min(): void
     {
-        $seq = $this->seq([1, 2, 3, 10, -1]);
-        self::assertEquals(-1, $seq->min());
+        // list
+        self::assertEquals(0, Arr::min([1, 2, 3, 0, 1]));
+        self::assertEquals(-100, Arr::min([-100, 2, 3, 10, 1]));
+        self::assertEquals(-90, Arr::min([1, 2, 3, 10, 1, -90, 100]));
+        self::assertEquals(-100, Arr::min([1, 2, 3, 10, 1, 90, -100]));
 
-        $seq = $this->seq([0, -1]);
-        self::assertEquals(-1, $seq->min());
+        // assoc
+        self::assertEquals(1, Arr::min(['a' => 100, 'b' => 10, 'c' => 1]));
 
-        $seq = $this->seq([1, 10, -100]);
-        self::assertEquals(-100, $seq->min());
+        // min by value
+        self::assertEquals(1, Arr::min(['a' => 2, 'b' => 1], static fn($v, $k) => $v));
+
+        // min by key
+        self::assertEquals(2, Arr::min(['a' => 2, 'b' => 1], static fn($v, $k) => $k));
+
+        // value with condition
+        self::assertEquals(1, Arr::min(['a' => 2, 'b' => 1], static fn($v, $k) => $v));
+
+        // key with condition
+        self::assertEquals(2, Arr::min(['a' => 2, 'b' => 1], static fn($v, $k) => $k));
     }
 
-    public function test_minBy(): void
+    public function test_min_with_empty(): void
     {
-        self::assertEquals(
-            null,
-            $this->seq([])->minBy(fn(array $arr) => 1),
-            'minBy with empty array'
-        );
-
-        self::assertEquals(
-            1,
-            $this->seq(['a' => 2, 'b' => 1])->minBy(fn($v, $k) => $v),
-            'minBy using value'
-        );
-
-        self::assertEquals(
-            2,
-            $this->seq(['a' => 2, 'b' => 1])->minBy(fn($v, $k) => $k),
-            'minBy using key'
-        );
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('$iterable must contain at least one value');
+        Arr::min([]);
     }
 
     public function test_minMax(): void
     {
-        $seq = $this->seq([1]);
-        self::assertEquals(['min' => 1, 'max' => 1], $seq->minMax());
+        // only one array
+        self::assertEquals(['min' => 1, 'max' => 1], Arr::minMax([1]));
 
-        $seq = $this->seq([1, 10, -100]);
-        self::assertEquals(['min' => -100, 'max' => 10], $seq->minMax());
+        // basic usage
+        self::assertEquals(['min' => -100, 'max' => 10], Arr::minMax([1, 10, -100]));
+
+        // with condition list
+        self::assertEquals(['min' => 1, 'max' => 2], Arr::minMax([2, 1], static fn($v, $k) => $v));
+
+        // with condition assoc
+        self::assertEquals(['min' => 1, 'max' => 2], Arr::minMax(['a' => 2, 'b' => 1], static fn($v, $k) => $v));
     }
 
     public function test_minMax_empty(): void
     {
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Iterable must contain at least one element.');
-        $this->seq([])->minMax();
+        $this->expectExceptionMessage('$iterable must contain at least one value');
+        Arr::minMax([]);
     }
 
     public function test_notContains(): void
     {
-        self::assertTrue($this->seq([])->notContains(0));
-        self::assertTrue($this->seq([])->notContains(null));
-        self::assertTrue($this->seq([])->notContains([]));
-        self::assertTrue($this->seq([null, 0])->notContains(false));
-        self::assertTrue($this->seq([null, 0])->notContains(1));
-        self::assertTrue($this->seq(['a' => 1])->notContains('a'));
-        self::assertFalse($this->seq([null, 0])->notContains(null));
-        self::assertFalse($this->seq([null, []])->notContains([]));
-        self::assertFalse($this->seq(['a' => 1, 0])->notContains(1));
+        self::assertTrue(Arr::notContains([], 0));
+        self::assertTrue(Arr::notContains([], null));
+        self::assertTrue(Arr::notContains([], []));
+        self::assertTrue(Arr::notContains([null, 0], false));
+        self::assertTrue(Arr::notContains([null, 0], 1));
+        self::assertTrue(Arr::notContains(['a' => 1], 'a'));
+        self::assertFalse(Arr::notContains([null, 0], null));
+        self::assertFalse(Arr::notContains([null, []], []));
+        self::assertFalse(Arr::notContains(['a' => 1, 0], 1));
     }
 
     public function test_notContainsKey(): void
     {
-        self::assertTrue($this->seq([])->notContainsKey(0));
-        self::assertTrue($this->seq([])->notContainsKey(1));
-        self::assertTrue($this->seq(['b' => 1])->notContainsKey('a'));
-        self::assertFalse($this->seq([1])->notContainsKey(0));
-        self::assertFalse($this->seq([11 => 1])->notContainsKey(11));
-        self::assertFalse($this->seq(['a' => 1, 0])->notContainsKey('a'));
+        self::assertTrue(Arr::notContainsKey([], 0));
+        self::assertTrue(Arr::notContainsKey([], 1));
+        self::assertTrue(Arr::notContainsKey(['b' => 1], 'a'));
+        self::assertFalse(Arr::notContainsKey([1], 0));
+        self::assertFalse(Arr::notContainsKey([11 => 1], 11));
+        self::assertFalse(Arr::notContainsKey(['a' => 1, 0], 'a'));
     }
 
-    public function test_notEquals(): void
-    {
-        self::assertTrue($this->seq([])->notEquals($this->seq([1])));
-        self::assertTrue($this->seq([])->notEquals($this->seq([null])));
-        self::assertTrue($this->seq(['b' => 1])->notEquals($this->seq(['a' => 1])));
-        self::assertFalse($this->seq([1])->notEquals($this->seq([1])));
-        self::assertFalse($this->seq(['a' => 1])->notEquals($this->seq(['a' => 1])));
-    }
     public function test_only(): void
     {
         // with list array
-        $seq = $this->seq([1, 2, 3]);
-        self::assertEquals([2], $seq->only([1])->toArray());
+        self::assertEquals([2], Arr::only([1, 2, 3], [1]));
 
         // with assoc array
-        $seq = $this->seq(['a' => 1, 'b' => 2, 'c' => 3]);
-        self::assertEquals(['a' => 1, 'b' => 2], $seq->only(['a', 'b'])->toArray());
+        self::assertEquals(['a' => 1, 'b' => 2], Arr::only(['a' => 1, 'b' => 2, 'c' => 3], ['a', 'b']));
 
         // different order of keys
-        self::assertEquals(['c' => 3, 'b' => 2], $seq->only(['c', 'b'])->toArray());
+        self::assertEquals(['c' => 3, 'b' => 2], Arr::only(['a' => 1, 'b' => 2, 'c' => 3], ['c', 'b']));
 
         // different order of keys
-        self::assertEquals(['c' => 3, 'b' => 2], $seq->only(['x' => 'c', 'b'])->toArray());
+        self::assertEquals(['c' => 3, 'b' => 2], Arr::only(['a' => 1, 'b' => 2, 'c' => 3], ['x' => 'c', 'b']));
     }
 
     public function test_only_WithUndefinedKey(): void
     {
-        $this->expectException(ErrorException::class);
-        $this->expectExceptionMessage('Undefined array key "a"');
-        self::assertEquals([], $this->seq([])->only(['a'])->toArray());
+        $this->expectError();
+        $this->expectErrorMessage('Undefined array key "a"');
+        self::assertEquals([], Arr::only([], ['a']));
     }
 
     public function test_prioritize(): void
     {
-        $seq = $this->seq([1, 2, 3])->prioritize(fn(int $i) => $i === 2);
-        self::assertEquals([2, 1, 3], $seq->values()->toArray());
+        // empty
+        self::assertEquals([], Arr::prioritize([], static fn() => true));
 
-        $seq = $this->seq(['a' => 1, 'bc' => 2, 'de' => 2, 'b' => 2])->prioritize(fn($_, string $k) => strlen($k) > 1);
-        self::assertEquals(['bc', 'de', 'a', 'b'], $seq->keys()->toArray());
+        // no change
+        $prioritized = Arr::prioritize([1, 2, 3], static fn() => false);
+        self::assertEquals([1, 2, 3], $prioritized);
 
-        $seq = $this->seq([1, 2, 3])->prioritize(fn() => false);
-        self::assertEquals([1, 2, 3], $seq->toArray());
+        // list
+        $prioritized = Arr::prioritize([1, 2, 3], static fn(int $i) => $i === 2);
+        self::assertEquals([2, 1, 3], $prioritized);
+
+        // assoc
+        $prioritized = Arr::prioritize(['a' => 1, 'bc' => 2, 'de' => 2, 'b' => 2], static fn($_, string $k) => strlen($k) > 1);
+        self::assertEquals(['bc', 'de', 'a', 'b'], Arr::keys($prioritized));
+
+        // reindex: true
+        $prioritized = Arr::prioritize(['a' => 1, 'bc' => 2, 'de' => 2, 'b' => 2], static fn($_, string $k) => strlen($k) > 1, reindex: true);
+        self::assertEquals([0, 1, 2, 3], Arr::keys($prioritized));
+
+        // reindex: false
+        $prioritized = Arr::prioritize([1, 2, 3, 4], static fn($_, int $k) => $k > 1, reindex: true);
+        self::assertEquals([0, 1, 2, 3], Arr::keys($prioritized));
     }
 
+    /**
     public function test_reduce(): void
     {
         $reduced = $this->seq(['a' => 1])->reduce(fn(int $c, $i, $k) => 0);
