@@ -1460,7 +1460,7 @@ class Arr
             }
         }
 
-        Assert::notNull($result);
+        Assert::notNull($result, 'Iterable must contain at least one element.');
 
         return $result;
     }
@@ -1565,7 +1565,6 @@ class Arr
     public static function rotate(iterable $iterable, int $count, ?bool $reindex = null): array
     {
         $array = static::from($iterable);
-
         $ptr = 0;
         $result = [];
         $rotated = [];
@@ -1574,17 +1573,19 @@ class Arr
             $count = count($array) + $count;
         }
 
-        foreach ($array as $key => $val) {
-            if ($ptr < $count) {
-                $rotated[$key] = $val;
-            } else {
+        if ($count !== 0) {
+            foreach ($array as $key => $val) {
+                if ($ptr < $count) {
+                    $rotated[$key] = $val;
+                } else {
+                    $result[$key] = $val;
+                }
+                ++$ptr;
+            }
+
+            foreach ($rotated as $key => $val) {
                 $result[$key] = $val;
             }
-            ++$ptr;
-        }
-
-        foreach ($rotated as $key => $val) {
-            $result[$key] = $val;
         }
 
         return ($reindex ?? array_is_list($array))
@@ -1914,7 +1915,6 @@ class Arr
         $result = static::merge(
             array_diff($array1, $array2),
             array_diff($array2, $array1),
-            $reindex,
         );
 
         return $reindex
@@ -1940,7 +1940,6 @@ class Arr
         $result = static::merge(
             array_diff_key($array1, $array2),
             array_diff_key($array2, $array1),
-            $reindex,
         );
 
         return $reindex
@@ -2005,7 +2004,7 @@ class Arr
      * @template TKey of array-key
      * @template TValue
      * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
-     * @param Closure(TValue, TKey): bool|null $by
+     * @param Closure(TValue, TKey): mixed|null $by
      * @param bool|null $reindex
      * @return array<TKey, TValue>
      */

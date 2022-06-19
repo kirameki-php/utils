@@ -14,14 +14,13 @@ use LogicException;
 use RuntimeException;
 use stdClass;
 use TypeError;
-use function array_is_list;
 use function array_keys;
 use function array_values;
-use function dd;
-use function dump;
 use function in_array;
-use function json_encode;
+use function mt_srand;
+use function range;
 use function strlen;
+use function urlencode;
 
 class ArrTest extends TestCase
 {
@@ -569,6 +568,40 @@ class ArrTest extends TestCase
         });
     }
 
+    public function test_get(): void
+    {
+        $list = [1, 2];
+        self::assertEquals(2, Arr::get($list, 1));
+        self::assertEquals(null, Arr::get($list, 2));
+
+        $assoc = ['a' => 1, 'b' => 2];
+        self::assertEquals(1, Arr::get($assoc, 'a'));
+        self::assertEquals(null, Arr::get($assoc, 'f'));
+    }
+
+    public function test_getOr(): void
+    {
+        $assoc = ['a' => 1, 'b' => 2];
+        self::assertEquals(1, Arr::getOr($assoc, 'a', Nil::instance()));
+        self::assertEquals(Nil::instance(), Arr::getOr($assoc, 'c', Nil::instance()));
+    }
+
+    public function test_getOrFail(): void
+    {
+        $list = [1, 2];
+        self::assertEquals(2, Arr::getOrFail($list, 1));
+
+        $assoc = ['a' => 1, 'b' => 2];
+        self::assertEquals(1, Arr::getOrFail($assoc, 'a'));
+    }
+
+    public function test_getOrFail_invalid_key_exception(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Undefined array key 2');
+        Arr::getOrFail([1, 2], 2);
+    }
+
     public function test_except(): void
     {
         // empty array
@@ -830,6 +863,44 @@ class ArrTest extends TestCase
         $this->expectError();
         $this->expectErrorMessage('Undefined array key "id"');
         Arr::groupBy([['dummy' => 3]], 'id'); /** @phpstan-ignore-line */
+    }
+
+    public function test_insertAt(): void
+    {
+        // empty
+        $list = [];
+        Arr::insertAt($list, 0, 'a');
+        self::assertEquals(['a'], $list);
+
+        // list: at 0
+        $list = [1, 2, 3, 4];
+        Arr::insertAt($list, 0, 'a');
+        self::assertEquals(['a', 1, 2, 3, 4], $list);
+
+        // list: at 1
+        $list = [1, 2, 3, 4];
+        Arr::insertAt($list, 1, 'a');
+        self::assertEquals([1, 'a', 2, 3, 4], $list);
+
+        // list: out of range
+        $list = [1, 2, 3, 4];
+        Arr::insertAt($list, 10, 'a');
+        self::assertEquals([1, 2, 3, 4, 'a'], $list);
+
+        // list: negative
+        $list = [1, 2, 3, 4];
+        Arr::insertAt($list, -1, 'a');
+        self::assertEquals([1, 2, 3, 4, 'a'], $list);
+
+        // list: negative alt
+        $list = [1, 2, 3, 4];
+        Arr::insertAt($list, -2, 'a');
+        self::assertEquals([1, 2, 3, 'a', 4], $list);
+
+        // assoc
+        $list = ['a' => 1, 'b' => 2];
+        Arr::insertAt($list, 0, 'a');
+        self::assertEquals(['a', 1], $list);
     }
 
     public function test_intersect(): void
@@ -1295,503 +1366,567 @@ class ArrTest extends TestCase
         self::assertEquals([0, 1, 2, 3], Arr::keys($prioritized));
     }
 
-    /**
     public function test_reduce(): void
     {
-        $reduced = $this->seq(['a' => 1])->reduce(fn(int $c, $i, $k) => 0);
+        // reduce with keys
+        $reduced = Arr::reduce([0 => 0, 1 => 0, 2 => 0], static fn(int $c, $i, $k) => $c + $k);
+        self::assertEquals(3, $reduced);
+
+        // reduce with values
+        $reduced = Arr::reduce([1, 2, 3], static fn(int $c, $i, $k) => $c + $i);
+        self::assertEquals(6, $reduced);
+
+        // assoc only one element
+        $reduced = Arr::reduce(['a' => 1], static fn(int $c, $i, $k) => -100);
         self::assertEquals(1, $reduced);
 
-        $reduced = $this->seq(['a' => 1, 'b' => 2])->reduce(fn($val, $i) => $i * 2);
+        // assoc more than one element
+        $reduced = Arr::reduce(['a' => 1, 'b' => 2], static fn($val, $i) => $i * 2);
         self::assertEquals(4, $reduced);
-
-        $reduced = $this->seq([1, 2, 3])->reduce(fn(int $c, $i, $k) => $c + $i);
-        self::assertEquals(6, $reduced);
     }
 
     public function test_reduce_unable_to_guess_initial(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Expected a value other than null.');
-        $this->seq([])->reduce(fn($c, $i, $k) => $k);
+        $this->expectExceptionMessage('Iterable must contain at least one element.');
+        Arr::reduce([], static fn($c, $i, $k) => $k);
     }
 
     public function test_repeat(): void
     {
-        $seq = $this->seq([1])->repeat(3);
-        self::assertEquals([1, 1, 1], $seq->toArray(), 'Repeat single 3 times');
+        // empty
+        self::assertEquals([], Arr::repeat([], 1));
 
-        $seq = $this->seq([1, 2])->repeat(2);
-        self::assertEquals([1, 2, 1, 2], $seq->toArray(), 'Repeat multiple 3 times');
+        // Repeat single 3 times
+        self::assertEquals([1, 1, 1], Arr::repeat([1], 3));
 
-        $seq = $this->seq(['a' => 1, 'b' => 2])->repeat(2);
-        self::assertEquals([1, 2, 1, 2], $seq->toArray(), 'Repeat hash 3 times (loses the keys)');
+        // Repeat multiple 3 times
+        self::assertEquals([1, 2, 1, 2], Arr::repeat([1, 2], 2));
 
-        $seq = $this->seq([1])->repeat(0);
-        self::assertEquals([], $seq->toArray(), 'Repeat 0 times (does nothing)');
+        // Repeat hash 3 times (loses the keys)
+        self::assertEquals([1, 2, 1, 2], Arr::repeat(['a' => 1, 'b' => 2], 2));
+
+        // Repeat 0 times (does nothing)
+        self::assertEquals([], Arr::repeat([1], 0));
     }
 
     public function test_repeat_negative_times(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Expected a value greater than or equal to 0. Got: -1');
-
-        $seq = $this->seq([1])->repeat(-1);
-        self::assertEquals([], $seq->toArray(), 'Repeat -1 times (throws error)');
+        self::assertEquals([], Arr::repeat([1], -1)); /** @phpstan-ignore-line */
     }
 
     public function test_reverse(): void
     {
-        $seq = $this->seq([])->reverse();
-        self::assertEquals([], $seq->toArray());
+        // empty
+        self::assertEquals([], Arr::reverse([]));
 
-        $seq = $this->seq([1, 2])->reverse();
-        self::assertEquals([2, 1], $seq->toArray());
+        // list
+        self::assertEquals([2, 1], Arr::reverse([1, 2]));
 
-        $seq = $this->seq([100 => 1, 200 => 2])->reverse();
-        self::assertEquals([200 => 2, 100 => 1], $seq->toArray());
+        // assoc with int
+        self::assertEquals([200 => 2, 100 => 1], Arr::reverse([100 => 1, 200 => 2]));
 
-        $seq = $this->seq(['a' => 1, 'b' => 2, 3])->reverse();
-        self::assertEquals([3, 'b' => 2, 'a' => 1], $seq->toArray());
+        // assoc
+        self::assertEquals(['b' => 2, 'a' => 1], Arr::reverse(['a' => 1, 'b' => 2]));
+        self::assertEquals(['b', 'a'], array_keys(Arr::reverse(['a' => 1, 'b' => 2])));
 
-        $seq = $this->seq(['a' => 1, 2, 3, 4])->reverse();
-        self::assertEquals([2 => 4, 1 => 3, 0 => 2, 'a' => 1], $seq->toArray());
+        // assoc with int
+        self::assertEquals([2, 'a' => 1], Arr::reverse(['a' => 1, 2]));
+
+        // reindex: true
+        self::assertEquals([2, 1], Arr::reverse([1, 2], true));
+        self::assertEquals([0, 1], array_keys(Arr::reverse([1, 2], true)));
+
+        // reindex: false
+        self::assertEquals([1 => 2, 0 => 1], Arr::reverse([1, 2], false));
+        self::assertEquals([1, 0], array_keys(Arr::reverse([1, 2], false)));
     }
 
     public function test_rotate(): void
     {
-        $seq = $this->seq(['a' => 1, 'b' => 2, 'c' => 3])->rotate(1);
-        self::assertEquals(['b', 'c', 'a'], $seq->keys()->toArray());
+        // empty
+        self::assertEquals([], array_keys(Arr::rotate([], 1)));
 
-        $seq = $this->seq(['a' => 1, 'b' => 2, 'c' => 3])->rotate(2);
-        self::assertEquals(['c' => 3, 'a' => 1, 'b' => 2], $seq->toArray());
+        // none
+        self::assertEquals([], array_keys(Arr::rotate([1], 0)));
 
-        $seq = $this->seq(['a' => 1, 'b' => 2, 'c' => 3])->rotate(-1);
-        self::assertEquals(['c', 'a', 'b'], $seq->keys()->toArray());
+        // once
+        self::assertEquals(['b', 'c', 'a'], array_keys(Arr::rotate(['a' => 1, 'b' => 2, 'c' => 3], 1)));
 
-        $seq = $this->seq(['a' => 1, 'b' => 2, 'c' => 3])->rotate(-2);
-        self::assertEquals(['b', 'c', 'a'], $seq->keys()->toArray());
+        // twice
+        self::assertEquals(['c' => 3, 'a' => 1, 'b' => 2], Arr::rotate(['a' => 1, 'b' => 2, 'c' => 3], 2));
+
+        // negative once
+        self::assertEquals(['c', 'a', 'b'], array_keys(Arr::rotate(['a' => 1, 'b' => 2, 'c' => 3], -1)));
+
+        // negative twice
+        self::assertEquals(['b', 'c', 'a'], array_keys(Arr::rotate(['a' => 1, 'b' => 2, 'c' => 3], -2)));
+
+        // list
+        self::assertEquals([2, 3, 1], Arr::rotate([1, 2, 3], 1));
+        self::assertEquals([3, 1, 2], Arr::rotate([1, 2, 3], 2));
+        self::assertEquals([1, 2, 3], Arr::rotate([1, 2, 3], 3));
+
+        // reindex: true on list
+        self::assertEquals([2, 3, 1], Arr::rotate([1, 2, 3], 1, reindex: true));
+
+        // reindex: true on assoc
+        self::assertEquals([3, 1, 2], Arr::rotate(['a' => 1, 'b' => 2, 'c' => 3], 2, reindex: true));
+
+        // reindex: false on list
+        self::assertEquals([1, 2, 0], array_keys(Arr::rotate([1, 2, 3], 1, reindex: false)));
+
+        // reindex: false on assoc
+        self::assertEquals(['c' => 3, 'a' => 1, 'b' => 2], Arr::rotate(['a' => 1, 'b' => 2, 'c' => 3], 2, reindex: false));
     }
 
     public function test_sample(): void
     {
         mt_srand(100);
-        self::assertEquals(8, $this->seq(range(0, 10))->sample());
+        self::assertEquals(8, Arr::sample(range(0, 10)));
     }
 
     public function test_sample_Empty(): void
     {
-        $this->expectException(ValueError::class);
-        $this->expectExceptionMessage('array_rand(): Argument #1 ($array) cannot be empty');
-        $this->seq([])->sample();
+        $this->expectError();
+        $this->expectErrorMessage('array_rand(): Argument #1 ($array) cannot be empty');
+        Arr::sample([]);
     }
 
     public function test_sampleMany(): void
     {
         mt_srand(100);
-        self::assertEquals([8, 9], $this->seq(range(0, 10))->sampleMany(2)->toArray());
+        self::assertEquals([8, 9], Arr::sampleMany(range(0, 10), 2));
+        self::assertEquals(['a' => 0, 'd' => 3], Arr::sampleMany(['a' => 0, 'b' => 1, 'c' => 2, 'd' => 3], 2));
+
+        // reindex: true
+        mt_srand(100);
+        self::assertEquals([8, 9], Arr::sampleMany(range(0, 10), 2, reindex: true));
+        self::assertEquals([0, 3], Arr::sampleMany(['a' => 0, 'b' => 1, 'c' => 2, 'd' => 3], 2, reindex: true));
+
+        // reindex: false
+        mt_srand(100);
+        self::assertEquals([8 => 8, 9 => 9], Arr::sampleMany(range(0, 10), 2, reindex: false));
+        self::assertEquals(['a' => 0, 'd' => 3], Arr::sampleMany(['a' => 0, 'b' => 1, 'c' => 2, 'd' => 3], 2, reindex: false));
     }
 
     public function test_satisfyAll(): void
     {
-        $seq = $this->seq([]);
-        self::assertTrue($seq->satisfyAll(static fn($v) => is_int($v)));
+        // empty
+        self::assertTrue(Arr::satisfyAll([], static fn($v) => is_int($v)));
 
-        $seq = $this->seq([1, 2, 3]);
-        self::assertTrue($seq->satisfyAll(static fn($v) => is_int($v)));
+        // list
+        self::assertTrue(Arr::satisfyAll([1, 2, 3], static fn($v) => is_int($v)));
 
-        $seq = $this->seq(['a' => 1, 'b' => 2, 'c' => 3]);
-        self::assertTrue($seq->satisfyAll(static fn($v, $k) => is_string($k)));
+        // assoc
+        self::assertTrue(Arr::satisfyAll(['a' => 1, 'b' => 2, 'c' => 3], static fn($v, $k) => is_string($k)));
 
-        $seq = $this->seq(['a' => 1, 'b' => 2, 'c' => 3, 4, '1']);
-        self::assertFalse($seq->satisfyAll(static fn($k) => is_string($k)));
+        // assoc with int
+        self::assertFalse(Arr::satisfyAll(['a' => 1, 'b' => 2, 'c' => 3, 4, '1'], static fn($k) => is_string($k)));
     }
 
     public function test_satisfyAny(): void
     {
-        $empty = $this->seq([]);
-        self::assertFalse($empty->satisfyAny(static fn() => true));
+        self::assertFalse(Arr::satisfyAny([], static fn() => true));
 
-        $seq = $this->seq([1, null, 2, [3], false]);
-        self::assertTrue($seq->satisfyAny(static fn($v) => true));
-        self::assertFalse($seq->satisfyAny(static fn($v) => false));
-        self::assertTrue($seq->satisfyAny(static fn($v) => is_array($v)));
+        self::assertTrue(Arr::satisfyAny([1, null, 2, [3], false], static fn($v) => true));
+        self::assertFalse(Arr::satisfyAny([1, null, 2, [3], false], static fn($v) => false));
+        self::assertTrue(Arr::satisfyAny([1, null, 2, [3], false], static fn($v) => is_array($v)));
 
-        $seq = $this->seq(['a' => 1, 'b' => 2]);
-        self::assertTrue($seq->satisfyAny(static fn($v, $k) => true));
-        self::assertFalse($seq->satisfyAny(static fn($v) => false));
-        self::assertTrue($seq->satisfyAny(static fn($v, $k) => $k === 'b'));
+        self::assertTrue(Arr::satisfyAny(['a' => 1, 'b' => 2], static fn($v, $k) => true));
+        self::assertFalse(Arr::satisfyAny(['a' => 1, 'b' => 2], static fn($v) => false));
+        self::assertTrue(Arr::satisfyAny(['a' => 1, 'b' => 2], static fn($v, $k) => $k === 'b'));
     }
 
     public function test_shuffle(): void
     {
         mt_srand(100);
-        self::assertEquals([1, 2, 4, 3, 2], $this->seq([1, 2, 2, 3, 4])->shuffle()->toArray());
-        self::assertSame(['a' => 1, 'c' => 3, 'b' => 2, 'd' => 4], $this->seq(['a' => 1, 'b' => 2, 'c' => 3, 'd' => 4])->shuffle()->toArray());
+        self::assertEquals([1, 2, 4, 3, 2], Arr::shuffle([1, 2, 2, 3, 4]));
+        self::assertEquals(['a' => 1, 'c' => 3, 'b' => 2, 'd' => 4], Arr::shuffle(['a' => 1, 'b' => 2, 'c' => 3, 'd' => 4]));
+
+        // reindex: false
+        mt_srand(100);
+        self::assertEquals([0, 2, 4, 3, 1], array_keys(Arr::shuffle([1, 2, 2, 3, 4], reindex: false)));
+        self::assertEquals(['a' => 1, 'c' => 3, 'b' => 2, 'd' => 4], Arr::shuffle(['a' => 1, 'b' => 2, 'c' => 3, 'd' => 4], reindex: false));
+
+        // reindex: true
+        mt_srand(100);
+        self::assertEquals([0, 1, 2, 3, 4], array_keys(Arr::shuffle([1, 2, 2, 3, 4], reindex: true)));
+        self::assertEquals([0, 1, 2, 3], array_keys(Arr::shuffle(['a' => 1, 'b' => 2, 'c' => 3, 'd' => 4], reindex: true)));
     }
 
     public function test_slice(): void
     {
-        $collect = $this->seq([1, 2, 3])->slice(1);
-        self::assertEquals([2, 3], $collect->toArray());
+        // with offset
+        self::assertEquals([2, 3], Arr::slice([1, 2, 3], 1));
 
-        $collect = $this->seq([1, 2, 3])->slice(0, -1);
-        self::assertEquals([1, 2], $collect->toArray());
+        // with negative offset
+        self::assertEquals([2, 3], Arr::slice([1, 2, 3], -2));
+
+        // with overflow offset
+        self::assertEquals([], Arr::slice([1, 2, 3], 100));
+
+        // with length
+        self::assertEquals([2, 3], Arr::slice([1, 2, 3], 1, 2));
+
+        // with negative length
+        self::assertEquals([1, 2], Arr::slice([1, 2, 3], 0, -1));
+
+        // with overflow length
+        self::assertEquals([2, 3], Arr::slice([1, 2, 3], 1, 100));
+
+        // assoc
+        self::assertEquals(['b' => 2, 'c' => 3], Arr::slice(['a' => 1, 'b' => 2, 'c' => 3], 1, 2));
+
+        // reindex: true
+        self::assertEquals([2], Arr::slice(['a' => 1, 'b' => 2, 'c' => 3], 1, 1, reindex: true));
+
+        // reindex: false
+        self::assertEquals([1 => 2], Arr::slice([1, 2, 3], 1, 1, reindex: false));
     }
 
     public function test_sole(): void
     {
-        self::assertEquals(1, $this->seq([1])->sole());
-        self::assertEquals(1, $this->seq(['a' => 1])->sole());
-        self::assertEquals(2, $this->seq([1, 2, 3])->sole(fn(int $i) => $i === 2));
+        // list
+        self::assertEquals(1, Arr::sole([1]));
+
+        // assoc
+        self::assertEquals(1, Arr::sole(['a' => 1]));
+
+        // with condition
+        self::assertEquals(2, Arr::sole([1, 2, 3],  static fn(int $i) => $i === 2));
     }
 
     public function test_sole_zero_item(): void
     {
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Expected only one element in result. 0 given.');
-        $this->seq([])->sole();
+        Arr::sole([]);
     }
 
     public function test_sole_more_than_one_item(): void
     {
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Expected only one element in result. 2 given.');
-        $this->seq([1, 2])->sole();
+        Arr::sole([1, 2]);
     }
 
     public function test_sort(): void
     {
-        $seq = $this->seq([4, 2, 1, 3])->sort();
-        self::assertEquals([1, 2, 3, 4], $seq->toArray());
+        // empty
+        self::assertEquals([], Arr::sort([]));
 
-        $seq = $this->seq(['30', '2', '100'])->sort(SORT_NATURAL);
-        self::assertEquals(['2', '30', '100'], $seq->toArray());
+        // list
+        self::assertEquals([1, 2, 3, 4], Arr::sort([4, 2, 1, 3]));
 
-        $seq = $this->seq(['a' => 3, 'b' => 1, 'c' => 2])->sort();
-        self::assertEquals(['b' => 1, 'c' => 2, 'a' => 3], $seq->toArray());
-    }
+        // assoc
+        self::assertEquals(['b' => 1, 'c' => 2, 'a' => 3], Arr::sort(['a' => 3, 'b' => 1, 'c' => 2]));
 
-    public function test_sortBy(): void
-    {
-        $seq = $this->seq([4, 2, 1, 3])->sortBy(fn($v) => $v);
-        self::assertEquals([1, 2, 3, 4], $seq->toArray());
+        // with SORT_NATURAL flag
+        self::assertEquals(['2', '30', '100'], Arr::sort(['30', '2', '100'], flag: SORT_NATURAL));
 
-        $seq = $this->seq(['b' => 0, 'a' => 1, 'c' => 2])->sortBy(fn($v, $k) => $k);
-        self::assertEquals(['a' => 1, 'b' => 0, 'c' => 2], $seq->toArray());
-    }
+        // list: with condition
+        self::assertEquals([1, 2, 3, 4], Arr::sort([4, 2, 1, 3], static fn($v) => $v));
 
-    public function test_sortByDesc(): void
-    {
-        $seq = $this->seq([4, 2, 1, 3])->sortByDesc(fn($v) => $v);
-        self::assertEquals([4, 3, 2, 1], $seq->toArray());
+        // assoc: with condition
+        self::assertEquals(['a' => 1, 'b' => 0, 'c' => 2], Arr::sort(['b' => 0, 'a' => 1, 'c' => 2], static fn($v, $k) => $k));
 
-        $seq = $this->seq(['b' => 0, 'a' => 1, 'c' => 2])->sortBy(fn($v, $k) => $k);
-        self::assertEquals(['c' => 2, 'b' => 0, 'a' => 1], $seq->toArray());
+        // reindex: true
+        self::assertEquals([1, 2, 3], Arr::sort(['a' => 3, 'b' => 1, 'c' => 2], reindex: true));
+
+        // reindex: false
+        self::assertEquals(['b' => 1, 'c' => 2, 'a' => 3], Arr::sort(['a' => 3, 'b' => 1, 'c' => 2], reindex: false));
     }
 
     public function test_sortDesc(): void
     {
-        $seq = $this->seq([4, 2, 1, 3])->sortDesc();
-        self::assertEquals([4, 3, 2, 1], $seq->toArray());
+        // empty
+        self::assertEquals([], Arr::sortDesc([]));
 
-        $seq = $this->seq(['30', '100', '2'])->sortDesc(SORT_NATURAL);
-        self::assertEquals(['100', '30', '2'], $seq->toArray());
+        // list
+        self::assertEquals([4, 3, 2, 1], Arr::sortDesc([4, 2, 1, 3]));
 
-        $seq = $this->seq(['a' => 3, 'b' => 1, 'c' => 2])->sortDesc();
-        self::assertEquals(['a' => 3, 'c' => 2, 'b' => 1], $seq->toArray());
+        // assoc
+        self::assertEquals(['a' => 3, 'c' => 2, 'b' => 1], Arr::sortDesc(['a' => 3, 'b' => 1, 'c' => 2]));
+
+        // with SORT_NATURAL flag
+        self::assertEquals(['100', '30', '2'], Arr::sortDesc(['30', '100', '2'], flag: SORT_NATURAL));
+
+        // list: with condition
+        self::assertEquals([4, 3, 2, 1], Arr::sortDesc([4, 2, 1, 3], static fn($v) => $v));
+
+        // assoc: with condition
+        self::assertEquals(['c' => 2, 'b' => 0, 'a' => 1], Arr::sortDesc(['b' => 0, 'a' => 1, 'c' => 2], static fn($v, $k) => $k));
+
+        // reindex: true
+        $sorted = Arr::sortDesc(['a' => 3, 'b' => 1, 'c' => 2], reindex: true);
+        self::assertEquals([0, 1, 2], array_keys($sorted));
+        self::assertEquals([3, 2, 1], array_values($sorted));
+
+        // reindex: false
+        $sorted = Arr::sortDesc(['a' => 3, 'b' => 1, 'c' => 2], reindex: false);
+        self::assertEquals(['a', 'c', 'b'], array_keys($sorted));
+        self::assertEquals([3, 2, 1], array_values($sorted));
     }
 
-    public function test_sortKeys(): void
+    public function test_sortByKeys(): void
     {
-        $seq = $this->seq(['b' => 0, 'a' => 1, 'c' => 2])->sortByKey();
-        self::assertEquals(['a' => 1, 'b' => 0, 'c' => 2], $seq->toArray());
+        // empty
+        self::assertEquals([], Arr::sortByKey([]));
 
-        $seq = $this->seq(['2' => 0, '100' => 1, '30' => 2])->sortByKey(SORT_NATURAL);
-        self::assertEquals(['2' => 0, '30' => 2, '100' => 1], $seq->toArray());
+        // list stays the same
+        self::assertEquals([0, 1, 2], Arr::sortByKey([0, 1, 2]));
+
+        // assoc
+        $assoc = Arr::sortByKey(['b' => 0, 'a' => 1, 'c' => 2]);
+        self::assertEquals(['a' => 1, 'b' => 0, 'c' => 2], $assoc);
+
+        // with SORT_NATURAL
+        $assoc = Arr::sortByKey(['2' => 0, '100' => 1, '30' => 2], SORT_NATURAL);
+        self::assertEquals(['2' => 0, '30' => 2, '100' => 1], $assoc);
     }
 
-    public function test_sortKeysDesc(): void
+    public function test_sortByKeysDesc(): void
     {
-        $seq = $this->seq(['b' => 0, 'a' => 1, 'c' => 2])->sortByKeyDesc();
-        self::assertEquals(['c' => 2, 'b' => 0, 'a' => 1], $seq->toArray());
+        // empty
+        self::assertEquals([], Arr::sortByKeyDesc([]));
 
-        $seq = $this->seq(['2' => 0, '100' => 1, '30' => 2])->sortByKeyDesc(SORT_NATURAL);
-        self::assertEquals(['100' => 1, '30' => 2, '2' => 0], $seq->toArray());
+        // list stays the same
+        self::assertEquals([2, 1, 0], array_keys(Arr::sortByKeyDesc([0, 1, 2])));
+
+        // assoc
+        $assoc = Arr::sortByKeyDesc(['b' => 0, 'a' => 1, 'c' => 2]);
+        self::assertEquals(['c' => 2, 'b' => 0, 'a' => 1], $assoc);
+
+        // with SORT_NATURAL
+        $assoc = Arr::sortByKeyDesc(['2' => 0, '100' => 1, '30' => 2], SORT_NATURAL);
+        self::assertEquals(['100' => 1, '30' => 2, '2' => 0], $assoc);
     }
 
     public function test_sortWith(): void
     {
-        $seq = $this->seq([1, 3, 2])->sortWith(static fn($a, $b) => ($a === $b ? 0 : (($a < $b) ? -1 : 1)));
-        self::assertEquals([1, 2, 3], $seq->toArray());
+        // empty
+        self::assertEquals([], Arr::sortWith([], static fn($a, $b) => 1));
 
-        $seq = $this->seq(['b' => 1, 'a' => 3, 'c' => 2])->sortWith(static fn($a, $b) => ($a === $b ? 0 : (($a < $b) ? -1 : 1)));
-        self::assertEquals(['b' => 1, 'c' => 2, 'a' => 3], $seq->toArray());
+        // list
+        $list = Arr::sortWith([1, 3, 2], static fn($a, $b) => ($a < $b) ? -1 : 1);
+        self::assertEquals([1, 2, 3], $list);
+
+        // assoc
+        $assoc = Arr::sortWith(['b' => 1, 'a' => 3, 'c' => 2], static fn($a, $b) => ($a < $b) ? -1 : 1);
+        self::assertEquals(['b' => 1, 'c' => 2, 'a' => 3], $assoc);
     }
 
     public function test_sortWithKey(): void
     {
-        $seq = $this->seq([1 => 'a', 3 => 'b', 2 => 'c'])->sortWithKey(static fn($a, $b) => ($a === $b ? 0 : (($a < $b) ? -1 : 1)));
-        self::assertEquals([1 => 'a', 2 => 'c', 3 => 'b'], $seq->toArray());
+        $assoc = Arr::sortWithKey([1 => 'a', 3 => 'b', 2 => 'c'], static fn($a, $b) => ($a < $b) ? -1 : 1);
+        self::assertEquals([1 => 'a', 2 => 'c', 3 => 'b'], $assoc);
     }
 
     public function test_sum(): void
     {
-        $sum = $this->seq(['b' => 1, 'a' => 3, 'c' => 2])->sum();
-        self::assertEquals(6, $sum);
+        // empty
+        self::assertEquals(0, Arr::sum([]));
 
-        $sum = $this->seq([1, 1, 1])->sum();
-        self::assertEquals(3, $sum);
+        // int
+        self::assertEquals(3, Arr::sum([1, 1, 1]));
 
-        $sum = $this->seq([0.1, 0.2])->sum();
-        self::assertEquals(0.3, $sum);
+        // float
+        self::assertEquals(0.3, Arr::sum([0.1, 0.2]));
 
-        $sum = $this->seq([])->sum();
-        self::assertEquals(0, $sum);
+        // assoc
+        self::assertEquals(6, Arr::sum(['b' => 1, 'a' => 3, 'c' => 2]));
     }
 
     public function test_sum_throw_on_sum_of_string(): void
     {
-        $this->expectException(TypeError::class);
-        $this->expectExceptionMessage('Unsupported operand types: int + string');
-        $this->seq(['a', 'b'])->sum();
+        $this->expectError();
+        $this->expectErrorMessage('Unsupported operand types: int + string');
+        Arr::sum(['a', 'b']);
     }
 
     public function test_symDiff(): void
     {
-    // empty array1
-    self::assertEquals([1], Arr::symDiff([], [1]));
+        // empty array1
+        self::assertEquals([1], Arr::symDiff([], [1]));
 
-    // empty array2
-    self::assertEquals([1], Arr::symDiff([1], []));
+        // empty array2
+        self::assertEquals([1], Arr::symDiff([1], []));
 
-    // same but not same order
-    self::assertEquals([], Arr::symDiff([1, 2], [2, 1]));
+        // same but not same order
+        self::assertEquals([], Arr::symDiff([1, 2], [2, 1]));
 
-    // list
-    self::assertEquals([1, 3], Arr::symDiff([1, 2], [2, 3]));
+        // list
+        self::assertEquals([1, 3], Arr::symDiff([1, 2], [2, 3]));
 
-    // assoc
-    self::assertEquals(['a' => 1, 'd' => 3], Arr::symDiff(['a' => 1, 'b' => 2], ['c' => 2, 'd' => 3]));
+        // assoc
+        self::assertEquals(['a' => 1, 'd' => 3], Arr::symDiff(['a' => 1, 'b' => 2], ['c' => 2, 'd' => 3]));
 
-    // assoc but with same key (overwritten by array2)
-    self::assertEquals(['a' => 3], Arr::symDiff(['a' => 1, 'b' => 2], ['c' => 2, 'a' => 3]));
+        // assoc but with same key (overwritten by array2)
+        self::assertEquals(['a' => 3], Arr::symDiff(['a' => 1, 'b' => 2], ['c' => 2, 'a' => 3]));
 
-    // array1 is list and array2 is assoc => retain assoc
-    $result = Arr::symDiff([2, 1], ['a' => 2, 'b' => 3]);
-    self::assertEquals([1 => 1, 'b' => 3], $result);
-    self::assertEquals([1, 3], Arr::values($result));
+        // array1 is list and array2 is assoc => retain assoc
+        $result = Arr::symDiff([2, 1], ['a' => 2, 'b' => 3]);
+        self::assertEquals([1 => 1, 'b' => 3], $result);
+        self::assertEquals([1, 3], Arr::values($result));
 
-    // array1 is assoc and array2 is list => retain assoc
-    $result = Arr::symDiff(['a' => 2, 'b' => 3], [2, 1]);
-    self::assertEquals(['b' => 3, 1 => 1], $result);
-    self::assertEquals([3, 1], Arr::values($result));
+        // array1 is assoc and array2 is list => retain assoc
+        $result = Arr::symDiff(['a' => 2, 'b' => 3], [2, 1]);
+        self::assertEquals(['b' => 3, 1], $result);
+        self::assertEquals([3, 1], Arr::values($result));
+
+        // reindex: true
+        $result = Arr::symDiff(['a' => 2, 'b' => 3], [2, 1], reindex: true);
+        self::assertEquals([3, 1], $result);
+
+        // reindex: false
+        $result = Arr::symDiff(['a' => 2, 'b' => 3], [2, 1], reindex: false);
+        self::assertEquals(['b' => 3, 1], $result);
+        self::assertEquals([3, 1], Arr::values($result));
     }
 
     public function test_take(): void
     {
-        $seq = $this->seq([2, 3, 4])->take(2);
-        self::assertEquals([2, 3], $seq->toArray());
+        // empty
+        self::assertEquals([], Arr::take([], 1));
 
-        $seq = $this->seq([2, 3, 4])->take(0);
-        self::assertEquals([], $seq->toArray());
+        // zero take
+        self::assertEquals([], Arr::take([2, 3, 4], 0));
 
-        $seq = $this->seq(['b' => 1, 'a' => 3, 'c' => 2])->take(1);
-        self::assertEquals(['b' => 1], $seq->toArray());
+        // list
+        self::assertEquals([2, 3], Arr::take([2, 3, 4], 2));
+
+        // assoc
+        self::assertEquals(['b' => 1], Arr::take(['b' => 1, 'a' => 3, 'c' => 2], 1));
+
+        // amount over count
+        self::assertEquals([], Arr::take([], 100));
     }
 
     public function test_take_fail_on_negative_amount(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Expected a value greater than or equal to 0. Got: -1');
-        $this->seq(['a' => 1])->take(-1);
+        Arr::take(['a' => 1], -1);
     }
 
     public function test_takeUntil(): void
     {
-        $seq = $this->seq([1, 1, 3, 2])->takeUntil(fn($v) => $v > 2);
-        self::assertEquals([1, 1], $seq->toArray());
+        // empty
+        self::assertEquals([], Arr::takeUntil([], static fn($v) => false));
 
-        $seq = $this->seq(['b' => 1, 'a' => 3, 'c' => 2])->takeUntil(fn($v) => $v > 2);
-        self::assertEquals(['b' => 1], $seq->toArray());
+        // list
+        $list = Arr::takeUntil([1, 1, 3, 2], static fn($v) => $v > 2);
+        self::assertEquals([1, 1], $list);
 
-        $seq = $this->seq(['b' => 1, 'a' => 3, 'c' => 2])->takeUntil(fn($v) => false);
-        self::assertEquals(['b' => 1, 'a' => 3, 'c' => 2], $seq->toArray());
+        // assoc
+        $assoc = Arr::takeUntil(['b' => 1, 'a' => 3, 'c' => 2], static fn($v) => $v > 2);
+        self::assertEquals(['b' => 1], $assoc);
 
-        $seq = $this->seq(['b' => 1, 'a' => 3, 'c' => 2])->takeUntil(fn($v) => true);
-        self::assertEquals([], $seq->toArray());
+        // all false
+        $assoc = Arr::takeUntil(['b' => 1, 'a' => 3, 'c' => 2],  static fn($v) => false);
+        self::assertEquals(['b' => 1, 'a' => 3, 'c' => 2], $assoc);
+
+        // all true
+        $assoc = Arr::takeUntil(['b' => 1, 'a' => 3, 'c' => 2], static fn($v) => true);
+        self::assertEquals([], $assoc);
     }
 
     public function test_takeWhile(): void
     {
-        $seq = $this->seq([1, 1, 3, 2])->takeWhile(fn($v) => $v <= 2);
-        self::assertEquals([1, 1], $seq->toArray());
+        // empty
+        self::assertEquals([], Arr::takeUntil([], static fn($v) => false));
 
-        $seq = $this->seq(['b' => 1, 'a' => 3, 'c' => 4])->takeWhile(fn($v) => $v < 4);
-        self::assertEquals(['b' => 1, 'a' => 3], $seq->toArray());
+        // list
+        self::assertEquals([1, 1], Arr::takeWhile([1, 1, 3, 2], static fn($v) => $v <= 2));
 
-        $seq = $this->seq(['b' => 1, 'a' => 3, 'c' => 2])->takeWhile(fn($v) => false);
-        self::assertEquals([], $seq->toArray());
+        // assoc
+        $assoc = Arr::takeWhile(['b' => 1, 'a' => 3, 'c' => 4], static fn($v) => $v < 4);
+        self::assertEquals(['b' => 1, 'a' => 3], $assoc);
 
-        $seq = $this->seq(['b' => 1, 'a' => 3, 'c' => 2])->takeWhile(fn($v) => true);
-        self::assertEquals(['b' => 1, 'a' => 3, 'c' => 2], $seq->toArray());
-    }
+        // all false
+        $assoc = Arr::takeWhile(['b' => 1, 'a' => 3, 'c' => 2], static fn($v) => false);
+        self::assertEquals([], $assoc);
 
-    public function test_tap(): void
-    {
-        $seq = $this->seq([1, 2])->tap(fn() => 100);
-        self::assertEquals([1, 2], $seq->toArray());
-
-        $cnt = 0;
-        $seq = $this->seq([])->tap(function() use (&$cnt) { ++$cnt; });
-        self::assertEquals([], $seq->toArray());
-        self::assertEquals(1, $cnt);
-    }
-
-    public function test_toArray(): void
-    {
-        self::assertEquals([], $this->seq([])->toArray());
-        self::assertEquals([1, 2], $this->seq([1, 2])->toArray());
-        self::assertEquals(['a' => 1], $this->seq(['a' => 1])->toArray());
-
-        $inner = $this->seq([1, 2]);
-        self::assertEquals(['a' => $inner], $this->seq(['a' => $inner])->toArray());
-    }
-
-    public function test_toArrayRecursive(): void
-    {
-        // no depth defined
-        $inner = $this->seq([1, 2]);
-        $array = $this->seq(['a' => $inner])->toArrayRecursive();
-        self::assertEquals(['a' => [1, 2]], $array);
-
-        // test each depth
-        $inner1 = $this->seq([1]);
-        $inner2 = $this->seq([2, 3, $inner1]);
-        $seq = $this->seq(['a' => $inner2]);
-        self::assertEquals(['a' => $inner2], $seq->toArrayRecursive(1));
-        self::assertEquals(['a' => [2, 3, $inner1]], $seq->toArrayRecursive(2));
-        self::assertEquals(['a' => [2, 3, [1]]], $seq->toArrayRecursive(3));
-    }
-
-    public function test_toJson(): void
-    {
-        $json = $this->seq([1, 2])->toJson();
-        self::assertEquals("[1,2]", $json);
-
-        $json = $this->seq(['a' => 1, 'b' => 2])->toJson();
-        self::assertEquals("{\"a\":1,\"b\":2}", $json);
-
-        $json = $this->seq(["あ"])->toJson();
-        self::assertEquals("[\"あ\"]", $json);
-
-        $json = $this->seq([1])->toJson(JSON_PRETTY_PRINT);
-        self::assertEquals("[\n    1\n]", $json);
+        // all true
+        $assoc = Arr::takeWhile(['b' => 1, 'a' => 3, 'c' => 2], static fn($v) => true);
+        self::assertEquals(['b' => 1, 'a' => 3, 'c' => 2], $assoc);
     }
 
     public function test_toUrlQuery(): void
     {
-        $query = $this->seq(['a' => 1])->toUrlQuery('t');
-        self::assertEquals(urlencode('t[a]').'=1', $query);
+        // basic usage
+        self::assertEquals("a=1&b=2", Arr::toUrlQuery(['a' => 1, 'b' => 2]));
 
-        $query = $this->seq(['a' => 1, 'b' => 2])->toUrlQuery();
-        self::assertEquals("a=1&b=2", $query);
-    }
+        // with namespace
+        self::assertEquals(urlencode('t[a]').'=1', Arr::toUrlQuery(['a' => 1], 't'));
 
-    public function test_union(): void
-    {
-        $seq = $this->seq([])->union([]);
-        self::assertEquals([], $seq->toArray());
-
-        $seq = $this->seq(['a' => 1])->union(['a' => 2]);
-        self::assertEquals(['a' => 1], $seq->toArray());
-
-        $seq = $this->seq(['a' => ['b' => 1]])->union(['a' => ['c' => 2]]);
-        self::assertEquals(['a' => ['b' => 1]], $seq->toArray());
-    }
-
-    public function test_unionRecursive(): void
-    {
-        $seq = $this->seq([])->unionRecursive([]);
-        self::assertEquals([], $seq->toArray());
-
-        $seq = $this->seq([1, 2])->unionRecursive([3]);
-        self::assertEquals([1, 2, 3], $seq->toArray());
-
-        $seq = $this->seq(['a' => 1])->unionRecursive(['a' => 2]);
-        self::assertEquals(['a' => 1], $seq->toArray());
-
-        $seq = $this->seq(['a' => 1])->unionRecursive(['b' => 2, 'a' => 2]);
-        self::assertEquals(['a' => 1, 'b' => 2], $seq->toArray());
-
-        $seq = $this->seq(['a' => 1])->unionRecursive(['b' => 2]);
-        self::assertEquals(['a' => 1, 'b' => 2], $seq->toArray());
-
-        $seq = $this->seq(['a' => 1])->unionRecursive(['a' => ['c' => 1]]);
-        self::assertEquals(['a' => 1], $seq->toArray());
-
-        $seq = $this->seq(['a' => [1,2]])->unionRecursive(['a' => ['c' => 1]]);
-        self::assertEquals(['a' => [1, 2, 'c' => 1]], $seq->toArray());
-
-        $seq = $this->seq(['a' => ['b' => 1], 'd' => 4])->unionRecursive(['a' => ['c' => 2], 'b' => 3]);
-        self::assertEquals(['a' => ['b' => 1, 'c' => 2], 'b' => 3, 'd' => 4], $seq->toArray());
+        // with space as %20
+        self::assertEquals(urlencode('t[a]').'=a%20b', Arr::toUrlQuery(['a' => 'a b'], 't'));
     }
 
     public function test_unique(): void
     {
-        $seq = $this->seq([])->unique();
-        self::assertEquals([], $seq->toArray());
+        // empty
+        self::assertEquals([], Arr::unique([]));
 
-        $seq = $this->seq([1, 1, 2, 2])->unique();
-        self::assertEquals([1, 2], $seq->toArray());
+        // list
+        self::assertEquals([1, 2], Arr::unique([1, 1, 2, 2]));
 
-        $seq = $this->seq(['a' => 1, 'b' => 2, 'c' => 2])->unique();
-        self::assertEquals(['a' => 1, 'b' => 2], $seq->toArray());
+        // assoc
+        self::assertEquals(['a' => 1, 'b' => 2], Arr::unique(['a' => 1, 'b' => 2, 'c' => 2]));
 
+        // don't convert to string like array_unique
         $values = ['3', 3, null, '', 0, true, false];
-        $seq = $this->seq([])->merge($values)->merge($values)->unique();
-        self::assertEquals($values, $seq->toArray());
+        self::assertEquals($values, Arr::unique(Arr::repeat($values, 2)));
 
-        $seq = $this->seq($values)->repeat(2)->unique();
-        self::assertEquals($values, $seq->toArray());
-    }
+        // reindex: true
+        self::assertEquals([1, 2], Arr::unique(['a' => 1, 'b' => 2, 'c' => 2], reindex: true));
 
-    public function test_uniqueBy(): void
-    {
-        $seq = $this->seq([])->uniqueBy(static fn() => 1);
-        self::assertEquals([], $seq->toArray());
+        // reindex: false
+        self::assertEquals(['a' => 1, 'b' => 2], Arr::unique(['a' => 1, 'b' => 2, 'c' => 2], reindex: false));
 
-        $seq = $this->seq([1,2,3,4])->uniqueBy(static fn($v) => $v % 2);
-        self::assertEquals([1, 2], $seq->toArray());
+        // empty with callback
+        /** @var array<int> $array */
+        $array = [];
+        self::assertEquals([], Arr::unique($array, static fn() => 1));
 
-        $seq = $this->seq(['a' => 1, 'b' => 2, 'c' => 2])->uniqueBy(static fn($v) => $v % 2);
-        self::assertEquals(['a' => 1, 'b' => 2], $seq->toArray());
+        // list with callback
+        self::assertEquals([1, 2], Arr::unique([1, 2, 3, 4], static fn($v) => $v % 2));
 
-        $values = ['3', 3, null, '', 0, true, false];
-        $seq = $this->seq($values)->repeat(2)->uniqueBy(static fn($v) => $v);
-        self::assertEquals($values, $seq->toArray());
+        // assoc with callback
+        self::assertEquals(['a' => 1, 'b' => 2], Arr::unique(['a' => 1, 'b' => 2, 'c' => 2], static fn($v) => $v % 2));
+
+        // make sure condition does not convert result to string like array_unique
+        self::assertEquals($values, Arr::unique(Arr::repeat($values, 2), static fn($v) => $v));
     }
 
     public function test_values(): void
     {
-        $seq = $this->seq([])->values();
-        self::assertEquals([], $seq->toArray());
+        // empty
+        self::assertEquals([], Arr::values([]));
 
-        $seq = $this->seq([1, 1, 2])->values()->reverse();
-        self::assertEquals([2, 1, 1], $seq->toArray());
+        // list
+        self::assertEquals([1, 1, 2], Arr::values([1, 1, 2]));
 
-        $seq = $this->seq(['a' => 1, 'b' => 2])->values();
-        self::assertEquals([1, 2], $seq->toArray());
+        // assoc
+        self::assertEquals([1, 2], Arr::values(['a' => 1, 'b' => 2]));
     }
-     **/
 
     public function test_of(): void
     {
+        // empty
         self::assertEquals([], Arr::of());
 
+        // list
         self::assertEquals([1, 2, 3], Arr::of(1, 2, 3));
 
-        self::assertEquals([1, 'a' => 2], Arr::of(1, a: 2));
-
+        // assoc
         self::assertEquals(['a' => 1, 'b' => 2], Arr::of(a: 1, b: 2));
+
+        // assoc with int
+        self::assertEquals([1, 'a' => 2], Arr::of(1, a: 2));
     }
 }
