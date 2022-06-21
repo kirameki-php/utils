@@ -30,7 +30,6 @@ use function arsort;
 use function asort;
 use function count;
 use function current;
-use function dump;
 use function end;
 use function get_resource_id;
 use function http_build_query;
@@ -191,7 +190,7 @@ class Arr
     }
 
     /**
-     * @template TKey
+     * @template TKey of array-key
      * @template TValue
      * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
      * @return TValue|null
@@ -861,18 +860,16 @@ class Arr
     }
 
     /**
-     * @template T
-     * @param iterable<array-key, T> $iterable Iterable to be traversed.
-     * @param string|Closure(T, mixed): array-key $key
+     * @template TNewKey of array-key
+     * @template TKey of array-key
+     * @template TValue
+     * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
+     * @param Closure(TValue, TKey): TNewKey $callback
      * @param bool $overwrite
-     * @return array<array-key, T>
+     * @return array<TNewKey, TValue>
      */
-    public static function keyBy(iterable $iterable, string|Closure $key, bool $overwrite = false): array
+    public static function keyBy(iterable $iterable, Closure $callback, bool $overwrite = false): array
     {
-        $callback = is_string($key)
-            ? static fn (): string => $key
-            : $key;
-
         $result = [];
         foreach ($iterable as $oldKey => $val) {
             $newKey = static::ensureKey($callback($val, $oldKey));
@@ -883,7 +880,7 @@ class Arr
 
             $result[$newKey] = $val;
         }
-        /** @var array<T> $result */
+        /** @var array<TNewKey, TValue> $result */
         return $result;
     }
 
@@ -1337,11 +1334,12 @@ class Arr
     }
 
     /**
-     * @template T
-     * @param array<T> $array
-     * @param array-key $key
+     * @template TKey of array-key
+     * @template TValue
+     * @param array<TKey, TValue> $array
+     * @param TKey $key
      * @param bool|null $reindex
-     * @return T|null
+     * @return TValue|null
      */
     public static function pull(array &$array, int|string $key, ?bool $reindex = null): mixed
     {
@@ -1398,7 +1396,7 @@ class Arr
      * @template TKey of array-key
      * @template TValue
      * @param array<TKey, TValue> $array
-     * @param iterable<array-key> $keys
+     * @param iterable<TKey> $keys
      * @param bool|null $reindex
      * @return array<TKey, TValue>
      */
@@ -1503,8 +1501,9 @@ class Arr
     }
 
     /**
-     * @param array<mixed> $array
-     * @param array-key $key
+     * @template TKey of array-key
+     * @param array<TKey, mixed> $array
+     * @param TKey $key
      * @return bool
      */
     public static function removeKey(array &$array, int|string $key): bool
@@ -1513,10 +1512,11 @@ class Arr
     }
 
     /**
-     * @template T
-     * @param iterable<array-key, T> $iterable Iterable to be traversed.
+     * @template TKey of array-key
+     * @template TValue
+     * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
      * @param int<0, max> $times
-     * @return array<int, T>
+     * @return array<int, TValue>
      */
     public static function repeat(iterable $iterable, int $times): array
     {
@@ -1639,10 +1639,11 @@ class Arr
     }
 
     /**
-     * @template T
-     * @param array<T> $array
-     * @param int|string $key
-     * @param T $value
+     * @template TKey of array-key
+     * @template TValue
+     * @param array<TKey, TValue> $array
+     * @param TKey $key
+     * @param TValue $value
      * @return void
      */
     public static function set(array &$array, int|string $key, mixed $value): void
@@ -1651,10 +1652,11 @@ class Arr
     }
 
     /**
-     * @template T
-     * @param array<T> $array
-     * @param int|string $key
-     * @param T $value
+     * @template TKey of array-key
+     * @template TValue
+     * @param array<TKey, TValue> $array
+     * @param TKey $key
+     * @param TValue $value
      * @param bool &$result
      * @return void
      */
@@ -1668,10 +1670,11 @@ class Arr
     }
 
     /**
-     * @template T
-     * @param array<T> $array
-     * @param int|string $key
-     * @param T $value
+     * @template TKey of array-key
+     * @template TValue
+     * @param array<TKey, TValue> $array
+     * @param TKey $key
+     * @param TValue $value
      * @param bool &$result
      * @return void
      */
@@ -1685,7 +1688,7 @@ class Arr
     }
 
     /**
-     * @template TKey
+     * @template TKey of array-key
      * @template TValue
      * @param array<TKey, TValue> $array
      * @return TValue|null
@@ -1696,7 +1699,7 @@ class Arr
     }
 
     /**
-     * @template TKey
+     * @template TKey of array-key
      * @template TValue
      * @param array<TKey, TValue> $array
      * @param int $amount

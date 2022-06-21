@@ -1046,23 +1046,23 @@ class ArrTest extends TestCase
         $assoc = Arr::keyBy([1, 2], static fn($v) => 'a' . $v);
         self::assertEquals(['a1' => 1, 'a2' => 2], $assoc);
 
-        $assoc = Arr::keyBy([['id' => 'b'], ['id' => 'c']], static fn($v) => $v['id']);
+        $assoc = Arr::keyBy([['id' => 'b'], ['id' => 'c']], static fn($v): string => $v['id']);
         self::assertEquals(['b' => ['id' => 'b'], 'c' => ['id' => 'c']], $assoc);
     }
 
     public function test_keyBy_with_duplicate_key(): void
     {
         $this->expectException(DuplicateKeyException::class);
-        Arr::keyBy([['id' => 'b'], ['id' => 'b']], static fn($v) => $v['id']);
+        Arr::keyBy([['id' => 'b'], ['id' => 'b']], static fn($v): string => $v['id']);
     }
 
     public function test_keyBy_with_overwritten_key(): void
     {
-        $array = Arr::keyBy([['id' => 'b', 1], ['id' => 'b', 2]], static fn($v) => $v['id'], true);
+        $array = Arr::keyBy([['id' => 'b', 1], ['id' => 'b', 2]], static fn($v): string => $v['id'], true);
         self::assertEquals(['b' => ['id' => 'b', 2]], $array);
 
         $this->expectException(DuplicateKeyException::class);
-        Arr::keyBy([['id' => 'b', 1], ['id' => 'b', 2]], static fn($v) => $v['id']);
+        Arr::keyBy([['id' => 'b'], ['id' => 'b']], static fn(array $v): string => $v['id']);
     }
 
     public function test_keyBy_with_invalid_key(): void
@@ -1395,6 +1395,136 @@ class ArrTest extends TestCase
         // reindex: false
         $prioritized = Arr::prioritize([1, 2, 3, 4], static fn($_, int $k) => $k > 1, reindex: true);
         self::assertEquals([0, 1, 2, 3], Arr::keys($prioritized));
+    }
+
+    public function test_pull(): void
+    {
+        // empty
+        $list = [];
+        self::assertEquals(null, Arr::pull($list, 1));
+
+        // list
+        $list = [1, 2, 3];
+        self::assertEquals(2, Arr::pull($list, 1));
+        self::assertEquals([1, 3], $list);
+
+        // list: non-existent key
+        $list = [1, 2, 3];
+        self::assertEquals(null, Arr::pull($list, 4));
+
+        // assoc
+        $assoc = ['a' => 1, 'b' => 2];
+        self::assertEquals(2, Arr::pull($assoc, 'b'));
+        self::assertEquals(['a' => 1], $assoc);
+
+        // assoc: non-existent key
+        $assoc = ['a' => 1, 'b' => 2];
+        self::assertEquals(null, Arr::pull($assoc, 'c'));
+
+        // reindex: false
+        $list = [1, 2, 3];
+        self::assertEquals(2, Arr::pull($list, 1, false));
+        self::assertEquals([0 => 1, 2 => 3], $list);
+
+        // reindex: true
+        $assoc = ['a' => 1, 'b' => 2];
+        self::assertEquals(1, Arr::pull($assoc, 'a', true));
+        self::assertEquals([2], $assoc);
+    }
+
+    public function test_pullOr(): void
+    {
+        $nil = Nil::instance();
+
+        // empty
+        $list = [];
+        self::assertEquals('_test_', Arr::pullOr($list, 1, '_test_'));
+
+        // list
+        $list = [1, 2, 3];
+        self::assertEquals(2, Arr::pullOr($list, 1, null));
+        self::assertEquals([1, 3], $list);
+
+        // list miss
+        $list = [1, 2, 3];
+        self::assertEquals($nil, Arr::pullOr($list, 3, $nil));
+        self::assertEquals([1, 2, 3], $list);
+
+        // assoc
+        $assoc = ['a' => 1, 'b' => 2];
+        self::assertEquals(2, Arr::pullOr($assoc, 'b', null));
+        self::assertEquals(['a' => 1], $assoc);
+
+        // assoc miss
+        $assoc = ['a' => null];
+        self::assertEquals($nil, Arr::pullOr($assoc, 'b', $nil));
+        self::assertEquals(['a' => null], $assoc);
+
+        // reindex: false
+        $list = [1, 2, 3];
+        self::assertEquals(2, Arr::pullOr($list, 1, null, false));
+        self::assertEquals([0 => 1, 2 => 3], $list);
+
+        // reindex: true
+        $assoc = ['a' => 1, 'b' => 2];
+        self::assertEquals(2, Arr::pullOr($assoc, 'b', null, true));
+        self::assertEquals([1], $assoc);
+    }
+
+    public function test_pullOrFail(): void
+    {
+        // list
+        $list = [1, 2, 3];
+        self::assertEquals(2, Arr::pullOrFail($list, 1));
+        self::assertEquals([1, 3], $list);
+
+        // assoc
+        $assoc = ['a' => 1, 'b' => 2];
+        self::assertEquals(2, Arr::pullOrFail($assoc, 'b'));
+        self::assertEquals(['a' => 1], $assoc);
+    }
+
+    public function test_pullOrFail_pull_on_empty(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Tried to pull undefined array key "1"');
+        $empty = [];
+        Arr::pullOrFail($empty, 1);
+    }
+
+    public function test_pullOrFail_pull_undefined_key(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Tried to pull undefined array key "c"');
+        $assoc = ['a' => 1, 'b' => 2];
+        Arr::pullOrFail($assoc, 'c');
+    }
+
+    public function test_pullMany(): void
+    {
+        // empty
+        $list = [];
+        $pulled = Arr::pullMany($list, [0, 1, 'a']);
+        self::assertEquals([], $list);
+        self::assertEquals([], $pulled);
+
+        // list
+        $list = [1, 2, 3];
+        $pulled = Arr::pullMany($list, [0, 1]);
+        self::assertEquals([3], $list);
+        self::assertEquals([1, 2], $pulled);
+
+        // assoc
+        $assoc = ['a' => 1, 'b' => 2, 'c' => 3];
+        $pulled = Arr::pullMany($assoc, ['a', 'c']);
+        self::assertEquals(['b' => 2], $assoc);
+        self::assertEquals(['a' => 1, 'c' => 3], $pulled);
+
+        // assoc: miss some key
+        $assoc = ['a' => 1];
+        $pulled = Arr::pullMany($assoc, ['a', 'c']);
+        self::assertEquals([], $assoc);
+        self::assertEquals(['a' => 1], $pulled);
     }
 
     public function test_reduce(): void
