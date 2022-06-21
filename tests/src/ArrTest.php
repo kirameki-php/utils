@@ -1371,6 +1371,51 @@ class ArrTest extends TestCase
         self::assertEquals([], Arr::only([], ['a']));
     }
 
+    public function test_pop(): void
+    {
+        // empty
+        $list = [];
+        self::assertEquals(null, Arr::pop($list));
+
+        // list
+        $list = [1, 2];
+        self::assertEquals(2, Arr::pop($list));
+        self::assertEquals([1], $list);
+
+        // assoc
+        $assoc = ['a' => 1, 'b' => 2];
+        self::assertEquals(2, Arr::pop($assoc));
+        self::assertEquals(['a' => 1], $assoc);
+    }
+
+    public function test_popMany(): void
+    {
+        // empty
+        $list = [];
+        self::assertEquals([], Arr::popMany($list, 1));
+        self::assertEquals([], $list);
+
+        // list: 1
+        $list = [1, 2];
+        self::assertEquals([2], Arr::popMany($list, 1));
+        self::assertEquals([1], $list);
+
+        // list: 2
+        $list = [1, 2];
+        self::assertEquals([1, 2], Arr::popMany($list, 2));
+        self::assertEquals([], $list);
+
+        // assoc: 1
+        $assoc = ['a' => 1, 'b' => 2];
+        self::assertEquals(['b' => 2], Arr::popMany($assoc, 1));
+        self::assertEquals(['a' => 1], $assoc);
+
+        // assoc: 2
+        $assoc = ['a' => 1, 'b' => 2];
+        self::assertEquals(['a' => 1, 'b' => 2], Arr::popMany($assoc, 2));
+        self::assertEquals([], $assoc);
+    }
+
     public function test_prioritize(): void
     {
         // empty
@@ -1551,6 +1596,82 @@ class ArrTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Iterable must contain at least one element.');
         Arr::reduce([], static fn($c, $i, $k) => $k);
+    }
+
+    public function test_remove(): void
+    {
+        // empty
+        $list = [];
+        self::assertEquals([], Arr::remove($list, 1));
+        self::assertEquals([], $list);
+
+        // list
+        $list = [1, 2, 1];
+        self::assertEquals([0, 2], Arr::remove($list, 1));
+        self::assertEquals([2], $list);
+
+        // list with limit
+        $list = [1, 2, 1];
+        self::assertEquals([0], Arr::remove($list, 1, 1));
+        self::assertEquals([2, 1], $list);
+
+        // assoc
+        $assoc = ['a' => 1, 'b' => 2, 'c' => 1];
+        self::assertEquals(['a', 'c'], Arr::remove($assoc, 1));
+        self::assertEquals(['b' => 2], $assoc);
+
+        // assoc with limit
+        $assoc = ['a' => 1, 'b' => 2, 'c' => 1];
+        self::assertEquals(['a'], Arr::remove($assoc, 1, 1));
+        self::assertEquals(['b' => 2, 'c' => 1], $assoc);
+
+        // reindex: false
+        $assoc = [1, 2, 1];
+        self::assertEquals([0, 2], Arr::remove($assoc, 1, reindex: false));
+        self::assertEquals([1 => 2], $assoc);
+
+        // reindex: true
+        $assoc = ['a' => 1, 'b' => 2, 'c' => 1];
+        self::assertEquals(['a', 'c'], Arr::remove($assoc, 1, reindex: true));
+        self::assertEquals([2], $assoc);
+    }
+
+    public function test_removeKey(): void
+    {
+        // empty
+        $list = [];
+        self::assertFalse(Arr::removeKey($list, 1));
+        self::assertEquals([], $list);
+
+        // list: hit
+        $list = [1, 2, 3];
+        self::assertTrue(Arr::removeKey($list, 1));
+        self::assertEquals([1, 3], $list);
+
+        // list: miss
+        $list = [1, 2, 3];
+        self::assertFalse(Arr::removeKey($list, 3));
+        self::assertEquals([1, 2, 3], $list);
+
+        // assoc: hit
+        $assoc = ['a' => 1, 'b' => 2, 'c' => 3];
+        self::assertTrue(Arr::removeKey($assoc, 'b'));
+        self::assertEquals(['a' => 1, 'c' => 3], $assoc);
+
+        // assoc: miss
+        $assoc = ['a' => 1, 'b' => 2, 'c' => 3];
+        self::assertFalse(Arr::removeKey($assoc, 'd'));
+        self::assertEquals(['a' => 1, 'b' => 2 , 'c' => 3], $assoc);
+
+        // reindex: false
+        $list = [1, 2, 3];
+        self::assertTrue(Arr::removeKey($list, 1, false));
+        self::assertEquals([0 => 1, 2 => 3], $list);
+
+        // reindex: true
+        $assoc = ['a' => 1, 'b' => 2, 'c' => 3];
+        self::assertTrue(Arr::removeKey($assoc, 'b', true));
+        self::assertEquals([1, 3], $assoc);
     }
 
     public function test_repeat(): void

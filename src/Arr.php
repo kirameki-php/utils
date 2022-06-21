@@ -1504,11 +1504,12 @@ class Arr
      * @template TKey of array-key
      * @param array<TKey, mixed> $array
      * @param TKey $key
+     * @param bool|null $reindex
      * @return bool
      */
-    public static function removeKey(array &$array, int|string $key): bool
+    public static function removeKey(array &$array, int|string $key, ?bool $reindex = null): bool
     {
-        return static::pull($array, $key) !== null;
+        return static::pull($array, $key, $reindex) !== null;
     }
 
     /**
