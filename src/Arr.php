@@ -731,28 +731,14 @@ class Arr
     }
 
     /**
-     * @template T
-     * @param array<T> $array
-     * @param int $index
-     * @param T $value
-     * @param bool|null $reindex
-     * @return void
-     */
-    public static function insertAt(array &$array, int $index, mixed $value, ?bool $reindex = null): void
-    {
-        static::insertManyAt($array, $index, [$value], $reindex);
-    }
-
-    /**
      * @template TKey of array-key
      * @template TValue
      * @param array<TKey, TValue> $array
-     * @param int $index
-     * @param array<TKey, TValue> $value
-     * @param bool|null $reindex
+     * @param int $at
+     * @param TValue ...$value
      * @return void
      */
-    public static function insertManyAt(array &$array, int $index, array $value, ?bool $reindex = null): void
+    public static function insert(array &$array, int $at, mixed ...$value): void
     {
         // NOTE: This used to be simply array_splice($array, $index, 0, $value) but passing replacement
         // in the 4th argument does not preserve keys so implementation was changed to the current one.
@@ -760,25 +746,22 @@ class Arr
         // Offset is off by one for negative indexes (Ex: -2 inserts at 3rd element from right).
         // So we add one to correct offset. If adding to one results in 0, we set it to max count
         // to put it at the end.
-        if ($index < 0) {
-            $index = $index === -1 ? count($array) : $index + 1;
+        if ($at < 0) {
+            $at = $at === -1 ? count($array) : $at + 1;
         }
 
-        $tail = array_splice($array, $index);
-        $reindex ??= array_is_list($array);
+        $tail = array_splice($array, $at);
 
-        foreach ($value as $key => $val) {
+        foreach ($value as $val) {
+            $array[] = $val;
+        }
+
+        $reindex = array_is_list($array);
+
+        foreach ($tail as $key => $val) {
             $reindex
                 ? $array[] = $val
                 : $array[$key] = $val;
-        }
-
-        foreach ($tail as $key => $val) {
-            if ($reindex) {
-                $array[] = $val;
-            } elseif (!array_key_exists($key, $array)) {
-                $array[$key] = $val;
-            }
         }
     }
 

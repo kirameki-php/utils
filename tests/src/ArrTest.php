@@ -865,42 +865,73 @@ class ArrTest extends TestCase
         Arr::groupBy([['dummy' => 3]], 'id'); /** @phpstan-ignore-line */
     }
 
-    public function test_insertAt(): void
+    public function test_insert(): void
     {
         // empty
         $list = [];
-        Arr::insertAt($list, 0, 'a');
+        Arr::insert($list, 0, 'a');
         self::assertEquals(['a'], $list);
+
+        // no values
+        $list = [];
+        Arr::insert($list, 0);
+        self::assertEquals([], $list);
 
         // list: at 0
         $list = [1, 2, 3, 4];
-        Arr::insertAt($list, 0, 'a');
+        Arr::insert($list, 0, 'a');
         self::assertEquals(['a', 1, 2, 3, 4], $list);
 
         // list: at 1
         $list = [1, 2, 3, 4];
-        Arr::insertAt($list, 1, 'a');
+        Arr::insert($list, 1, 'a');
         self::assertEquals([1, 'a', 2, 3, 4], $list);
+
+        // list: at 1 multiple
+        $list = [1, 2, 3, 4];
+        Arr::insert($list, 1, 'a', 'b');
+        self::assertEquals([1, 'a', 'b', 2, 3, 4], $list);
 
         // list: out of range
         $list = [1, 2, 3, 4];
-        Arr::insertAt($list, 10, 'a');
+        Arr::insert($list, 10, 'a');
         self::assertEquals([1, 2, 3, 4, 'a'], $list);
 
         // list: negative
         $list = [1, 2, 3, 4];
-        Arr::insertAt($list, -1, 'a');
+        Arr::insert($list, -1, 'a');
         self::assertEquals([1, 2, 3, 4, 'a'], $list);
 
         // list: negative alt
         $list = [1, 2, 3, 4];
-        Arr::insertAt($list, -2, 'a');
+        Arr::insert($list, -2, 'a');
         self::assertEquals([1, 2, 3, 'a', 4], $list);
 
         // assoc
-        $list = ['a' => 1, 'b' => 2];
-        Arr::insertAt($list, 0, 'a');
-        self::assertEquals(['a', 1], $list);
+        $assoc = [];
+        Arr::insert($assoc, 0, a: 2);
+        self::assertEquals([2], $assoc);
+
+        // assoc with index overflow
+        $assoc = ['a' => 1];
+        Arr::insert($assoc, 1, b: 1, c: 2);
+        self::assertEquals(['a' => 1, 1, 2], $assoc);
+
+        // assoc with list as values
+        $assoc = ['a' => 1];
+        Arr::insert($assoc, 1, 1);
+        self::assertEquals(['a' => 1, 1], $assoc);
+
+        // assoc duplicate key
+        $assoc = ['a' => 1];
+        Arr::insert($assoc, 1, a: 2);
+        self::assertEquals(['a' => 1, 2], $assoc);
+
+        // insert array
+        $list = [];
+        Arr::insert($list, 0, ['a']);
+        self::assertEquals([['a']], $list);
+
     }
 
     public function test_intersect(): void
