@@ -1360,6 +1360,21 @@ class ArrTest extends TestCase
         self::assertFalse(Arr::notContainsKey(['a' => 1, 0], 'a'));
     }
 
+    public function test_of(): void
+    {
+        // empty
+        self::assertEquals([], Arr::of());
+
+        // list
+        self::assertEquals([1, 2, 3], Arr::of(1, 2, 3));
+
+        // assoc
+        self::assertEquals(['a' => 1, 'b' => 2], Arr::of(a: 1, b: 2));
+
+        // assoc with int
+        self::assertEquals([1, 'a' => 2], Arr::of(1, a: 2));
+    }
+
     public function test_only(): void
     {
         // with list array
@@ -1875,6 +1890,87 @@ class ArrTest extends TestCase
         self::assertTrue(Arr::satisfyAny(['a' => 1, 'b' => 2], static fn($v, $k) => $k === 'b'));
     }
 
+    public function test_set(): void
+    {
+        // set on empty
+        $assoc = [];
+        Arr::set($assoc, 'a', 1);
+        self::assertEquals(['a' => 1], $assoc);
+
+        // overwrite
+        $assoc = ['a' => 1];
+        Arr::set($assoc, 'a', 2);
+        self::assertEquals(['a' => 2], $assoc);
+
+        // assoc set null
+        $assoc = ['a' => 1];
+        Arr::set($assoc, 'a', null);
+        self::assertEquals(['a' => null], $assoc);
+
+        // list: set index
+        $assoc = [];
+        Arr::set($assoc, 0, 1);
+        self::assertEquals([1], $assoc);
+
+        // list: set index
+        $assoc = [1, 2];
+        Arr::set($assoc, 2, 3);
+        self::assertEquals([1, 2, 3], $assoc);
+
+        // list: set null
+        $assoc = [];
+        Arr::set($assoc, 0, null);
+        self::assertEquals([null], $assoc);
+    }
+
+    public function test_setIfExists(): void
+    {
+        // Set when not exists
+        $assoc = [];
+        $result = null;
+        Arr::setIfExists($assoc, 'a', 1, $result);
+        self::assertEquals([], $assoc);
+        self::assertEquals(false, $result);
+
+        // Set on existing
+        $assoc = ['a' => null];
+        $result = null;
+        Arr::setIfExists($assoc, 'a', 1, $result);
+        self::assertEquals(['a' => 1], $assoc);
+        self::assertEquals(true, $result);
+
+        // Set null on existing
+        $assoc = ['a' => 1];
+        $result = null;
+        Arr::setIfExists($assoc, 'a', null, $result);
+        self::assertEquals(['a' => null], $assoc);
+        self::assertEquals(true, $result);
+    }
+
+    public function test_setIfNotExists(): void
+    {
+        // Not Set on existing
+        $assoc = ['a' => 1];
+        $result = null;
+        Arr::setIfNotExists($assoc, 'a', 2, $result);
+        self::assertEquals(['a' => 1], $assoc);
+        self::assertEquals(false, $result);
+
+        // Set success
+        $assoc = ['a' => 1];
+        $result = null;
+        Arr::setIfNotExists($assoc, 'b', 2, $result);
+        self::assertEquals(['a' => 1, 'b' => 2], $assoc);
+        self::assertEquals(true, $result);
+
+        // Null is determined as set
+        $assoc = ['a' => null];
+        $result = null;
+        Arr::setIfNotExists($assoc, 'a', 2, $result);
+        self::assertEquals(['a' => null], $assoc);
+        self::assertEquals(false, $result);
+    }
+
     public function test_shuffle(): void
     {
         mt_srand(100);
@@ -2254,18 +2350,18 @@ class ArrTest extends TestCase
         self::assertEquals([1, 2], Arr::values(['a' => 1, 'b' => 2]));
     }
 
-    public function test_of(): void
+    public function test_wrap(): void
     {
-        // empty
-        self::assertEquals([], Arr::of());
+        // null
+        self::assertEquals([null], Arr::wrap(null));
+
+        // scalar
+        self::assertEquals([1], Arr::wrap(1));
 
         // list
-        self::assertEquals([1, 2, 3], Arr::of(1, 2, 3));
+        self::assertEquals([1, 1, 2], Arr::wrap([1, 1, 2]));
 
         // assoc
-        self::assertEquals(['a' => 1, 'b' => 2], Arr::of(a: 1, b: 2));
-
-        // assoc with int
-        self::assertEquals([1, 'a' => 2], Arr::of(1, a: 2));
+        self::assertEquals(['a' => 1, 'b' => 2], Arr::wrap(['a' => 1, 'b' => 2]));
     }
 }

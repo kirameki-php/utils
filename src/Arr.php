@@ -9,9 +9,6 @@ use LogicException;
 use RuntimeException;
 use Webmozart\Assert\Assert;
 use function abs;
-use function array_column;
-use function array_diff;
-use function array_diff_key;
 use function array_diff_ukey;
 use function array_fill;
 use function array_intersect;
@@ -1264,17 +1261,6 @@ class Arr
 
     /**
      * @template TKey of array-key
-     * @param iterable<TKey, mixed> $iterable Iterable to be traversed.
-     * @param TKey $key
-     * @return array<int, mixed>
-     */
-    public static function pluck(iterable $iterable, int|string $key): array
-    {
-        return array_column(static::from($iterable), $key);
-    }
-
-    /**
-     * @template TKey of array-key
      * @template TValue
      * @param array<TKey, TValue> $array
      * @return TValue|null
@@ -1665,10 +1651,10 @@ class Arr
      * @param bool &$result
      * @return void
      */
-    public static function setIfNotExists(array &$array, int|string $key, mixed $value, ?bool &$result = null): void
+    public static function setIfExists(array &$array, int|string $key, mixed $value, ?bool &$result = null): void
     {
         $result = false;
-        if (static::notContainsKey($array, $key)) {
+        if (static::containsKey($array, $key)) {
             static::set($array, $key, $value);
             $result = true;
         }
@@ -1683,10 +1669,10 @@ class Arr
      * @param bool &$result
      * @return void
      */
-    public static function setIfExists(array &$array, int|string $key, mixed $value, ?bool &$result = null): void
+    public static function setIfNotExists(array &$array, int|string $key, mixed $value, ?bool &$result = null): void
     {
         $result = false;
-        if (static::containsKey($array, $key)) {
+        if (static::notContainsKey($array, $key)) {
             static::set($array, $key, $value);
             $result = true;
         }
