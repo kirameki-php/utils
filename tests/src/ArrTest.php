@@ -1382,6 +1382,32 @@ class ArrTest extends TestCase
         self::assertEquals([], Arr::only([], ['a']));
     }
 
+    public function test_pad(): void
+    {
+        // empty
+        self::assertEquals([], Arr::pad([], 0, 1));
+
+        // not padded
+        self::assertEquals([1], Arr::pad([1], 0, 1));
+        self::assertEquals([1], Arr::pad([1], -1, 0));
+
+        // pad right
+        self::assertEquals([0], Arr::pad([], 1, 0));
+        self::assertEquals([1, 1], Arr::pad([1], 2, 1));
+        self::assertEquals([1, 2, 2], Arr::pad([1], 3, 2));
+
+        // pad left
+        self::assertEquals([0], Arr::pad([], -1, 0));
+        self::assertEquals([1, 1], Arr::pad([1], -2, 1));
+        self::assertEquals([2, 2, 1], Arr::pad([1], -3, 2));
+
+        // assoc: pad left
+        self::assertEquals([2, 2, 'a' => 1], Arr::pad(['a' => 1], -3, 2)); /** @phpstan-ignore-line */
+
+        // assoc: pad right
+        self::assertEquals(['a' => 1, 2, 2], Arr::pad(['a' => 1], -3, 2)); /** @phpstan-ignore-line */
+    }
+
     public function test_pop(): void
     {
         // empty
