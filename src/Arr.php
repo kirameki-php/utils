@@ -12,6 +12,7 @@ use function abs;
 use function array_column;
 use function array_diff;
 use function array_diff_key;
+use function array_diff_ukey;
 use function array_fill;
 use function array_intersect;
 use function array_intersect_key;
@@ -24,6 +25,7 @@ use function array_rand;
 use function array_reverse;
 use function array_shift;
 use function array_splice;
+use function array_udiff;
 use function array_unshift;
 use function array_values;
 use function arsort;
@@ -312,17 +314,18 @@ class Arr
      * @template TValue
      * @param iterable<TKey, TValue> $iterable1 Iterable to be traversed.
      * @param iterable<TKey, TValue> $iterable2
+     * @param Closure(TValue, TValue): int<-1, 1>|null $by
      * @param bool|null $reindex
      * @return array<TKey, TValue>
      */
-    public static function diff(iterable $iterable1, iterable $iterable2, ?bool $reindex = null): array
+    public static function diff(iterable $iterable1, iterable $iterable2, Closure $by = null, ?bool $reindex = null): array
     {
         $array1 = static::from($iterable1);
         $array2 = static::from($iterable2);
-
+        $by ??= static fn(mixed $a, mixed $b): int => $a <=> $b;
         $reindex ??= array_is_list($array1);
 
-        $result = array_diff($array1, $array2);
+        $result = array_udiff($array1, $array2, $by);
 
         return $reindex
             ? array_values($result)
@@ -334,17 +337,18 @@ class Arr
      * @template TValue
      * @param iterable<TKey, TValue> $iterable1 Iterable to be traversed.
      * @param iterable<TKey, TValue> $iterable2
+     * @param Closure(TKey, TKey): int<-1, 1>|null $by
      * @param bool|null $reindex
      * @return array<TKey, TValue>
      */
-    public static function diffKeys(iterable $iterable1, iterable $iterable2, ?bool $reindex = null): array
+    public static function diffKeys(iterable $iterable1, iterable $iterable2, Closure $by = null, ?bool $reindex = null): array
     {
         $array1 = static::from($iterable1);
         $array2 = static::from($iterable2);
-
+        $by ??= static fn(mixed $a, mixed $b): int => $a <=> $b;
         $reindex ??= array_is_list($array1);
 
-        $result = array_diff_key($array1, $array2);
+        $result = array_diff_ukey($array1, $array2, $by);
 
         return $reindex
             ? array_values($result)
@@ -1289,7 +1293,7 @@ class Arr
      */
     public static function popMany(array &$array, int $amount): array
     {
-        Assert::greaterThanEq($amount, 0);
+        Assert::greaterThan($amount, 0);
         return array_splice($array, -$amount);
     }
 
@@ -1708,7 +1712,7 @@ class Arr
      */
     public static function shiftMany(array &$array, int $amount): array
     {
-        Assert::greaterThanEq($amount, 0);
+        Assert::greaterThan($amount, 0);
         return array_splice($array, 0, $amount);
     }
 
@@ -1889,44 +1893,20 @@ class Arr
      * @template TValue
      * @param iterable<TKey, TValue> $iterable1 Iterable to be traversed.
      * @param iterable<TKey, TValue> $iterable2
+     * @param Closure(TValue, TValue): int<-1, 1>|null $by
      * @param bool|null $reindex
      * @return array<TKey, TValue>
      */
-    public static function symDiff(iterable $iterable1, iterable $iterable2, ?bool $reindex = null): array
+    public static function symDiff(iterable $iterable1, iterable $iterable2, Closure $by = null, ?bool $reindex = null): array
     {
         $array1 = static::from($iterable1);
         $array2 = static::from($iterable2);
-
+        $by ??= static fn(mixed $a, mixed $b): int => $a <=> $b;
         $reindex ??= array_is_list($array1) && array_is_list($array2);
 
         $result = static::merge(
-            array_diff($array1, $array2),
-            array_diff($array2, $array1),
-        );
-
-        return $reindex
-            ? array_values($result)
-            : $result;
-    }
-
-    /**
-     * @template TKey of array-key
-     * @template TValue
-     * @param iterable<TKey, TValue> $iterable1 Iterable to be traversed.
-     * @param iterable<TKey, TValue> $iterable2
-     * @param bool|null $reindex
-     * @return array<TKey, TValue>
-     */
-    public static function symDiffKeys(iterable $iterable1, iterable $iterable2, ?bool $reindex = null): array
-    {
-        $array1 = static::from($iterable1);
-        $array2 = static::from($iterable2);
-
-        $reindex ??= array_is_list($array1) && array_is_list($array2);
-
-        $result = static::merge(
-            array_diff_key($array1, $array2),
-            array_diff_key($array2, $array1),
+            array_udiff($array1, $array2, $by),
+            array_udiff($array2, $array1, $by),
         );
 
         return $reindex

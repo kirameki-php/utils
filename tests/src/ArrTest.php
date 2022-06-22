@@ -16,10 +16,12 @@ use stdClass;
 use TypeError;
 use function array_keys;
 use function array_values;
+use function implode;
 use function in_array;
 use function mt_srand;
 use function range;
 use function strlen;
+use function substr;
 use function urlencode;
 
 class ArrTest extends TestCase
@@ -359,6 +361,10 @@ class ArrTest extends TestCase
 
         // reindex: false on assoc
         self::assertEquals(['b' => 2], Arr::diff(['a' => 1, 'b' => 2], ['b' => 1, 'c' => 3], reindex: false));
+
+        // with custom diff subject
+        $diff = Arr::diff([[1], [2]], [[2], [3]], by: static fn(array $a, array $b) => $a[0] <=> $b[0]);
+        self::assertEquals([[1]], $diff);
     }
 
     public function test_diffKeys(): void
@@ -389,6 +395,11 @@ class ArrTest extends TestCase
 
         // reindex: false on assoc
         self::assertEquals(['b' => 2], Arr::diffKeys(['a' => 1, 'b' => 2], ['a' => 3], reindex: false));
+
+        // with custom diff subject
+        $by = static fn(string $a, string $b) => substr($a, 1) <=> substr($b, 1);
+        $diff = Arr::diffKeys(['a1' => 0, 'b2' => 1], ['c1' => 2], $by);
+        self::assertEquals(['b2' => 1], $diff);
     }
 
     public function test_drop(): void
@@ -1416,6 +1427,22 @@ class ArrTest extends TestCase
         self::assertEquals([], $assoc);
     }
 
+    public function test_popMany_zero_amount(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Expected a value greater than 0. Got: 0');
+        $list = [1, 2];
+        self::assertEquals([], Arr::popMany($list, 0));
+    }
+
+    public function test_popMany_negative_amount(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Expected a value greater than 0. Got: -1');
+        $list = [1, 2];
+        self::assertEquals([], Arr::popMany($list, -1));
+    }
+
     public function test_prioritize(): void
     {
         // empty
@@ -2067,6 +2094,10 @@ class ArrTest extends TestCase
         $result = Arr::symDiff(['a' => 2, 'b' => 3], [2, 1], reindex: false);
         self::assertEquals(['b' => 3, 1], $result);
         self::assertEquals([3, 1], Arr::values($result));
+
+        // with custom diff subject
+        $diff = Arr::symDiff([[1], [2]], [[2], [3]], by: static fn(array $a, array $b) => $a[0] <=> $b[0]);
+        self::assertEquals([[1], [3]], $diff);
     }
 
     public function test_take(): void
