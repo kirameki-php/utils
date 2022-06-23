@@ -134,6 +134,36 @@ class StrTest extends TestCase
         self::assertEquals('abc🏴󠁧󠁢󠁳󠁣󠁴󠁿d🏴󠁧󠁢󠁳󠁣󠁴󠁿e', Str::beforeLast('abc🏴󠁧󠁢󠁳󠁣󠁴󠁿d🏴󠁧󠁢󠁳󠁣󠁴󠁿e🏴󠁧󠁢󠁳󠁣󠁴󠁿f', '🏴󠁧󠁢󠁳󠁣󠁴󠁿'));
     }
 
+    public function test_between(): void
+    {
+        // empty
+        self::assertEquals('test(1)', Str::between('test(1)', '', ''));
+        self::assertEquals('1)', Str::between('test(1)', '(', ''));
+        self::assertEquals('test(1', Str::between('test(1)', '', ')'));
+
+        // basic
+        self::assertEquals('1', Str::between('test(1)', '(', ')'));
+
+        // edge
+        self::assertEquals('', Str::between('()', '(', ')'));
+        self::assertEquals('1', Str::between('(1)', '(', ')'));
+
+        // start only
+        self::assertEquals('', Str::between('test(', '(', ')'));
+
+        // end only
+        self::assertEquals('', Str::between('test)', '(', ')'));
+
+        // nested
+        self::assertEquals('test(1)', Str::between('(test(1))', '(', ')'));
+
+        // multichar
+        self::assertEquals('_', Str::between('ab_ba', 'ab', 'ba'));
+
+        // utf8
+        self::assertEquals('い', Str::between('あいう', 'あ', 'う'));
+    }
+
     public function test_camelCase(): void
     {
         self::assertEquals('test', Str::camelCase('test'));

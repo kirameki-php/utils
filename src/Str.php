@@ -145,6 +145,17 @@ class Str
 
     /**
      * @param string $string
+     * @param string $from
+     * @param string $to
+     * @return string
+     */
+    public static function between(string $string, string $from, string $to): string
+    {
+        return static::beforeLast(static::after($string, $from), $to);
+    }
+
+    /**
+     * @param string $string
      * @return string
      */
     public static function camelCase(string $string): string
