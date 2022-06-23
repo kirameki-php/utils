@@ -189,6 +189,17 @@ class Arr
     }
 
     /**
+     * @param array $array
+     * @return void
+     */
+    public static function clear(array &$array): void
+    {
+        foreach ($array as $key => $_) {
+            unset($array[$key]);
+        }
+    }
+
+    /**
      * @template TKey of array-key
      * @template TValue
      * @param iterable<TKey, TValue> $iterable Iterable to be traversed.

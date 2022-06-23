@@ -178,6 +178,24 @@ class ArrTest extends TestCase
         Arr::chunk([1], 0);
     }
 
+    public function test_clear(): void
+    {
+        // empty
+        $list = [];
+        Arr::clear($list);
+        self::assertEquals([], $list);
+
+        // list
+        $list = [1, 2, 3];
+        Arr::clear($list);
+        self::assertEquals([], $list);
+
+        // assoc
+        $list = ['a' => 1, 'b' => 2, 'c' => 3];
+        Arr::clear($list);
+        self::assertEquals([], $list);
+    }
+
     public function test_coalesce(): void
     {
         // empty
