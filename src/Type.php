@@ -127,7 +127,7 @@ class Type
         }
 
         if (is_string($value)) {
-            return '"' . Str::wrap($value, 0, 1000) . '"';
+            return '"' . Str::wordWrap($value, 1000) . '"';
         }
 
         if (is_array($value)) {

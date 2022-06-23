@@ -205,7 +205,7 @@ class Arr
     }
 
     /**
-     * @template TKey
+     * @template TKey of array-key
      * @template TValue
      * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
      * @return TValue
