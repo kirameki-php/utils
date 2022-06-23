@@ -16,8 +16,10 @@ use stdClass;
 use TypeError;
 use function array_keys;
 use function array_values;
-use function implode;
 use function in_array;
+use function is_array;
+use function is_int;
+use function is_string;
 use function mt_srand;
 use function range;
 use function strlen;
@@ -26,6 +28,34 @@ use function urlencode;
 
 class ArrTest extends TestCase
 {
+    public function test_append(): void
+    {
+        // empty
+        $list = [];
+        Arr::append($list);
+        self::assertEquals([], $list);
+
+        // single
+        $list = [1];
+        Arr::append($list, 2);
+        self::assertEquals([1, 2], $list);
+
+        // multi
+        $list = [1];
+        Arr::append($list, 2, 3);
+        self::assertEquals([1, 2, 3], $list);
+
+        // falsy
+        $list = [];
+        Arr::append($list, null, false, 0, '0', 'false');
+        self::assertEquals([null, false, 0, '0', 'false'], $list);
+
+        // assoc
+        $assoc = ['a' => 1];
+        Arr::append($assoc, 2);
+        self::assertEquals(['a' => 1, 2], $assoc);
+    }
+
     public function test_at(): void
     {
         self::assertEquals(1, Arr::at([1, 2, 3], 0));
@@ -1484,6 +1514,34 @@ class ArrTest extends TestCase
         self::assertEquals([], Arr::popMany($list, -1));
     }
 
+    public function test_prepend(): void
+    {
+        // empty
+        $list = [];
+        Arr::prepend($list);
+        self::assertEquals([], $list);
+
+        // single
+        $list = [1];
+        Arr::prepend($list, 2);
+        self::assertEquals([2, 1], $list);
+
+        // multi
+        $list = [1];
+        Arr::prepend($list, 2, 3);
+        self::assertEquals([2, 3, 1], $list);
+
+        // falsy
+        $list = [];
+        Arr::prepend($list, null, false, 0, '0', 'false');
+        self::assertEquals([null, false, 0, '0', 'false'], $list);
+
+        // assoc
+        $assoc = ['a' => 1];
+        Arr::prepend($assoc, 2);
+        self::assertEquals([2, 'a' => 1], $assoc);
+    }
+
     public function test_prioritize(): void
     {
         // empty
@@ -1969,6 +2027,72 @@ class ArrTest extends TestCase
         Arr::setIfNotExists($assoc, 'a', 2, $result);
         self::assertEquals(['a' => null], $assoc);
         self::assertEquals(false, $result);
+    }
+
+    public function test_shift(): void
+    {
+        // empty
+        $list = [];
+        self::assertEquals(null, Arr::shift($list));
+
+        // list
+        $list = [1];
+        self::assertEquals(1, Arr::shift($list));
+        self::assertEquals([], $list);
+
+        // assoc
+        $assoc = ['a' => 1];
+        self::assertEquals(1, Arr::shift($assoc));
+        self::assertEquals([], $assoc);
+
+        // assoc variant
+        $assoc = ['a' => ['b' => 1]];
+        self::assertEquals(['b' => 1], Arr::shift($assoc));
+        self::assertEquals([], $assoc);
+    }
+
+    public function test_shiftMany(): void
+    {
+        // empty
+        $list = [];
+        self::assertEquals([], Arr::shiftMany($list, 1));
+        self::assertEquals([], $list);
+
+        // one
+        $list = [1, 2];
+        self::assertEquals([1], Arr::shiftMany($list, 1));
+        self::assertEquals([2], $list);
+
+        // two
+        $list = [1, 2];
+        self::assertEquals([1, 2], Arr::shiftMany($list, 2));
+        self::assertEquals([], $list);
+
+        // amount over array size
+        $list = [1, 2];
+        self::assertEquals([1, 2], Arr::shiftMany($list, 3));
+        self::assertEquals([], $list);
+
+        // assoc
+        $list = ['a' => 1, 'b' => 2];
+        self::assertEquals(['a' => 1], Arr::shiftMany($list, 1));
+        self::assertEquals(['b' => 2], $list);
+    }
+
+    public function test_shiftMany_zero_amount(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Expected a value greater than 0. Got: 0');
+        $list = [1, 2];
+        self::assertEquals([], Arr::shiftMany($list, 0));
+    }
+
+    public function test_shiftMany_negative_amount(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Expected a value greater than 0. Got: -1');
+        $list = [1, 2];
+        self::assertEquals([], Arr::shiftMany($list, -1));
     }
 
     public function test_shuffle(): void
