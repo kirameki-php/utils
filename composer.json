@@ -43,6 +43,7 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "scripts": {
+    "test": "vendor/bin/phpunit --coverage-text",
     "analyze": "vendor/bin/phpstan analyse --memory-limit 1G"
   }
 }
