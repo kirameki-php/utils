@@ -90,6 +90,11 @@ class ArrTest extends TestCase
         self::assertEquals(3, Arr::atOr([1, 2, 3], -1, null));
     }
 
+    public function test_atOrFail(): void
+    {
+        self::assertEquals(2, Arr::atOrFail([1, 2], 1));
+    }
+
     public function test_atOrFail_on_empty(): void
     {
         $this->expectException(RuntimeException::class);
@@ -597,6 +602,10 @@ class ArrTest extends TestCase
         $instance = new stdClass();
         self::assertEquals([$instance], Arr::duplicates([$instance, $instance]));
 
+        // same resource instance
+        $instance = tmpfile();
+        self::assertEquals([$instance], Arr::duplicates([$instance, $instance]));
+
         // different object instance
         self::assertEquals([], Arr::duplicates([new stdClass(), new stdClass()]));
     }
@@ -872,6 +881,13 @@ class ArrTest extends TestCase
         Arr::flip([true, false]);
     }
 
+    public function test_flip_duplicate_key(): void
+    {
+        $this->expectException(DuplicateKeyException::class);
+        $this->expectExceptionMessage('Tried to overwrite existing key: 1');
+        Arr::flip([1, 1]);
+    }
+
     public function test_fold(): void
     {
         $reduced = Arr::fold([], 0, static fn(int $i) => $i + 1);
@@ -885,6 +901,30 @@ class ArrTest extends TestCase
 
         $reduced = Arr::fold([1, 2, 3], 0, static fn(int $c, $i, $k): int => $c + $i);
         self::assertEquals(6, $reduced);
+    }
+
+    public function test_from(): void
+    {
+        // empty
+        self::assertEquals([], Arr::from([]));
+
+        // list
+        self::assertEquals([1, 2], Arr::from([1, 2]));
+
+        // assoc
+        self::assertEquals(['a' => 1, 'b' => 2], Arr::from(['a' => 1, 'b' => 2]));
+
+        // iterator list
+        self::assertEquals([1, 2], Arr::from((function() {
+            yield 1;
+            yield 2;
+        })()));
+
+        // iterator assoc
+        self::assertEquals(['a' => 1, 'b' => 2], Arr::from((function() {
+            yield 'a' => 1;
+            yield 'b' => 2;
+        })()));
     }
 
     public function test_groupBy(): void
@@ -984,11 +1024,15 @@ class ArrTest extends TestCase
         Arr::insert($assoc, 1, a: 2);
         self::assertEquals(['a' => 1, 2], $assoc);
 
+        // assoc insert between
+        $assoc = ['a' => 1, 'b' => 2];
+        Arr::insert($assoc, 1, a: 2);
+        self::assertEquals(['a' => 1, 2, 'b' => 2], $assoc);
+
         // insert array
         $list = [];
         Arr::insert($list, 0, ['a']);
         self::assertEquals([['a']], $list);
-
     }
 
     public function test_intersect(): void
@@ -1227,6 +1271,11 @@ class ArrTest extends TestCase
         self::assertEquals($miss, Arr::lastOr([10, 20], $miss, static fn() => false));
     }
 
+    public function test_lastOrFail(): void
+    {
+        self::assertEquals(1, Arr::lastOrFail([1]));
+    }
+
     public function test_lastOrFail_empty(): void
     {
         $this->expectException(RuntimeException::class);
@@ -1278,6 +1327,13 @@ class ArrTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('$iterable must contain at least one value');
         Arr::max([]);
+    }
+
+    public function test_max_with_null_closure(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Non-comparable value "null" returned');
+        Arr::max([1], by: static fn() => null);
     }
 
     public function test_merge(): void
@@ -1360,6 +1416,13 @@ class ArrTest extends TestCase
         Arr::min([]);
     }
 
+    public function test_min_with_null_closure(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Non-comparable value "null" returned');
+        Arr::min([1], by: static fn() => null);
+    }
+
     public function test_minMax(): void
     {
         // only one array
@@ -1380,6 +1443,13 @@ class ArrTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('$iterable must contain at least one value');
         Arr::minMax([]);
+    }
+
+    public function test_minMax_with_null_closure(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Non-comparable value "null" returned');
+        Arr::minMax([1], by: static fn() => null);
     }
 
     public function test_notContains(): void

@@ -1061,7 +1061,7 @@ class Arr
             $result = $by($val, $key);
 
             if ($result === null) {
-                throw new RuntimeException("Non-comparable value \"null\" returned for key: $key");
+                throw new RuntimeException('Non-comparable value "null" returned for closure');
             }
 
             if ($maxResult === null || $result > $maxResult) {
@@ -1134,7 +1134,7 @@ class Arr
             $result = $by($val, $key);
 
             if ($result === null) {
-                throw new RuntimeException("Non-comparable type \"null\"");
+                throw new RuntimeException('Non-comparable value "null" returned');
             }
 
             if ($minResult === null || $result < $minResult) {
@@ -1170,7 +1170,7 @@ class Arr
             $result = $by($val, $key);
 
             if ($result === null) {
-                throw new RuntimeException("Non-comparable type \"null\"");
+                throw new RuntimeException('Non-comparable value "null" returned for closure');
             }
 
             if ($minResult === null || $result < $minResult) {

@@ -5,10 +5,10 @@ namespace Tests\Kirameki\Utils;
 use DateTime;
 use JsonException;
 use Kirameki\Utils\Json;
-use Tests\Kirameki\Utils\Support\Json\IntEnum;
-use Tests\Kirameki\Utils\Support\Json\NonBackedEnum;
-use Tests\Kirameki\Utils\Support\Json\Simple;
-use Tests\Kirameki\Utils\Support\Json\StringEnum;
+use Tests\Kirameki\Utils\References\IntEnum;
+use Tests\Kirameki\Utils\References\NonBackedEnum;
+use Tests\Kirameki\Utils\References\SimpleClass;
+use Tests\Kirameki\Utils\References\StringEnum;
 use function substr;
 
 class JsonTest extends TestCase
@@ -32,7 +32,7 @@ class JsonTest extends TestCase
         self::assertEquals('[1,2]', Json::encode([1, 2]));
         self::assertEquals("[\n    1,\n    2\n]", Json::encode([1, 2], formatted: true));
         self::assertEquals('{"1":1}', Json::encode(['1' => 1]));
-        self::assertEquals('{"b":true,"i":1,"f":1.0}', Json::encode(new Simple()));
+        self::assertEquals('{"b":true,"i":1,"f":1.0}', Json::encode(new SimpleClass()));
         self::assertEquals('{"date":"2021-02-02 00:00:00.000000","timezone_type":3,"timezone":"UTC"}', Json::encode(new DateTime('2021-02-02')));
         self::assertEquals('1', Json::encode(IntEnum::One));
         self::assertEquals('"1"', Json::encode(StringEnum::One));

@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace Tests\Kirameki\Utils\Support\Json;
+namespace Tests\Kirameki\Utils\References;
 
-class Simple
+class SimpleClass
 {
     public function __construct(
         public bool $b = true,
