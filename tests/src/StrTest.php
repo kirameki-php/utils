@@ -3,6 +3,7 @@
 namespace Tests\Kirameki\Utils;
 
 use Kirameki\Utils\Str;
+use stdClass;
 use Webmozart\Assert\InvalidArgumentException;
 
 class StrTest extends TestCase
@@ -184,6 +185,15 @@ class StrTest extends TestCase
         self::assertEquals('Àbc', Str::capitalize('àbc'));
         self::assertEquals('ゅ', Str::capitalize('ゅ'));
         self::assertEquals('🏴󠁧󠁢󠁳󠁣󠁴󠁿', Str::capitalize('🏴󠁧󠁢󠁳󠁣󠁴󠁿'));
+    }
+
+    public function test_concat(): void
+    {
+        self::assertEquals('', Str::concat());
+        self::assertEquals('test', Str::concat('test'));
+        self::assertEquals('testa ', Str::concat('test', 'a', '', ' '));
+        self::assertEquals('ゅゅ', Str::concat('ゅ', 'ゅ'));
+        self::assertEquals('🏴󠁧󠁢󠁳󠁣󠁴󠁿🐌', Str::concat('🏴󠁧󠁢󠁳󠁣󠁴󠁿', '🐌'));
     }
 
     public function test_contains(): void
@@ -443,6 +453,16 @@ class StrTest extends TestCase
         self::assertFalse(Str::lastIndexOf('🏴󠁧󠁢󠁳󠁣󠁴󠁿👨‍👨‍👧‍👦', '👨‍👨‍👧‍👦', 2));
     }
 
+    public function test_lcFirst(): void
+    {
+        self::assertEquals('', Str::lcFirst(''));
+        self::assertEquals('test', Str::lcFirst('Test'));
+        self::assertEquals('t T', Str::lcFirst('T T'));
+        self::assertEquals(' T ', Str::lcFirst(' T '));
+        self::assertEquals('é', Str::lcFirst('É'));
+        self::assertEquals('🔡', Str::lcFirst('🔡'));
+    }
+
     public function test_length(): void
     {
         self::assertEquals(0, Str::length(''));
@@ -492,6 +512,25 @@ class StrTest extends TestCase
         self::assertFalse(Str::notContains('abcde', 'ab'));
         self::assertFalse(Str::notContains('a', ''));
         self::assertTrue(Str::notContains('', 'a'));
+    }
+
+    public function test_pad(): void
+    {
+        // empty string
+        self::assertEquals('', Str::pad('', -1, '_'));
+
+        // defaults to pad right
+        self::assertEquals('a', Str::pad('a', -1, '_'));
+        self::assertEquals('a', Str::pad('a', 0, '_'));
+        self::assertEquals('a_', Str::pad('a', 2, '_'));
+        self::assertEquals('__', Str::pad('_', 2, '_'));
+        self::assertEquals('ab', Str::pad('ab', 1, '_'));
+    }
+
+    public function test_pad_invalid_pad(): void
+    {
+        $this->expectExceptionMessage('Invalid padding type: 3');
+        self::assertEquals('ab', Str::pad('ab', 1, '_', 3));
     }
 
     public function test_padBoth(): void
@@ -648,6 +687,15 @@ class StrTest extends TestCase
 
         // match emoji
         self::assertEquals(['👨‍👨‍👧', ''], Str::split('👨‍👨‍👧‍👦', '‍👦'));
+
+        // multiple separators
+        self::assertEquals(['', '', 'c'], Str::split('abc', ['a', 'b']));
+    }
+
+    public function test_split_with_invalid_separator_in_array(): void
+    {
+        $this->expectErrorMessage('Argument #1 ($str) must be of type string, stdClass given');
+        self::assertEquals(['', '', 'c'], Str::split('abc', [new stdClass()]));
     }
 
     public function test_substring(): void
@@ -805,6 +853,17 @@ class StrTest extends TestCase
 
         // custom multiple
         self::assertEquals('b_a_', Str::trimStart("_ab_a_", 'a_'));
+    }
+
+    public function test_ucFirst(): void
+    {
+        self::assertEquals('', Str::ucFirst(''));
+        self::assertEquals('Test', Str::ucFirst('test'));
+        self::assertEquals('T t', Str::ucFirst('t t'));
+        self::assertEquals('T T', Str::ucFirst('T T'));
+        self::assertEquals(' t ', Str::ucFirst(' t '));
+        self::assertEquals('É', Str::ucFirst('é'));
+        self::assertEquals('🔡', Str::ucFirst('🔡'));
     }
 
     public function test_wordWrap(): void

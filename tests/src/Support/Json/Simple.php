@@ -2,8 +2,6 @@
 
 namespace Tests\Kirameki\Utils\Support\Json;
 
-use DateTime;
-
 class Simple
 {
     public function __construct(

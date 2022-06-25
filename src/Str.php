@@ -3,9 +3,11 @@
 namespace Kirameki\Utils;
 
 use LogicException;
+use RuntimeException;
 use Webmozart\Assert\Assert;
 use function abs;
 use function array_map;
+use function assert;
 use function ceil;
 use function floor;
 use function grapheme_strlen;
@@ -13,10 +15,9 @@ use function grapheme_strpos;
 use function grapheme_strrpos;
 use function grapheme_substr;
 use function implode;
+use function intl_get_error_message;
 use function is_array;
-use function is_string;
 use function iterator_to_array;
-use function lcfirst;
 use function ltrim;
 use function mb_strcut;
 use function mb_strlen;
@@ -24,6 +25,7 @@ use function mb_strtolower;
 use function mb_strtoupper;
 use function preg_match;
 use function preg_match_all;
+use function preg_quote;
 use function preg_replace;
 use function preg_split;
 use function rtrim;
@@ -160,7 +162,7 @@ class Str
      */
     public static function camelCase(string $string): string
     {
-        return lcfirst(static::pascalCase($string));
+        return static::lcFirst(static::pascalCase($string));
     }
 
     /**
@@ -378,6 +380,17 @@ class Str
 
     /**
      * @param string $string
+     * @return string
+     */
+    public static function lcFirst(string $string): string
+    {
+        $firstChar = mb_strtolower(static::substring($string, 0, 1), static::Encoding);
+        $otherChars = static::substring($string, 1);
+        return $firstChar . $otherChars;
+    }
+
+    /**
+     * @param string $string
      * @return int
      */
     public static function length(string $string): int
@@ -407,6 +420,17 @@ class Str
         $match = [];
         preg_match_all($pattern, $string, $match);
         return $match;
+    }
+
+    /**
+     * @param string $string
+     * @return string
+     */
+    public static function ucFirst(string $string): string
+    {
+        $firstChar = mb_strtoupper(static::substring($string, 0, 1), static::Encoding);
+        $otherChars = static::substring($string, 1);
+        return $firstChar . $otherChars;
     }
 
     /**
@@ -456,7 +480,7 @@ class Str
      * @param string $string
      * @param int $length
      * @param string $pad
-     * @param int $type
+     * @param int<0, 2> $type
      * @return string
      */
     public static function pad(string $string, int $length, string $pad = ' ', int $type = STR_PAD_RIGHT): string
@@ -493,7 +517,7 @@ class Str
             return $prefix . $string . $suffix;
         }
 
-        throw new LogicException('Invalid padding type: '.$type);
+        throw new LogicException('Invalid padding type: ' . $type);
     }
 
     /**
@@ -639,15 +663,13 @@ class Str
      */
     public static function split(string $string, string|array $separator, ?int $limit = null): array
     {
-        if (is_string($separator)) {
-            $separator = [$separator];
-        }
+        $separators = array_map(static fn(string $str): string => preg_quote($str, '/'), (array) $separator);
+        $pattern = '/(' . implode('|', $separators) . ')/';
 
-        $pattern = '/(' . implode('|', array_map(preg_quote(...), $separator)) . ')/';
         $splits = preg_split($pattern, $string, $limit ?? -1);
-        if ($splits === false) {
-            throw new LogicException('You should never reach here.');
-        }
+
+        assert($splits !== false);
+
         return $splits;
     }
 
@@ -659,7 +681,11 @@ class Str
      */
     public static function substring(string $string, int $offset, ?int $length = null): string
     {
-        return (string) grapheme_substr($string, $offset, $length);
+        $string = grapheme_substr($string, $offset, $length);
+        if ($string === false) {
+            throw new RuntimeException(intl_get_error_message());
+        }
+        return $string;
     }
 
     /**

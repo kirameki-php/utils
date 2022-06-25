@@ -274,7 +274,7 @@ class Iter
 
         if ($isNegativeOffset || $isNegativeLength) {
             $count = 0;
-            foreach ($iterable as $_) {
+            foreach ($iterable as $ignored) {
                 ++$count;
             }
             if ($isNegativeOffset) {

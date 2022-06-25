@@ -18,7 +18,6 @@ use function is_object;
 use function is_resource;
 use function is_string;
 use function iterator_to_array;
-use function mb_strcut;
 use function spl_object_hash;
 use function strtolower;
 

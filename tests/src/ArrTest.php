@@ -522,7 +522,6 @@ class ArrTest extends TestCase
         // drop until null does not work
         $this->expectException(TypeError::class);
         $this->expectExceptionMessage(Iter::class . '::verify(): Return value must be of type bool, null returned');
-        /** @phpstan-ignore-next-line */
         Arr::dropUntil([1], static fn(int $v, int $k) => null);
     }
 
@@ -574,7 +573,6 @@ class ArrTest extends TestCase
         // drop while null does not work
         $this->expectException(TypeError::class);
         $this->expectExceptionMessage(Iter::class . '::verify(): Return value must be of type bool, null returned');
-        /** @phpstan-ignore-next-line */
         Arr::dropWhile([1], static fn(int $v, int $k) => null);
     }
 
@@ -904,7 +902,7 @@ class ArrTest extends TestCase
             1 => [['id' => 1], ['id' => 1]],
             2 => [['id' => 2]]
         ],
-            Arr::groupBy([ /** @phpstan-ignore-line */
+            Arr::groupBy([
                 ['id' => 1], ['id' => 2], ['id' => 1],
             ], 'id'));
 
@@ -921,7 +919,7 @@ class ArrTest extends TestCase
     {
         $this->expectError();
         $this->expectErrorMessage('Undefined array key "id"');
-        Arr::groupBy([['dummy' => 3]], 'id'); /** @phpstan-ignore-line */
+        Arr::groupBy([['dummy' => 3]], 'id');
     }
 
     public function test_insert(): void
@@ -1127,7 +1125,6 @@ class ArrTest extends TestCase
     public function test_keyBy_with_invalid_key(): void
     {
         $this->expectException(LogicException::class);
-        /** @phpstan-ignore-next-line */
         Arr::keyBy([['id' => 'b', 1], ['id' => 'b', 2]], static fn($v) => false);
     }
 
@@ -1465,10 +1462,10 @@ class ArrTest extends TestCase
         self::assertEquals([2, 2, 1], Arr::pad([1], -3, 2));
 
         // assoc: pad left
-        self::assertEquals([2, 2, 'a' => 1], Arr::pad(['a' => 1], -3, 2)); /** @phpstan-ignore-line */
+        self::assertEquals([2, 2, 'a' => 1], Arr::pad(['a' => 1], -3, 2));
 
         // assoc: pad right
-        self::assertEquals(['a' => 1, 2, 2], Arr::pad(['a' => 1], -3, 2)); /** @phpstan-ignore-line */
+        self::assertEquals(['a' => 1, 2, 2], Arr::pad(['a' => 1], -3, 2));
     }
 
     public function test_pop(): void
@@ -1840,7 +1837,7 @@ class ArrTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Expected a value greater than or equal to 0. Got: -1');
-        self::assertEquals([], Arr::repeat([1], -1)); /** @phpstan-ignore-line */
+        self::assertEquals([], Arr::repeat([1], -1));
     }
 
     public function test_reverse(): void
