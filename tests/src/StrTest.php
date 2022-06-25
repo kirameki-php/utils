@@ -56,7 +56,7 @@ class StrTest extends TestCase
         self::assertEquals('', Str::afterLast('test1', '1'));
 
         // should match the last string
-        self::assertEquals('Foo', Str::afterLast('----Foo','---'));
+        self::assertEquals('Foo', Str::afterLast('----Foo', '---'));
 
         // match empty string
         self::assertEquals('test', Str::afterLast('test', ''));
@@ -315,7 +315,7 @@ class StrTest extends TestCase
         self::assertFalse(Str::doesNotEndWith('abc', ['a', 'b', 'c']));
         self::assertTrue(Str::doesNotEndWith('abc', ['a', 'b']));
         self::assertFalse(Str::doesNotEndWith('aabbcc', 'cc'));
-        self::assertFalse(Str::doesNotEndWith('aabbcc'.PHP_EOL, PHP_EOL));
+        self::assertFalse(Str::doesNotEndWith('aabbcc' . PHP_EOL, PHP_EOL));
         self::assertFalse(Str::doesNotEndWith('abc0', '0'));
         self::assertFalse(Str::doesNotEndWith('abcfalse', 'false'));
         self::assertFalse(Str::doesNotEndWith('a', ''));
@@ -332,7 +332,7 @@ class StrTest extends TestCase
         self::assertTrue(Str::endsWith('abc', ['a', 'b', 'c']));
         self::assertFalse(Str::endsWith('abc', ['a', 'b']));
         self::assertTrue(Str::endsWith('aabbcc', 'cc'));
-        self::assertTrue(Str::endsWith('aabbcc'.PHP_EOL, PHP_EOL));
+        self::assertTrue(Str::endsWith('aabbcc' . PHP_EOL, PHP_EOL));
         self::assertTrue(Str::endsWith('abc0', '0'));
         self::assertTrue(Str::endsWith('abcfalse', 'false'));
         self::assertTrue(Str::endsWith('a', ''));
@@ -519,6 +519,9 @@ class StrTest extends TestCase
         // empty string
         self::assertEquals('', Str::pad('', -1, '_'));
 
+        // pad string
+        self::assertEquals('abc', Str::pad('abc', 3, ''));
+
         // defaults to pad right
         self::assertEquals('a', Str::pad('a', -1, '_'));
         self::assertEquals('a', Str::pad('a', 0, '_'));
@@ -620,6 +623,16 @@ class StrTest extends TestCase
         self::assertEquals('あ-いえう', Str::replaceLast('あ-い-う', '-', 'え'));
         self::assertEquals('🏴󠁧󠁢󠁳󠁣󠁴󠁿 a', Str::replaceLast('🏴󠁧󠁢󠁳󠁣󠁴󠁿 👨‍👨‍👧‍👦', '👨‍👨‍👧‍👦', 'a'));
         self::assertEquals('🏴󠁧󠁢󠁳󠁣󠁴󠁿a_🏴󠁧󠁢󠁳󠁣󠁴󠁿', Str::replaceLast('🏴󠁧󠁢󠁳󠁣󠁴󠁿a🏴󠁧󠁢󠁳󠁣󠁴󠁿a🏴󠁧󠁢󠁳󠁣󠁴󠁿', '🏴󠁧󠁢󠁳󠁣󠁴󠁿a', '_'));
+    }
+
+    public function test_replaceMatch(): void
+    {
+        self::assertEquals('', Str::replaceMatch('', '', ''));
+        self::assertEquals('abb', Str::replaceMatch('abc', '/c/', 'b'));
+        self::assertEquals('abbb', Str::replaceMatch('abcc', '/c/', 'b'));
+        self::assertEquals('あいい', Str::replaceMatch('あいう', '/う/', 'い'));
+        self::assertEquals('x', Str::replaceMatch('abcde', '/[A-Za-z]+/', 'x'));
+        self::assertEquals('a-b', Str::replaceMatch('a🏴󠁧󠁢󠁳󠁣󠁴󠁿b', '/🏴󠁧󠁢󠁳󠁣󠁴󠁿/', '-'));
     }
 
     public function test_reverse(): void
@@ -727,6 +740,12 @@ class StrTest extends TestCase
         self::assertEquals('', Str::substring('👨‍👨‍👧‍👦', 1));
         self::assertEquals('🏴󠁧󠁢󠁳󠁣󠁴󠁿', Str::substring('👨‍👨‍👧‍👦🏴󠁧󠁢󠁳󠁣󠁴󠁿', 1));
         self::assertEquals('🏴󠁧󠁢󠁳󠁣󠁴󠁿', Str::substring('👨‍👨‍👧‍👦🏴󠁧󠁢󠁳󠁣󠁴󠁿', -1, 1));
+    }
+
+    public function test_substring_invalid_input(): void
+    {
+        $this->expectExceptionMessage('Error converting input string to UTF-16: U_INVALID_CHAR_FOUND');
+        self::assertEquals('', Str::substring(substr('あ', 1), 0, 2));
     }
 
     public function test_toLower(): void

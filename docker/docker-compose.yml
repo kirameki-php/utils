@@ -5,4 +5,11 @@ services:
       context: ..
       dockerfile: docker/Dockerfile
     volumes:
-      - ..:/app
+      - type: bind
+        source: ..
+        target: /app
+      - type: volume
+        source: user
+        target: /root
+volumes:
+  user:
