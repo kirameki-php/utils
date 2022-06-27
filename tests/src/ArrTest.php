@@ -2183,12 +2183,12 @@ class ArrTest extends TestCase
     public function test_shuffle(): void
     {
         mt_srand(100);
-        self::assertEquals([1, 2, 4, 3, 2], Arr::shuffle([1, 2, 2, 3, 4]));
+        self::assertEquals([3, 2, 2, 4, 1], Arr::shuffle([1, 2, 2, 3, 4]));
         self::assertEquals(['a' => 1, 'c' => 3, 'b' => 2, 'd' => 4], Arr::shuffle(['a' => 1, 'b' => 2, 'c' => 3, 'd' => 4]));
 
         // reindex: false
         mt_srand(100);
-        self::assertEquals([0, 2, 4, 3, 1], array_keys(Arr::shuffle([1, 2, 2, 3, 4], reindex: false)));
+        self::assertEquals([3, 1, 2, 4, 0], array_keys(Arr::shuffle([1, 2, 2, 3, 4], reindex: false)));
         self::assertEquals(['a' => 1, 'c' => 3, 'b' => 2, 'd' => 4], Arr::shuffle(['a' => 1, 'b' => 2, 'c' => 3, 'd' => 4], reindex: false));
 
         // reindex: true

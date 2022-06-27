@@ -1722,19 +1722,20 @@ class Arr
      */
     public static function shuffle(iterable $iterable, ?bool $reindex = null): array
     {
-        $copy = static::from($iterable);
-        $size = count($copy);
-        $reindex ??= array_is_list($copy);
-        $result = [];
-        while ($size > 0) {
-            $key = array_rand($copy);
-            $reindex
-                ? $result[] = $copy[$key]
-                : $result[$key] = $copy[$key];
-            unset($copy[$key]);
-            --$size;
+        $array = static::from($iterable);
+        $reindex ??= array_is_list($array);
+
+        $keys = array_keys($array);
+        shuffle($keys);
+
+        $shuffled = [];
+        foreach($keys as $key) {
+            $shuffled[$key] = $array[$key];
         }
-        return $result;
+
+        return $reindex
+            ? static::values($shuffled)
+            : $shuffled;
     }
 
     /**
