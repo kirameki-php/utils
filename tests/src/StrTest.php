@@ -282,10 +282,24 @@ class StrTest extends TestCase
 
     public function test_delete(): void
     {
+        // empty
+        self::assertEquals('', Str::delete('', ''));
+
+        // normal
         self::assertEquals('', Str::delete('aaa', 'a'));
         self::assertEquals('a  a', Str::delete('aaa aa a', 'aa'));
-        self::assertEquals('', Str::delete('', ''));
         self::assertEquals('no match', Str::delete('no match', 'hctam on'));
+
+        // limit deletion
+        self::assertEquals('aa', Str::delete('aa', 'a', 0));
+        self::assertEquals('a', Str::delete('aaa', 'a', 2));
+    }
+
+    public function test_delete_with_negative_limit(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Expected a value greater than or equal to 0. Got: -1');
+        Str::delete('', '', -1);
     }
 
     public function test_doesNotStartWith(): void
@@ -601,6 +615,16 @@ class StrTest extends TestCase
         self::assertEquals('', Str::replace('b', 'b', ''));
         self::assertEquals('あえいえう', Str::replace('あ-い-う', '-', 'え'));
         self::assertEquals('__🏴󠁧󠁢󠁳󠁣󠁴󠁿', Str::replace('🏴󠁧󠁢󠁳󠁣󠁴󠁿a🏴󠁧󠁢󠁳󠁣󠁴󠁿a🏴󠁧󠁢󠁳󠁣󠁴󠁿', '🏴󠁧󠁢󠁳󠁣󠁴󠁿a', '_'));
+
+        // with limit
+        self::assertEquals('a', Str::replace('aaa', 'a', '', 2));
+    }
+
+    public function test_replace_with_negative_limit(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Expected a value greater than or equal to 0. Got: -1');
+        Str::replace('', 'a', 'a', -1);
     }
 
     public function test_replaceFirst(): void
@@ -633,6 +657,16 @@ class StrTest extends TestCase
         self::assertEquals('あいい', Str::replaceMatch('あいう', '/う/', 'い'));
         self::assertEquals('x', Str::replaceMatch('abcde', '/[A-Za-z]+/', 'x'));
         self::assertEquals('a-b', Str::replaceMatch('a🏴󠁧󠁢󠁳󠁣󠁴󠁿b', '/🏴󠁧󠁢󠁳󠁣󠁴󠁿/', '-'));
+
+        // with limit
+        self::assertEquals('a', Str::replaceMatch('aaa', '/a/', '', 2));
+    }
+
+    public function test_replaceMatch_with_negative_limit(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Expected a value greater than or equal to 0. Got: -1');
+        Str::replaceMatch('', '/a/', 'a', -1);
     }
 
     public function test_reverse(): void
@@ -703,6 +737,12 @@ class StrTest extends TestCase
 
         // multiple separators
         self::assertEquals(['', '', 'c'], Str::split('abc', ['a', 'b']));
+    }
+
+    public function test_split_with_negative_limit(): void
+    {
+        $this->expectErrorMessage('Expected a value greater than or equal to 0. Got: -1');
+        Str::split('a', 'b', -1);
     }
 
     public function test_split_with_invalid_separator_in_array(): void

@@ -957,7 +957,8 @@ class ArrTest extends TestCase
 
     public function test_groupBy_missing_key(): void
     {
-        $this->expectErrorMessage('Undefined array key "id"');
+        $this->expectWarning();
+        $this->expectWarningMessage('Undefined array key "id"');
         Arr::groupBy([['dummy' => 3]], 'id');
     }
 
@@ -1491,6 +1492,10 @@ class ArrTest extends TestCase
 
     public function test_only(): void
     {
+        // empty
+        self::assertEquals([], Arr::only([], [1, 2]));
+        self::assertEquals([], Arr::only([], ['a', 'b']));
+
         // with list array
         self::assertEquals([2], Arr::only([1, 2, 3], [1]));
 
@@ -1502,12 +1507,6 @@ class ArrTest extends TestCase
 
         // different order of keys
         self::assertEquals(['c' => 3, 'b' => 2], Arr::only(['a' => 1, 'b' => 2, 'c' => 3], ['x' => 'c', 'b']));
-    }
-
-    public function test_only_WithUndefinedKey(): void
-    {
-        $this->expectErrorMessage('Undefined array key "a"');
-        self::assertEquals([], Arr::only([], ['a']));
     }
 
     public function test_pad(): void
@@ -1981,6 +1980,7 @@ class ArrTest extends TestCase
 
     public function test_sample_Empty(): void
     {
+        $this->expectError();
         $this->expectErrorMessage('array_rand(): Argument #1 ($array) cannot be empty');
         Arr::sample([]);
     }
@@ -2379,6 +2379,7 @@ class ArrTest extends TestCase
 
     public function test_sum_throw_on_sum_of_string(): void
     {
+        $this->expectError();
         $this->expectErrorMessage('Unsupported operand types: int + string');
         Arr::sum(['a', 'b']);
     }

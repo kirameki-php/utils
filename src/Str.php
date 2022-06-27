@@ -261,10 +261,10 @@ class Str
     /**
      * @param string $string
      * @param string $search
-     * @param int $limit
+     * @param int|null $limit
      * @return string
      */
-    public static function delete(string $string, string $search, int $limit = -1): string
+    public static function delete(string $string, string $search, ?int $limit = null): string
     {
         return static::replace($string, $search, '', $limit);
     }
@@ -531,7 +531,7 @@ class Str
 
     /**
      * @param string $string
-     * @param int $times
+     * @param int<0, max> $times
      * @return string
      */
     public static function repeat(string $string, int $times): string
@@ -543,11 +543,13 @@ class Str
      * @param string $string
      * @param string $search
      * @param string $replace
-     * @param int $limit
+     * @param int|null $limit
      * @return string
      */
-    public static function replace(string $string, string $search, string $replace, int $limit = -1): string
+    public static function replace(string $string, string $search, string $replace, ?int $limit = null): string
     {
+        Assert::greaterThanEq($limit, 0);
+
         if ($search === '') {
             return $string;
         }
@@ -595,16 +597,18 @@ class Str
      * @param string $string
      * @param string $pattern
      * @param string $replace
-     * @param int $limit
+     * @param int|null $limit
      * @return string
      */
-    public static function replaceMatch(string $string, string $pattern, string $replace, int $limit = -1): string
+    public static function replaceMatch(string $string, string $pattern, string $replace, ?int $limit = null): string
     {
+        Assert::greaterThanEq($limit, 0);
+
         if ($string === '') {
             return $string;
         }
 
-        return (string) preg_replace($pattern, $replace, $string, $limit);
+        return (string) preg_replace($pattern, $replace, $string, $limit ?? -1);
     }
 
     /**
@@ -630,7 +634,7 @@ class Str
 
     /**
      * @param string $haystack
-     * @param string|iterable<string> $needle
+     * @param string|iterable<array-key, string> $needle
      * @return bool
      */
     public static function startsWith(string $haystack, string|iterable $needle): bool
@@ -658,11 +662,13 @@ class Str
     /**
      * @param string $string
      * @param string|iterable<array-key, string> $separator
-     * @param int|null $limit
+     * @param int<0, max>|null $limit
      * @return array<int, string>
      */
     public static function split(string $string, string|iterable $separator, ?int $limit = null): array
     {
+        Assert::greaterThanEq($limit, 0);
+
         $separators = Arr::wrap($separator);
         $separators = array_map(static fn(string $str): string => preg_quote($str, '/'), $separators);
         $pattern = '/(' . implode('|', $separators) . ')/';

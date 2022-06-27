@@ -1241,9 +1241,11 @@ class Arr
 
         $result = [];
         foreach ($keys as $key) {
-            $reindex
-                ? $result[] = $array[$key]
-                : $result[$key] = $array[$key];
+            if (array_key_exists($key, $array)) {
+                $reindex
+                    ? $result[] = $array[$key]
+                    : $result[$key] = $array[$key];
+            }
         }
 
         return $result;
