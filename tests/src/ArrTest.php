@@ -374,7 +374,7 @@ class ArrTest extends TestCase
         self::assertEquals(2, Arr::count([1, 2, 3], static fn($v) => $v > 1));
 
         // condition checked with key
-        self::assertEquals(1, Arr::count(['a' => 1, 'b' => 2], static fn($v,$k) => $k === 'a'));
+        self::assertEquals(1, Arr::count(['a' => 1, 'b' => 2], static fn($v, $k) => $k === 'a'));
     }
 
     public function test_diff(): void
@@ -613,7 +613,7 @@ class ArrTest extends TestCase
     public function test_each(): void
     {
         // empty
-        Arr::each([], static fn () => throw new Exception());
+        Arr::each([], static fn() => throw new Exception());
 
         // list
         Arr::each(['a', 'b'], static function (string $v, int $k) {
@@ -722,7 +722,7 @@ class ArrTest extends TestCase
         self::assertEquals(null, Arr::first([]));
 
         // no match
-        self::assertEquals(null, Arr::first([1,2], static fn(int $i) => $i > 2));
+        self::assertEquals(null, Arr::first([1, 2], static fn(int $i) => $i > 2));
 
         // one element
         self::assertEquals(1, Arr::first([1], static fn($v) => true));
@@ -813,7 +813,7 @@ class ArrTest extends TestCase
     {
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Failed to find matching condition.');
-        Arr::firstOrFail([1,2], static fn(int $i) => $i > 2);
+        Arr::firstOrFail([1, 2], static fn(int $i) => $i > 2);
     }
 
     public function test_flatMap(): void
@@ -957,7 +957,6 @@ class ArrTest extends TestCase
 
     public function test_groupBy_missing_key(): void
     {
-        $this->expectError();
         $this->expectErrorMessage('Undefined array key "id"');
         Arr::groupBy([['dummy' => 3]], 'id');
     }
@@ -1178,7 +1177,7 @@ class ArrTest extends TestCase
         self::assertEquals([], Arr::keys([]));
 
         // list
-        self::assertEquals([0,1], Arr::keys([1, 2]));
+        self::assertEquals([0, 1], Arr::keys([1, 2]));
 
         // assoc
         self::assertEquals(['a', 'b'], Arr::keys(['a' => 1, 'b' => 2]));
@@ -1249,7 +1248,7 @@ class ArrTest extends TestCase
         self::assertEquals('c', Arr::lastKey($assoc));
 
         // assoc: match on key condition
-        self::assertEquals('b', Arr::lastKey($assoc, static fn($v, $k) => in_array($k, ['a','b'], true)));
+        self::assertEquals('b', Arr::lastKey($assoc, static fn($v, $k) => in_array($k, ['a', 'b'], true)));
 
         // assoc: match on last condition matched
         self::assertEquals('c', Arr::lastKey($assoc, static fn($v, $k) => $v === 20));
@@ -1287,7 +1286,7 @@ class ArrTest extends TestCase
     {
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Failed to find matching condition.');
-        Arr::lastOrFail([1,2], static fn(int $i) => $i > 2);
+        Arr::lastOrFail([1, 2], static fn(int $i) => $i > 2);
     }
 
     public function test_map(): void
@@ -1507,7 +1506,6 @@ class ArrTest extends TestCase
 
     public function test_only_WithUndefinedKey(): void
     {
-        $this->expectError();
         $this->expectErrorMessage('Undefined array key "a"');
         self::assertEquals([], Arr::only([], ['a']));
     }
@@ -1872,7 +1870,7 @@ class ArrTest extends TestCase
         // assoc: miss
         $assoc = ['a' => 1, 'b' => 2, 'c' => 3];
         self::assertFalse(Arr::removeKey($assoc, 'd'));
-        self::assertEquals(['a' => 1, 'b' => 2 , 'c' => 3], $assoc);
+        self::assertEquals(['a' => 1, 'b' => 2, 'c' => 3], $assoc);
 
         // reindex: false
         $list = [1, 2, 3];
@@ -1983,7 +1981,6 @@ class ArrTest extends TestCase
 
     public function test_sample_Empty(): void
     {
-        $this->expectError();
         $this->expectErrorMessage('array_rand(): Argument #1 ($array) cannot be empty');
         Arr::sample([]);
     }
@@ -2236,7 +2233,7 @@ class ArrTest extends TestCase
         self::assertEquals(1, Arr::sole(['a' => 1]));
 
         // with condition
-        self::assertEquals(2, Arr::sole([1, 2, 3],  static fn(int $i) => $i === 2));
+        self::assertEquals(2, Arr::sole([1, 2, 3], static fn(int $i) => $i === 2));
     }
 
     public function test_sole_zero_item(): void
@@ -2382,7 +2379,6 @@ class ArrTest extends TestCase
 
     public function test_sum_throw_on_sum_of_string(): void
     {
-        $this->expectError();
         $this->expectErrorMessage('Unsupported operand types: int + string');
         Arr::sum(['a', 'b']);
     }
@@ -2470,7 +2466,7 @@ class ArrTest extends TestCase
         self::assertEquals(['b' => 1], $assoc);
 
         // all false
-        $assoc = Arr::takeUntil(['b' => 1, 'a' => 3, 'c' => 2],  static fn($v) => false);
+        $assoc = Arr::takeUntil(['b' => 1, 'a' => 3, 'c' => 2], static fn($v) => false);
         self::assertEquals(['b' => 1, 'a' => 3, 'c' => 2], $assoc);
 
         // all true
@@ -2505,10 +2501,10 @@ class ArrTest extends TestCase
         self::assertEquals("a=1&b=2", Arr::toUrlQuery(['a' => 1, 'b' => 2]));
 
         // with namespace
-        self::assertEquals(urlencode('t[a]').'=1', Arr::toUrlQuery(['a' => 1], 't'));
+        self::assertEquals(urlencode('t[a]') . '=1', Arr::toUrlQuery(['a' => 1], 't'));
 
         // with space as %20
-        self::assertEquals(urlencode('t[a]').'=a%20b', Arr::toUrlQuery(['a' => 'a b'], 't'));
+        self::assertEquals(urlencode('t[a]') . '=a%20b', Arr::toUrlQuery(['a' => 'a b'], 't'));
     }
 
     public function test_unique(): void

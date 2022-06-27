@@ -894,7 +894,7 @@ class StrTest extends TestCase
 
         // default width is 80
         $repeated = Str::repeat('a', 80);
-        self::assertEquals($repeated."\na", Str::wordWrap($repeated. 'a'));
+        self::assertEquals($repeated . "\na", Str::wordWrap($repeated . 'a'));
 
         // change width
         self::assertEquals("wrap\naround", Str::wordWrap('wrap around', 1, overflow: true));

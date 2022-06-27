@@ -3,7 +3,6 @@
 namespace Kirameki\Utils;
 
 use Closure;
-use DateTimeInterface;
 use UnitEnum;
 use function is_array;
 use function is_bool;
