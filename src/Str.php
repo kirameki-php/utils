@@ -271,32 +271,32 @@ class Str
 
     /**
      * @param string $haystack
-     * @param string|list<string> $needle
+     * @param string|iterable<array-key, string> $needle
      * @return bool
      */
-    public static function doesNotEndWith(string $haystack, string|array $needle): bool
+    public static function doesNotEndWith(string $haystack, string|iterable $needle): bool
     {
         return !static::endsWith($haystack, $needle);
     }
 
     /**
      * @param string $haystack
-     * @param string|list<string> $needle
+     * @param string|iterable<array-key, string> $needle
      * @return bool
      */
-    public static function doesNotStartWith(string $haystack, string|array $needle): bool
+    public static function doesNotStartWith(string $haystack, string|iterable $needle): bool
     {
         return !static::startsWith($haystack, $needle);
     }
 
     /**
      * @param string $haystack
-     * @param string|string[] $needle
+     * @param string|iterable<array-key, string> $needle
      * @return bool
      */
-    public static function endsWith(string $haystack, string|array $needle): bool
+    public static function endsWith(string $haystack, string|iterable $needle): bool
     {
-        $needles = is_array($needle) ? $needle : [$needle];
+        $needles = is_iterable($needle) ? $needle : [$needle];
         foreach ($needles as $each) {
             if (str_ends_with($haystack, $each)) {
                 return true;
@@ -630,12 +630,12 @@ class Str
 
     /**
      * @param string $haystack
-     * @param string|list<string> $needle
+     * @param string|iterable<string> $needle
      * @return bool
      */
-    public static function startsWith(string $haystack, string|array $needle): bool
+    public static function startsWith(string $haystack, string|iterable $needle): bool
     {
-        $needles = is_array($needle) ? $needle : [$needle];
+        $needles = is_iterable($needle) ? $needle : [$needle];
         foreach ($needles as $each) {
             if (str_starts_with($haystack, $each)) {
                 return true;
@@ -657,13 +657,14 @@ class Str
 
     /**
      * @param string $string
-     * @param string|array<string> $separator
+     * @param string|iterable<array-key, string> $separator
      * @param int|null $limit
-     * @return list<string>
+     * @return array<int, string>
      */
-    public static function split(string $string, string|array $separator, ?int $limit = null): array
+    public static function split(string $string, string|iterable $separator, ?int $limit = null): array
     {
-        $separators = array_map(static fn(string $str): string => preg_quote($str, '/'), (array) $separator);
+        $separators = Arr::wrap($separator);
+        $separators = array_map(static fn(string $str): string => preg_quote($str, '/'), $separators);
         $pattern = '/(' . implode('|', $separators) . ')/';
 
         $splits = preg_split($pattern, $string, $limit ?? -1);
