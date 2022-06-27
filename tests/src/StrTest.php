@@ -31,6 +31,9 @@ class StrTest extends TestCase
 
     public function test_afterIndex(): void
     {
+        // empty
+        self::assertEquals('', Str::afterIndex('', 1));
+
         self::assertEquals('', Str::afterIndex('abcde', 6));
         self::assertEquals('', Str::afterIndex('abcde', 5));
         self::assertEquals('e', Str::afterIndex('abcde', 4));

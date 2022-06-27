@@ -48,9 +48,20 @@ class Str
     public const Encoding = 'UTF-8';
 
     /**
+     * Extract string after the `$search` string.
+     *
+     * Example:
+     * ```php
+     * Str::after('framework', 'frame'); // 'work'
+     * ```
+     *
      * @param string $string
+     * The string to look in. Must be valid UTF-8.
      * @param string $search
+     * The string to look for. Must be valid UTF-8.
+     * If no match is found, the entire `$string` is returned.
      * @return string
+     * The extracted part of the string.
      */
     public static function after(string $string, string $search): string
     {
@@ -65,9 +76,22 @@ class Str
     }
 
     /**
+     * Extract string after the specified `$position`.
+     *
+     * Example:
+     * ```php
+     * Str::afterIndex('framework', 5); // 'work'
+     * Str::afterIndex('framework', -4); // 'work'
+     * ```
+     *
      * @param string $string
+     * The string to look in. Must be valid UTF-8.
      * @param int $position
+     * The target position of string.
+     * If a negative value is given, it will seek from the end of the string.
+     * If the given position is out of bounds, the entire `$string` is returned.
      * @return string
+     * The extracted part of the string.
      */
     public static function afterIndex(string $string, int $position): string
     {
@@ -75,9 +99,20 @@ class Str
     }
 
     /**
+     * Extract string after the last occurrence of `$search` string.
+     *
+     * Example:
+     * ```php
+     * Str::afterLast('Hi! Hi!', 'Hi'); // '!'
+     * ```
+     *
      * @param string $string
+     * The string to look in. Must be valid UTF-8.
      * @param string $search
+     * The string to look in. Must be valid UTF-8.
+     * If no match is found, the entire `$string` is returned.
      * @return string
+     * The extracted part of the string.
      */
     public static function afterLast(string $string, string $search): string
     {
@@ -97,9 +132,20 @@ class Str
     }
 
     /**
+     * Extract string before the `$search` string.
+     *
+     * Example:
+     * ```php
+     * Str::before('framework', 'work'); // 'frame'
+     * ```
+     *
      * @param string $string
+     * The string to look in. Must be valid UTF-8.
      * @param string $search
+     * The string to look in. Must be valid UTF-8.
+     * If no match is found, the entire `$string` is returned.
      * @return string
+     * The extracted part of the string.
      */
     public static function before(string $string, string $search): string
     {
@@ -119,9 +165,22 @@ class Str
     }
 
     /**
+     * Extract string before the specified `$position`.
+     *
+     * Example:
+     * ```php
+     * Str::beforeIndex('framework', 5); // 'frame'
+     * Str::beforeIndex('framework', -4); // 'frame'
+     * ```
+     *
      * @param string $string
+     * The string to look in. Must be valid UTF-8.
      * @param int $position
+     * The target position of string.
+     * If a negative value is given, it will seek from the end of the string.
+     * If the given position is out of bounds, the entire `$string` is returned.
      * @return string
+     * The extracted part of the string.
      */
     public static function beforeIndex(string $string, int $position): string
     {
@@ -129,9 +188,20 @@ class Str
     }
 
     /**
+     * Extract string before the last occurrence of `$search` string.
+     *
+     * Example:
+     * ```php
+     * Str::afterLast('Hi! Hi!', 'Hi!'); // 'Hi! '
+     * ```
+     *
      * @param string $string
+     * The string to look in. Must be valid UTF-8.
      * @param string $search
+     * The string to look in. Must be valid UTF-8.
+     * If no match is found, the entire `$string` is returned.
      * @return string
+     * The extracted part of the string.
      */
     public static function beforeLast(string $string, string $search): string
     {
@@ -146,10 +216,21 @@ class Str
     }
 
     /**
+     * Extract string between the first occurrence of `$from` and last occurrence of `$to`.
+     *
+     * Example:
+     * ```php
+     * Str::between('<tag>', '<', '>'); // 'tag'
+     * ```
+     *
      * @param string $string
+     * The string to look in. Must be valid UTF-8.
      * @param string $from
+     * The starting string to look for. Must be valid UTF-8.
      * @param string $to
+     * The ending string to look for. Must be valid UTF-8.
      * @return string
+     * The extracted part of the string.
      */
     public static function between(string $string, string $from, string $to): string
     {
@@ -157,8 +238,19 @@ class Str
     }
 
     /**
+     * Convert string to camel case.
+     *
+     * Example:
+     * ```php
+     * Str::camelCase('Camel case'); // 'camelCase'
+     * Str::camelCase('camel-case'); // 'camelCase'
+     * Str::camelCase('camel_case'); // 'camelCase'
+     * ```
+     *
      * @param string $string
+     * The string to be camel cased.
      * @return string
+     * The string converted to camel case.
      */
     public static function camelCase(string $string): string
     {
