@@ -5,6 +5,8 @@ namespace Tests\Kirameki\Utils;
 use Kirameki\Utils\Str;
 use stdClass;
 use Webmozart\Assert\InvalidArgumentException;
+use function dump;
+use function substr;
 
 class StrTest extends TestCase
 {
@@ -182,7 +184,12 @@ class StrTest extends TestCase
 
     public function test_capitalize(): void
     {
+        // empty
         self::assertEquals('', Str::capitalize(''));
+
+        // only the first character is changed
+        self::assertEquals('TT', Str::capitalize('TT'));
+
         self::assertEquals('Test', Str::capitalize('test'));
         self::assertEquals('Test abc', Str::capitalize('test abc'));
         self::assertEquals(' test abc', Str::capitalize(' test abc'));
@@ -262,6 +269,14 @@ class StrTest extends TestCase
         self::assertTrue(Str::containsPattern('ABC1]', '/\d]$/'));
         self::assertFalse(Str::containsPattern('AB1C', '/\d]$/'));
     }
+
+    public function test_containsPattern_warning_as_error(): void
+    {
+        $this->expectWarning();
+        $this->expectWarningMessage('preg_match(): Unknown modifier \'a\'');
+        self::assertFalse(Str::containsPattern('', '/a/a'));
+    }
+
 
     public function test_cut(): void
     {

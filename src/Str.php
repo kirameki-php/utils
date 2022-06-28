@@ -23,6 +23,8 @@ use function mb_strcut;
 use function mb_strlen;
 use function mb_strtolower;
 use function mb_strtoupper;
+use function preg_last_error;
+use function preg_last_error_msg;
 use function preg_match;
 use function preg_match_all;
 use function preg_quote;
@@ -258,7 +260,14 @@ class Str
     }
 
     /**
-     * Alias to ucFirst
+     * Convert the first character to upper case letter.
+     * Works on all multibyte characters that can be capitalized.
+     *
+     * Example:
+     * ```php
+     * Str::capitalize('foo bar'); // 'Foo bar'
+     * Str::capitalize('éclore'); // 'Éclore'
+     * ```
      *
      * @param string $string
      * The string that will be capitalized. Must be valid UTF-8.
@@ -273,8 +282,17 @@ class Str
     }
 
     /**
+     * Concatenate strings into a single string.
+     *
+     * Example:
+     * ```php
+     * Str::concat('combine', ' ', 'me'); // 'combine me'
+     * ```
+     *
      * @param string ...$string
+     * Variable number of strings to be concatenated.
      * @return string
+     * The string that was concatenated.
      */
     public static function concat(string ...$string): string
     {
@@ -282,9 +300,19 @@ class Str
     }
 
     /**
+     * Determine if a string contains a given substring.
+     *
+     * Example:
+     * ```php
+     * Str::contains('Foo bar', 'bar'); // true
+     * ```
+     *
      * @param string $haystack
+     * The string to search in.
      * @param string $needle
+     * The substring to search for in the `$haystack`.
      * @return bool
+     * Returns true if `$needle` is in `$haystack`, false otherwise.
      */
     public static function contains(string $haystack, string $needle): bool
     {
@@ -292,9 +320,21 @@ class Str
     }
 
     /**
+     * Determine if a string contains all given substrings.
+     *
+     * Example:
+     * ```php
+     * Str::contains('Foo bar baz', ['foo', 'bar', 'baz']); // true
+     * Str::contains('ab', ['a', 'b', 'd']); // false
+     * ```
+     *
      * @param string $haystack
+     * The string to search in.
      * @param iterable<array-key, string> $needles
+     * The substrings to search for in the `$haystack`.
+     * This must contain at least one needle or exception is thrown.
      * @return bool
+     * Returns true if all strings in `$needles` are in `$haystack`, false otherwise.
      */
     public static function containsAll(string $haystack, iterable $needles): bool
     {
@@ -311,9 +351,20 @@ class Str
     }
 
     /**
+     * Determine if a string contains any given substrings.
+     *
+     * Example:
+     * ```php
+     * Str::contains('Foo Bar', ['Foo', 'Baz']); // true
+     * Str::contains('Foo Bar', ['Baz', 'Baz']); // false
+     * ```
      * @param string $haystack
+     * The string to search in.
      * @param iterable<array-key, string> $needles
+     * The substrings to search for in the `$haystack`.
+     * This must contain at least one needle or exception is thrown.
      * @return bool
+     * Returns true if any strings in `$needles` are in `$haystack`, false otherwise.
      */
     public static function containsAny(string $haystack, iterable $needles): bool
     {
@@ -336,7 +387,15 @@ class Str
      */
     public static function containsPattern(string $string, string $pattern): bool
     {
-        return (bool) preg_match($pattern, $string);
+        $result = preg_match($pattern, $string);
+
+        if ($result === false && preg_last_error() !== PREG_NO_ERROR) {
+            throw new RuntimeException(preg_last_error_msg());
+        }
+
+        Assert::integer($result);
+
+        return $result > 0;
     }
 
     /**
