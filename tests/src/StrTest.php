@@ -170,6 +170,17 @@ class StrTest extends TestCase
         self::assertEquals('い', Str::between('あいう', 'あ', 'う'));
     }
 
+    public function test_bytes(): void
+    {
+        self::assertEquals(0, Str::bytes(''));
+
+        self::assertEquals(1, Str::bytes('a'));
+
+        self::assertEquals(3, Str::bytes('あ'));
+
+        self::assertEquals(25, Str::bytes('👨‍👨‍👧‍👦'));
+    }
+
     public function test_camelCase(): void
     {
         self::assertEquals('test', Str::camelCase('test'));

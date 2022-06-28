@@ -74,7 +74,7 @@ class Str
             return '';
         }
 
-        return (string) grapheme_substr($string, $pos + grapheme_strlen($search));
+        return static::substring($string, $pos + static::length($search));
     }
 
     /**
@@ -97,7 +97,7 @@ class Str
      */
     public static function afterIndex(string $string, int $position): string
     {
-        return (string) grapheme_substr($string, $position);
+        return static::substring($string, $position);
     }
 
     /**
@@ -130,7 +130,7 @@ class Str
             return '';
         }
 
-        return (string) grapheme_substr($string, $pos + grapheme_strlen($search));
+        return static::substring($string, $pos + static::length($search));
     }
 
     /**
@@ -163,7 +163,7 @@ class Str
             return $string;
         }
 
-        return (string) grapheme_substr($string, 0, $pos);
+        return static::substring($string, 0, $pos);
     }
 
     /**
@@ -186,7 +186,7 @@ class Str
      */
     public static function beforeIndex(string $string, int $position): string
     {
-        return (string) grapheme_substr($string, 0, $position);
+        return static::substring($string, 0, $position);
     }
 
     /**
@@ -214,7 +214,7 @@ class Str
             return $string;
         }
 
-        return (string) grapheme_substr($string, 0, $pos);
+        return static::substring($string, 0, $pos);
     }
 
     /**
@@ -237,6 +237,25 @@ class Str
     public static function between(string $string, string $from, string $to): string
     {
         return static::beforeLast(static::after($string, $from), $to);
+    }
+
+    /**
+     * Counts the size of bytes for the given string.
+     *
+     * Example:
+     * ```php
+     * Str::bytes('あ'); // 3
+     * Str::bytes('👨‍👨‍👧‍👦'); // 25
+     * ```
+     *
+     * @param string $string
+     * The target string being counted.
+     * @return int
+     * The byte size of the given string.
+     */
+    public static function bytes(string $string): int
+    {
+        return strlen($string);
     }
 
     /**
@@ -276,7 +295,7 @@ class Str
      */
     public static function capitalize(string $string): string
     {
-        $firstChar = mb_strtoupper(static::substring($string, 0, 1), static::Encoding);
+        $firstChar = static::toUpper(static::substring($string, 0, 1));
         $otherChars = static::substring($string, 1);
         return $firstChar . $otherChars;
     }
@@ -347,6 +366,7 @@ class Str
                 return false;
             }
         }
+
         return true;
     }
 
@@ -377,6 +397,7 @@ class Str
                 return true;
             }
         }
+
         return false;
     }
 
@@ -419,7 +440,7 @@ class Str
      */
     public static function decapitalize(string $string): string
     {
-        $firstChar = mb_strtolower(static::substring($string, 0, 1), static::Encoding);
+        $firstChar = static::toLower(static::substring($string, 0, 1));
         $otherChars = static::substring($string, 1);
         return $firstChar . $otherChars;
     }
@@ -479,7 +500,7 @@ class Str
      */
     public static function firstIndexOf(string $string, string $search, int $offset = 0): int|false
     {
-        $length = grapheme_strlen($string);
+        $length = static::length($string);
         if (abs($offset) > $length) {
             return false;
         }
@@ -495,9 +516,9 @@ class Str
     public static function insert(string $string, string $insert, int $position): string
     {
         return
-            grapheme_substr($string, 0, $position) .
+            static::substring($string, 0, $position) .
             $insert .
-            grapheme_substr($string, $position);
+            static::substring($string, $position);
     }
 
     /**
@@ -526,7 +547,7 @@ class Str
     {
         $converting = (string) preg_replace(['/([a-z\d])([A-Z])/', '/([^-])([A-Z][a-z])/'], '$1-$2', $string);
         $converting = (string) str_replace([' ', '_'], '-', $converting);
-        return mb_strtolower($converting, self::Encoding);
+        return static::toLower($converting);
     }
 
     /**
@@ -537,7 +558,7 @@ class Str
      */
     public static function lastIndexOf(string $string, string $search, int $offset = 0): int|false
     {
-        $length = grapheme_strlen($string);
+        $length = static::length($string);
         if (abs($offset) > $length) {
             return false;
         }
@@ -561,7 +582,13 @@ class Str
     public static function match(string $string, string $pattern): array
     {
         $match = [];
-        preg_match($pattern, $string, $match);
+
+        $result = preg_match($pattern, $string, $match);
+
+        if ($result === false && preg_last_error() !== PREG_NO_ERROR) {
+            throw new RuntimeException(preg_last_error_msg());
+        }
+
         return $match;
     }
 
@@ -573,7 +600,13 @@ class Str
     public static function matchAll(string $string, string $pattern): array
     {
         $match = [];
-        preg_match_all($pattern, $string, $match);
+
+        $result = preg_match_all($pattern, $string, $match);
+
+        if ($result === false && preg_last_error() !== PREG_NO_ERROR) {
+            throw new RuntimeException(preg_last_error_msg());
+        }
+
         return $match;
     }
 
@@ -633,22 +666,22 @@ class Str
             return $string;
         }
 
-        $padLength = grapheme_strlen($pad);
+        $padLength = static::length($pad);
 
         if ($padLength === 0) {
             return $string;
         }
 
-        $strLength = grapheme_strlen($string);
+        $strLength = static::length($string);
 
         if ($type === STR_PAD_RIGHT) {
             $repeat = (int) ceil($length / $padLength);
-            return $string . grapheme_substr(str_repeat($pad, $repeat), 0, $length - $strLength);
+            return $string . static::substring(str_repeat($pad, $repeat), 0, $length - $strLength);
         }
 
         if ($type === STR_PAD_LEFT) {
             $repeat = (int) ceil($length / $padLength);
-            return grapheme_substr(str_repeat($pad, $repeat), 0, $length - $strLength) . $string;
+            return static::substring(str_repeat($pad, $repeat), 0, $length - $strLength) . $string;
         }
 
         if ($type === STR_PAD_BOTH) {
@@ -656,8 +689,8 @@ class Str
             $halfRepeat = (int) ceil($halfLengthFraction / $padLength);
             $prefixLength = (int) floor($halfLengthFraction);
             $suffixLength = (int) ceil($halfLengthFraction);
-            $prefix = grapheme_substr(str_repeat($pad, $halfRepeat), 0, $prefixLength);
-            $suffix = grapheme_substr(str_repeat($pad, $halfRepeat), 0, $suffixLength);
+            $prefix = static::substring(str_repeat($pad, $halfRepeat), 0, $prefixLength);
+            $suffix = static::substring(str_repeat($pad, $halfRepeat), 0, $suffixLength);
             return $prefix . $string . $suffix;
         }
 
@@ -771,7 +804,7 @@ class Str
 
         $parts = [];
         for ($i = $length - 1; $i >= 0; $i--) {
-            $parts[] = grapheme_substr($string, $i, 1);
+            $parts[] = static::substring($string, $i, 1);
         }
         return implode('', $parts);
     }
@@ -800,7 +833,7 @@ class Str
     {
         $converting = (string) preg_replace(['/([a-z\d])([A-Z])/', '/([^_])([A-Z][a-z])/'], '$1_$2', $string);
         $converting = (string) str_replace([' ', '-'], '_', $converting);
-        return mb_strtolower($converting, self::Encoding);
+        return static::toLower($converting);
     }
 
     /**
@@ -833,9 +866,11 @@ class Str
     public static function substring(string $string, int $offset, ?int $length = null): string
     {
         $string = grapheme_substr($string, $offset, $length);
+
         if ($string === false) {
             throw new RuntimeException(intl_get_error_message());
         }
+
         return $string;
     }
 
