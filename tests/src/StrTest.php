@@ -182,10 +182,12 @@ class StrTest extends TestCase
 
     public function test_capitalize(): void
     {
+        self::assertEquals('', Str::capitalize(''));
         self::assertEquals('Test', Str::capitalize('test'));
         self::assertEquals('Test abc', Str::capitalize('test abc'));
         self::assertEquals(' test abc', Str::capitalize(' test abc'));
         self::assertEquals('Àbc', Str::capitalize('àbc'));
+        self::assertEquals('É', Str::capitalize('é'));
         self::assertEquals('ゅ', Str::capitalize('ゅ'));
         self::assertEquals('🏴󠁧󠁢󠁳󠁣󠁴󠁿', Str::capitalize('🏴󠁧󠁢󠁳󠁣󠁴󠁿'));
     }
@@ -281,6 +283,16 @@ class StrTest extends TestCase
 
         // cut and replaced with custom ellipsis
         self::assertEquals('a$', Str::cut('abc', 1, '$'));
+    }
+
+    public function test_decapitalize(): void
+    {
+        self::assertEquals('', Str::decapitalize(''));
+        self::assertEquals('test', Str::decapitalize('Test'));
+        self::assertEquals('t T', Str::decapitalize('T T'));
+        self::assertEquals(' T ', Str::decapitalize(' T '));
+        self::assertEquals('é', Str::decapitalize('É'));
+        self::assertEquals('🔡', Str::decapitalize('🔡'));
     }
 
     public function test_delete(): void
@@ -468,16 +480,6 @@ class StrTest extends TestCase
         self::assertEquals(1, Str::lastIndexOf('あいう', 'い', 1));
         self::assertEquals(1, Str::lastIndexOf('🏴󠁧󠁢󠁳󠁣󠁴󠁿👨‍👨‍👧‍👦', '👨‍👨‍👧‍👦', 1));
         self::assertFalse(Str::lastIndexOf('🏴󠁧󠁢󠁳󠁣󠁴󠁿👨‍👨‍👧‍👦', '👨‍👨‍👧‍👦', 2));
-    }
-
-    public function test_lcFirst(): void
-    {
-        self::assertEquals('', Str::lcFirst(''));
-        self::assertEquals('test', Str::lcFirst('Test'));
-        self::assertEquals('t T', Str::lcFirst('T T'));
-        self::assertEquals(' T ', Str::lcFirst(' T '));
-        self::assertEquals('é', Str::lcFirst('É'));
-        self::assertEquals('🔡', Str::lcFirst('🔡'));
     }
 
     public function test_length(): void
@@ -915,17 +917,6 @@ class StrTest extends TestCase
 
         // custom multiple
         self::assertEquals('b_a_', Str::trimStart("_ab_a_", 'a_'));
-    }
-
-    public function test_ucFirst(): void
-    {
-        self::assertEquals('', Str::ucFirst(''));
-        self::assertEquals('Test', Str::ucFirst('test'));
-        self::assertEquals('T t', Str::ucFirst('t t'));
-        self::assertEquals('T T', Str::ucFirst('T T'));
-        self::assertEquals(' t ', Str::ucFirst(' t '));
-        self::assertEquals('É', Str::ucFirst('é'));
-        self::assertEquals('🔡', Str::ucFirst('🔡'));
     }
 
     public function test_wordWrap(): void

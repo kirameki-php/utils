@@ -254,17 +254,21 @@ class Str
      */
     public static function camelCase(string $string): string
     {
-        return static::lcFirst(static::pascalCase($string));
+        return static::decapitalize(static::pascalCase($string));
     }
 
     /**
+     * Alias to ucFirst
+     *
      * @param string $string
+     * The string that will be capitalized. Must be valid UTF-8.
      * @return string
+     * The string that was capitalized.
      */
     public static function capitalize(string $string): string
     {
-        $firstChar = mb_strtoupper((string) grapheme_substr($string, 0, 1));
-        $otherChars = grapheme_substr($string, 1);
+        $firstChar = mb_strtoupper(static::substring($string, 0, 1), static::Encoding);
+        $otherChars = static::substring($string, 1);
         return $firstChar . $otherChars;
     }
 
@@ -348,6 +352,17 @@ class Str
             $cut .= $ellipsis;
         }
         return $cut;
+    }
+
+    /**
+     * @param string $string
+     * @return string
+     */
+    public static function decapitalize(string $string): string
+    {
+        $firstChar = mb_strtolower(static::substring($string, 0, 1), static::Encoding);
+        $otherChars = static::substring($string, 1);
+        return $firstChar . $otherChars;
     }
 
     /**
@@ -472,17 +487,6 @@ class Str
 
     /**
      * @param string $string
-     * @return string
-     */
-    public static function lcFirst(string $string): string
-    {
-        $firstChar = mb_strtolower(static::substring($string, 0, 1), static::Encoding);
-        $otherChars = static::substring($string, 1);
-        return $firstChar . $otherChars;
-    }
-
-    /**
-     * @param string $string
      * @return int
      */
     public static function length(string $string): int
@@ -512,17 +516,6 @@ class Str
         $match = [];
         preg_match_all($pattern, $string, $match);
         return $match;
-    }
-
-    /**
-     * @param string $string
-     * @return string
-     */
-    public static function ucFirst(string $string): string
-    {
-        $firstChar = mb_strtoupper(static::substring($string, 0, 1), static::Encoding);
-        $otherChars = static::substring($string, 1);
-        return $firstChar . $otherChars;
     }
 
     /**
