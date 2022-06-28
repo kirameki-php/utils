@@ -3,9 +3,11 @@
 namespace Tests\Kirameki\Utils;
 
 use Kirameki\Utils\Str;
+use RuntimeException;
 use stdClass;
 use Webmozart\Assert\InvalidArgumentException;
 use function dump;
+use function str_repeat;
 use function substr;
 
 class StrTest extends TestCase
@@ -172,12 +174,16 @@ class StrTest extends TestCase
 
     public function test_bytes(): void
     {
+        // empty
         self::assertEquals(0, Str::bytes(''));
 
+        // ascii
         self::assertEquals(1, Str::bytes('a'));
 
+        // utf8
         self::assertEquals(3, Str::bytes('あ'));
 
+        // emoji
         self::assertEquals(25, Str::bytes('👨‍👨‍👧‍👦'));
     }
 
@@ -510,11 +516,26 @@ class StrTest extends TestCase
 
     public function test_length(): void
     {
+        // empty
         self::assertEquals(0, Str::length(''));
+
+        // ascii
         self::assertEquals(4, Str::length('Test'));
         self::assertEquals(9, Str::length(' T e s t '));
+
+        // utf8
         self::assertEquals(2, Str::length('あい'));
         self::assertEquals(4, Str::length('あいzう'));
+
+        // emoji
+        self::assertEquals(1, Str::length('👨‍👨‍👧‍👦'));
+    }
+
+    public function test_length_invalid_string(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Error converting input string to UTF-16: U_INVALID_CHAR_FOUND');
+        Str::length(substr('あ', 1));
     }
 
     public function test_match(): void

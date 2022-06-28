@@ -571,7 +571,22 @@ class Str
      */
     public static function length(string $string): int
     {
-        return (int) grapheme_strlen($string);
+        $result = grapheme_strlen($string);
+
+        if ($result === null) {
+            throw new RuntimeException(intl_get_error_message());
+        }
+
+        // @codeCoverageIgnoreStart
+        if ($result === false) {
+            $message = 'Unknown internal error has occurred.' . PHP_EOL;
+            $message.= 'Please see the link below for more info.' . PHP_EOL;
+            $message.= 'https://github.com/php/php-src/blob/9bae9ab/ext/intl/grapheme/grapheme_string.c';
+            throw new RuntimeException($message);
+        }
+        // @codeCoverageIgnoreEnd
+
+        return $result;
     }
 
     /**
