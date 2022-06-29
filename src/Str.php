@@ -331,7 +331,7 @@ class Str
      * @param string $needle
      * The substring to search for in the `$haystack`.
      * @return bool
-     * Returns true if `$needle` is in `$haystack`, false otherwise.
+     * Returns **true** if `$needle` is in `$haystack`, **false** otherwise.
      */
     public static function contains(string $haystack, string $needle): bool
     {
@@ -353,7 +353,7 @@ class Str
      * The substrings to search for in the `$haystack`.
      * This must contain at least one needle or exception is thrown.
      * @return bool
-     * Returns true if all strings in `$needles` are in `$haystack`, false otherwise.
+     * Returns **true** if all strings in `$needles` are in `$haystack`, **false** otherwise.
      */
     public static function containsAll(string $haystack, iterable $needles): bool
     {
@@ -371,13 +371,14 @@ class Str
     }
 
     /**
-     * Determine if a string contains any given substrings.
+     * Determine if string contains any given substrings.
      *
      * Example:
      * ```php
      * Str::contains('Foo Bar', ['Foo', 'Baz']); // true
      * Str::contains('Foo Bar', ['Baz', 'Baz']); // false
      * ```
+     *
      * @param string $haystack
      * The string to search in.
      * @param iterable<array-key, string> $needles
@@ -402,9 +403,20 @@ class Str
     }
 
     /**
+     * Determine if a string contains any matches to given pattern.
+     *
+     * Example:
+     * ```php
+     * Str::containsPattern('foo', '/[A-z\d]+/'); // true
+     * Str::containsPattern('foo', '/bar/'); // false
+     * ```
+     *
      * @param string $string
+     * The string to look in. Must be valid UTF-8.
      * @param string $pattern
+     * The pattern to search for in the string.
      * @return bool
+     * Returns **true** if the pattern matches **false** otherwise.
      */
     public static function containsPattern(string $string, string $pattern): bool
     {
@@ -431,8 +443,19 @@ class Str
     }
 
     /**
+     * Convert the first character to lower case letter.
+     * Works on all multibyte characters that can be decapitalized.
+     *
+     * Example:
+     * ```php
+     * Str::decapitalize('Foo Bar'); // 'foo Bar'
+     * Str::decapitalize('Éclore'); // 'éclore'
+     * ```
+     *
      * @param string $string
+     * The string that will be decapitalized. Must be valid UTF-8.
      * @return string
+     * The string that was decapitalized.
      */
     public static function decapitalize(string $string): string
     {
@@ -442,20 +465,45 @@ class Str
     }
 
     /**
-     * @param string $string
-     * @param string $search
+     * Delete a substring from a given string.
+     * If `$limit` is set, substring will only be removed from string that many times.
+     *
+     * Example:
+     * ```php
+     * Str::delete('aaa', 'a'); // ''
+     * Str::delete('me me me me', ' ', 2); // 'mememe'
+     * ```
+     *
+     * @param string $haystack
+     * The string to look in.
+     * @param string $needle
+     * The substring to search for in the `$haystack`.
      * @param int|null $limit
+     * Number of times matching string will be removed. If `null` is given, there will be no limit.
      * @return string
+     * Returns string with `$needle` removed.
      */
-    public static function delete(string $string, string $search, ?int $limit = null): string
+    public static function delete(string $haystack, string $needle, ?int $limit = null): string
     {
-        return static::replace($string, $search, '', $limit);
+        return static::replace($haystack, $needle, '', $limit);
     }
 
     /**
+     * Checks if a string does not end with a given substring(s).
+     * `$needle` can be a string or an iterable list of strings.
+     *
+     * Example:
+     * ```php
+     * Str::doesNotEndWith('abc', 'c'); // true
+     * Str::doesNotEndWith('abc', ['a', 'b', 'c', 'd']); // false because 'abc' ends with 'c'
+     * ```
+     *
      * @param string $haystack
+     * The string to look in.
      * @param string|iterable<array-key, string> $needle
+     * The substring(s) to search for in the haystack.
      * @return bool
+     * Returns **true** if `$haystack` does not end with `$needle`, **false** otherwise.
      */
     public static function doesNotEndWith(string $haystack, string|iterable $needle): bool
     {
@@ -463,9 +511,21 @@ class Str
     }
 
     /**
+     * Checks if a string does not start with a given substring(s).
+     * `$needle` can be a string or an iterable list of strings.
+     *
+     * Example:
+     * ```php
+     * Str::doesNotStartWith('abc', 'b'); // true
+     * Str::doesNotStartWith('abc', ['a', 'c', 'd']); // false because 'abc' starts with 'a'
+     * ```
+     *
      * @param string $haystack
+     * The string to look in.
      * @param string|iterable<array-key, string> $needle
+     * The substring(s) to search for in the haystack.
      * @return bool
+     * Returns **true** if `$haystack` does not start with `$needle`, **false** otherwise.
      */
     public static function doesNotStartWith(string $haystack, string|iterable $needle): bool
     {
@@ -473,9 +533,21 @@ class Str
     }
 
     /**
+     * Checks if a string ends with a given substring(s).
+     * `$needle` can be a string or an iterable list of strings.
+     *
+     * Example:
+     * ```php
+     * Str::endsWith('abc', 'c'); // true
+     * Str::endsWith('abc', ['a', 'b']); // false
+     * ```
+     *
      * @param string $haystack
+     * The string to look in.
      * @param string|iterable<array-key, string> $needle
+     * The substring(s) to search for in the haystack.
      * @return bool
+     * Returns **true** if `$haystack` ends with `$needle`, **false** otherwise.
      */
     public static function endsWith(string $haystack, string|iterable $needle): bool
     {
@@ -518,8 +590,19 @@ class Str
     }
 
     /**
+     * Determine whether a given string is blank.
+     *
+     * Example:
+     * ```php
+     * Str::isBlank(null); // true
+     * Str::isBlank(''); // true
+     * Str::isBlank('0'); // false
+     * ```
+     *
      * @param string|null $string
+     * string or null variable to be checked.
      * @return bool
+     * Returns **true** if variable is an empty string or null. **false** otherwise.
      */
     public static function isBlank(?string $string): bool
     {
@@ -527,8 +610,20 @@ class Str
     }
 
     /**
+     * Determine whether a given string is not blank.
+     *
+     * Example:
+     * ```php
+     * Str::isNotBlank('a'); // true
+     * Str::isNotBlank('0'); // true
+     * Str::isNotBlank(null); // false
+     * Str::isNotBlank(''); // false
+     * ```
+     *
      * @param string|null $string
+     * string or null variable to be checked.
      * @return bool
+     * Returns **false** if variable is empty string or null. **true** otherwise.
      */
     public static function isNotBlank(?string $string): bool
     {
@@ -562,8 +657,22 @@ class Str
     }
 
     /**
+     * Returns the length of the given string.
+     * Works with multibyte and grapheme(emoji) strings.
+     *
+     * Example:
+     * ```php
+     * Str::length(''); // 0
+     * Str::length('開発'); // 2
+     * Str::length('👨‍👨‍👧‍👦'); // 1
+     * ```
+     *
+     * If you want to know the bytes used for a given string instead, @see Str::bytes().
+     *
      * @param string $string
+     * The string being measured. Must be a valid UTF-8.
      * @return int
+     * The length of the string.
      */
     public static function length(string $string): int
     {
@@ -813,9 +922,21 @@ class Str
     }
 
     /**
+     * Checks if a string starts with a given substring(s).
+     * `$needle` can be a string or an iterable list of strings.
+     *
+     * Example:
+     * ```php
+     * Str::startsWith('abc', 'a'); // true
+     * Str::startsWith('abc', ['b', 'c']); // false
+     * ```
+     *
      * @param string $haystack
+     * The string to look in.
      * @param string|iterable<array-key, string> $needle
+     * The substring(s) to search for in the haystack.
      * @return bool
+     * Returns **true** if `$haystack` starts with `$needle`, **false** otherwise.
      */
     public static function startsWith(string $haystack, string|iterable $needle): bool
     {
@@ -878,8 +999,19 @@ class Str
     }
 
     /**
+     * Make a string lower case.
+     * Supports multibyte strings.
+     *
+     * Example:
+     * ```php
+     * Str::toLower('AbCd'); // 'abcd'
+     * Str::toLower('ÇĞİÖŞÜ'); // 'çği̇öşü'
+     * ```
+     *
      * @param string $string
+     * The string being lower-cased.
      * @return string
+     * String with all alphabetic characters converted to lower case.
      */
     public static function toLower(string $string): string
     {
@@ -887,8 +1019,19 @@ class Str
     }
 
     /**
+     * Make a string upper case.
+     * Supports multibyte strings.
+     *
+     * Example:
+     * ```php
+     * Str::toUpper('AbCd'); // 'ABCD'
+     * Str::toUpper('çği̇öşü'); // ÇĞİÖŞÜ
+     * ```
+     *
      * @param string $string
+     * The string being upper-cased.
      * @return string
+     * String with all alphabetic characters converted to upper case.
      */
     public static function toUpper(string $string): string
     {
