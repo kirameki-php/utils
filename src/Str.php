@@ -410,10 +410,6 @@ class Str
     {
         $result = preg_match($pattern, $string);
 
-        if ($result === false && preg_last_error() !== PREG_NO_ERROR) {
-            throw new RuntimeException(preg_last_error_msg());
-        }
-
         Assert::integer($result);
 
         return $result > 0;
@@ -598,11 +594,7 @@ class Str
     {
         $match = [];
 
-        $result = preg_match($pattern, $string, $match);
-
-        if ($result === false && preg_last_error() !== PREG_NO_ERROR) {
-            throw new RuntimeException(preg_last_error_msg());
-        }
+        preg_match($pattern, $string, $match);
 
         return $match;
     }
@@ -616,11 +608,7 @@ class Str
     {
         $match = [];
 
-        $result = preg_match_all($pattern, $string, $match);
-
-        if ($result === false && preg_last_error() !== PREG_NO_ERROR) {
-            throw new RuntimeException(preg_last_error_msg());
-        }
+        preg_match_all($pattern, $string, $match);
 
         return $match;
     }
