@@ -6,7 +6,6 @@ use LogicException;
 use RuntimeException;
 use Webmozart\Assert\Assert;
 use function abs;
-use function array_map;
 use function assert;
 use function ceil;
 use function floor;
@@ -23,8 +22,6 @@ use function mb_strcut;
 use function mb_strlen;
 use function mb_strtolower;
 use function mb_strtoupper;
-use function preg_last_error;
-use function preg_last_error_msg;
 use function preg_match;
 use function preg_match_all;
 use function preg_quote;
@@ -633,7 +630,7 @@ class Str
      * ```
      *
      * @param string|null $string
-     * string or null variable to be checked.
+     * **string** or **null** variable to be checked.
      * @return bool
      * Returns **true** if variable is an empty string or null. **false** otherwise.
      */
@@ -654,7 +651,7 @@ class Str
      * ```
      *
      * @param string|null $string
-     * string or null variable to be checked.
+     * **string** or **null** variable to be checked.
      * @return bool
      * Returns **false** if variable is empty string or null. **true** otherwise.
      */
@@ -664,8 +661,20 @@ class Str
     }
 
     /**
+     * Convert the given string to kebab-case.
+     *
+     * Example:
+     * ```php
+     * Str::kebabCase('foo bar'); // 'foo-bar'
+     * Str::kebabCase('foo_bar'); // 'foo-bar'
+     * Str::kebabCase('FooBar'); // 'foo-bar'
+     * Str::kebabCase('HTTPClient'); // 'http-client'
+     * ```
+     *
      * @param string $string
+     * String to be converted to kebab-case.
      * @return string
+     * Kebab-cased string.
      */
     public static function kebabCase(string $string): string
     {
@@ -775,9 +784,19 @@ class Str
     }
 
     /**
+     * Determine if a substring is contained in a given string.
+     *
+     * Example:
+     * ```php
+     * Str::notContains('Foo bar', 'baz'); // true
+     * ```
+     *
      * @param string $haystack
+     * The string to search in.
      * @param string $needle
+     * The substring to search for in the `$haystack`.
      * @return bool
+     * Returns **false** if `$needle` is in `$haystack`, **true** otherwise.
      */
     public static function notContains(string $haystack, string $needle): bool
     {
@@ -862,8 +881,20 @@ class Str
     }
 
     /**
+     * Convert the given string to pascal-case.
+     *
+     * Example:
+     * ```php
+     * Str::pascalCase('foo bar'); // 'FooBar'
+     * Str::pascalCase('foo-bar'); // 'FooBar'
+     * Str::pascalCase('foo_bar'); // 'FooBar'
+     * Str::pascalCase('FooBar'); // 'FooBar'
+     * ```
+     *
      * @param string $string
+     * String to be converted to pascal-case.
      * @return string
+     * Pascal-cased string.
      */
     public static function pascalCase(string $string): string
     {
@@ -953,12 +984,22 @@ class Str
     }
 
     /**
+     * Reverse a string.
+     *
+     * Example:
+     * ```php
+     * Str::reverse('Foo'); // 'ooF'
+     * Str::reverse('あい'); // 'いあ'
+     * ```
+     *
      * @param string $string
+     * The string to be reversed.
      * @return string
+     * Reversed string.
      */
     public static function reverse(string $string): string
     {
-        $length = grapheme_strlen($string);
+        $length = static::length($string);
 
         // strrev($string) can only reverse bytes, so it only works for single byte chars.
         // So call strrev only if we can confirm that it only contains single byte chars.
@@ -1002,8 +1043,20 @@ class Str
     }
 
     /**
+     * Convert the given string to snake-case.
+     *
+     * Example:
+     * ```php
+     * Str::snakeCase('foo bar'); // 'foo_bar'
+     * Str::snakeCase('foo_bar'); // 'foo_bar'
+     * Str::snakeCase('FooBar'); // 'foo_bar'
+     * Str::snakeCase('HTTPClient'); // 'http_client'
+     * ```
+     *
      * @param string $string
+     * String to be converted to snake-case.
      * @return string
+     * Snake-cased string.
      */
     public static function snakeCase(string $string): string
     {
