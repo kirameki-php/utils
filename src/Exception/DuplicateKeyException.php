@@ -7,9 +7,8 @@ use LogicException;
 class DuplicateKeyException extends LogicException
 {
     /**
-     * @template TKey of array-key
-     * @param TKey $key
-     * @param iterable<TKey, mixed> $iterable
+     * @param array-key $key
+     * @param iterable<array-key, mixed> $iterable
      */
     public function __construct(
         public readonly string|int $key,

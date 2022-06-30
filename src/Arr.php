@@ -189,7 +189,7 @@ class Arr
     }
 
     /**
-     * @param array $array
+     * @param array<array-key, mixed> $array
      * @return void
      */
     public static function clear(array &$array): void
@@ -258,7 +258,7 @@ class Arr
         foreach (Iter::compact($iterable, $reindex) as $key => $val) {
             if (is_iterable($val) && $depth > 1) {
                 /** @var TValue $val */
-                $val = static::compact($val, $depth - 1, $reindex);
+                $val = static::compact($val, $depth - 1, $reindex); /** @phpstan-ignore-line */
             }
             $result[$key] = $val;
         }
@@ -2006,22 +2006,6 @@ class Arr
     public static function values(iterable $iterable): array
     {
         return iterator_to_array(Iter::values($iterable));
-    }
-
-    /**
-     * @template T
-     * @param T|iterable<array-key, T> $value
-     * @return array<T>
-     */
-    public static function wrap(mixed $value): array
-    {
-        if (is_iterable($value)) {
-            $value = static::from($value);
-        }
-        if (is_array($value)) {
-            return $value;
-        }
-        return [$value];
     }
 
     /**

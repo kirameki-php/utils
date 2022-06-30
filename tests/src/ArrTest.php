@@ -2555,19 +2555,4 @@ class ArrTest extends TestCase
         // assoc
         self::assertEquals([1, 2], Arr::values(['a' => 1, 'b' => 2]));
     }
-
-    public function test_wrap(): void
-    {
-        // null
-        self::assertEquals([null], Arr::wrap(null));
-
-        // scalar
-        self::assertEquals([1], Arr::wrap(1));
-
-        // list
-        self::assertEquals([1, 1, 2], Arr::wrap([1, 1, 2]));
-
-        // assoc
-        self::assertEquals(['a' => 1, 'b' => 2], Arr::wrap(['a' => 1, 'b' => 2]));
-    }
 }

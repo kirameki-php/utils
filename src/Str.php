@@ -769,7 +769,7 @@ class Str
      * @param string $string
      * @param int $length
      * @param string $pad
-     * @param int<0, 2> $type
+     * @param int $type
      * @return string
      */
     public static function pad(string $string, int $length, string $pad = ' ', int $type = STR_PAD_RIGHT): string
@@ -962,7 +962,7 @@ class Str
 
     /**
      * @param string $string
-     * @param string|iterable<array-key, string> $separator
+     * @param string|iterable<int, string> $separator
      * @param int<0, max>|null $limit
      * @return array<int, string>
      */
@@ -970,8 +970,8 @@ class Str
     {
         Assert::greaterThanEq($limit, 0);
 
-        $separators = Arr::wrap($separator);
-        $separators = array_map(static fn(string $str): string => preg_quote($str, '/'), $separators);
+        $separators = is_iterable($separator) ? $separator : [$separator];
+        $separators = Arr::map($separators, static fn(string $str): string => preg_quote($str, '/'));
         $pattern = '/(' . implode('|', $separators) . ')/';
 
         $splits = preg_split($pattern, $string, $limit ?? -1);
