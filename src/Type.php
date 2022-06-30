@@ -16,8 +16,35 @@ use function is_string;
 class Type
 {
     /**
+     * Check the type of the given value.
+     * The types this will return is below:
+     * - `null`
+     * - `bool`
+     * - `int`
+     * - `float`
+     * - `string`
+     * - `array`
+     * - `enum`
+     * - `closure`
+     * - `object`
+     * - `resource`
+     *
+     * Example:
+     * ```php
+     * Type::of(null); // 'null'
+     * Type::of(true); // 'bool'
+     * Type::of(1); // 'int'
+     * Type::of(1.0); // 'float'
+     * Type::of('abc'); // 'string'
+     * Type::of([1, 2, 3]); // 'array'
+     * Type::of(new stdClass()); // 'object'
+     * Type::of(fn() => true); // 'closure'
+     * ```
+     *
      * @param mixed $value
+     * Value to be evaluated.
      * @return string
+     * Returns the type name as string.
      */
     public static function of(mixed $value): string
     {
@@ -58,7 +85,7 @@ class Type
         }
 
         if (is_resource($value)) {
-            return "resource";
+            return 'resource';
         }
 
         // @codeCoverageIgnoreStart
