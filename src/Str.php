@@ -55,9 +55,9 @@ class Str
      * ```
      *
      * @param string $string
-     * The string to look in. Must be valid UTF-8.
+     * The string to look in. Must be a valid UTF-8 encoded string.
      * @param string $search
-     * The string to look for. Must be valid UTF-8.
+     * The string to look for. Must be a valid UTF-8 encoded string.
      * If no match is found, the entire `$string` is returned.
      * @return string
      * The extracted part of the string.
@@ -84,7 +84,7 @@ class Str
      * ```
      *
      * @param string $string
-     * The string to look in. Must be valid UTF-8.
+     * The string to look in. Must be a valid UTF-8 encoded string.
      * @param int $position
      * The target position of string.
      * If a negative value is given, it will seek from the end of the string.
@@ -106,9 +106,9 @@ class Str
      * ```
      *
      * @param string $string
-     * The string to look in. Must be valid UTF-8.
+     * The string to look in. Must be a valid UTF-8 encoded string.
      * @param string $search
-     * The string to look in. Must be valid UTF-8.
+     * The string to look in. Must be a valid UTF-8 encoded string.
      * If no match is found, the entire `$string` is returned.
      * @return string
      * The extracted part of the string.
@@ -139,9 +139,9 @@ class Str
      * ```
      *
      * @param string $string
-     * The string to look in. Must be valid UTF-8.
+     * The string to look in. Must be a valid UTF-8 encoded string.
      * @param string $search
-     * The string to look in. Must be valid UTF-8.
+     * The string to look in. Must be a valid UTF-8 encoded string.
      * If no match is found, the entire `$string` is returned.
      * @return string
      * The extracted part of the string.
@@ -173,7 +173,7 @@ class Str
      * ```
      *
      * @param string $string
-     * The string to look in. Must be valid UTF-8.
+     * The string to look in. Must be a valid UTF-8 encoded string.
      * @param int $position
      * The target position of string.
      * If a negative value is given, it will seek from the end of the string.
@@ -195,9 +195,9 @@ class Str
      * ```
      *
      * @param string $string
-     * The string to look in. Must be valid UTF-8.
+     * The string to look in. Must be a valid UTF-8 encoded string.
      * @param string $search
-     * The string to look in. Must be valid UTF-8.
+     * The string to look in. Must be a valid UTF-8 encoded string.
      * If no match is found, the entire `$string` is returned.
      * @return string
      * The extracted part of the string.
@@ -223,11 +223,11 @@ class Str
      * ```
      *
      * @param string $string
-     * The string to look in. Must be valid UTF-8.
+     * The string to look in. Must be a valid UTF-8 encoded string.
      * @param string $from
-     * The starting string to look for. Must be valid UTF-8.
+     * The starting string to look for. Must be a valid UTF-8 encoded string.
      * @param string $to
-     * The ending string to look for. Must be valid UTF-8.
+     * The ending string to look for. Must be a valid UTF-8 encoded string.
      * @return string
      * The extracted part of the string.
      */
@@ -286,7 +286,7 @@ class Str
      * ```
      *
      * @param string $string
-     * The string that will be capitalized. Must be valid UTF-8.
+     * The string that will be capitalized. Must be a valid UTF-8 encoded string.
      * @return string
      * The string that was capitalized.
      */
@@ -409,7 +409,7 @@ class Str
      * ```
      *
      * @param string $string
-     * The string to look in. Must be valid UTF-8.
+     * The string to look in. Must be valid a UTF-8 encoded string.
      * @param string $pattern
      * The pattern to search for in the string.
      * @return bool
@@ -437,7 +437,7 @@ class Str
      * ```
      *
      * @param string $string
-     * The string to look in. Must be a valid UTF-8 string.
+     * The string to look in. Must be a valid UTF-8 encoded string.
      * @param int $position
      * The position where the string will be cut.
      * @param string $ellipsis
@@ -464,7 +464,7 @@ class Str
      * ```
      *
      * @param string $string
-     * The string that will be decapitalized. Must be valid UTF-8.
+     * The string that will be decapitalized. Must be a valid UTF-8 encoded string.
      * @return string
      * The string that was decapitalized.
      */
@@ -748,7 +748,7 @@ class Str
      * If you want to know the bytes used for a given string instead, @see Str::bytes().
      *
      * @param string $string
-     * The string being measured. Must be a valid UTF-8.
+     * The string being measured. Must be a valid UTF-8 encoded string.
      * @return int
      * The length of the string.
      */
