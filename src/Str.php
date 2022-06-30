@@ -612,7 +612,7 @@ class Str
      * ```php
      * Str::insert('abc', 'xyz', 0); // 'xyzabc'
      * Str::insert('abc', 'xyz', 3); // 'abcxyz'
-     * Str::insert('abc', 'xyz', -1); // 'abxyzc'
+     * Str::insert('abc', 'xyz', -1); // 'abcxyz'
      * ```
      *
      * @param string $string
@@ -626,6 +626,10 @@ class Str
      */
     public static function insert(string $string, string $insert, int $position): string
     {
+        if ($position < 0) {
+            ++$position;
+        }
+
         return
             static::substring($string, 0, $position) .
             $insert .

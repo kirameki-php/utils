@@ -441,10 +441,10 @@ class StrTest extends TestCase
     {
         self::assertEquals('xyzabc', Str::insert('abc', 'xyz', 0));
         self::assertEquals('axyzbc', Str::insert('abc', 'xyz', 1));
-        self::assertEquals('abxyzc', Str::insert('abc', 'xyz', -1));
+        self::assertEquals('xyzabc', Str::insert('abc', 'xyz', -1));
         self::assertEquals('abcxyz', Str::insert('abc', 'xyz', 3));
         self::assertEquals('あxyzい', Str::insert('あい', 'xyz', 1));
-        self::assertEquals('あxyzい', Str::insert('あい', 'xyz', -1));
+        self::assertEquals('xyzあい', Str::insert('あい', 'xyz', -1));
     }
 
     public function test_isBlank(): void
