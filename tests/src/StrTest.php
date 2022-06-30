@@ -405,7 +405,7 @@ class StrTest extends TestCase
     public function test_firstIndexOf(): void
     {
         // empty string
-        self::assertFalse(Str::firstIndexOf('', 'a'));
+        self::assertNull(Str::firstIndexOf('', 'a'));
 
         // empty search
         self::assertEquals(0, Str::firstIndexOf('ab', ''));
@@ -431,10 +431,10 @@ class StrTest extends TestCase
 
         // offset utf-8
         self::assertEquals(0, Str::firstIndexOf('👨‍👨‍👧‍👦', '👨‍👨‍👧‍👦'));
-        self::assertFalse(Str::firstIndexOf('👨‍👨‍👧‍👦', '👨'));
+        self::assertNull(Str::firstIndexOf('👨‍👨‍👧‍👦', '👨'));
         self::assertEquals(1, Str::firstIndexOf('あいう', 'い', 1));
         self::assertEquals(1, Str::firstIndexOf('🏴󠁧󠁢󠁳󠁣󠁴󠁿👨‍👨‍👧‍👦', '👨‍👨‍👧‍👦', 1));
-        self::assertFalse(Str::firstIndexOf('🏴󠁧󠁢󠁳󠁣󠁴󠁿👨‍👨‍👧‍👦', '👨‍👨‍👧‍👦', 2));
+        self::assertNull(Str::firstIndexOf('🏴󠁧󠁢󠁳󠁣󠁴󠁿👨‍👨‍👧‍👦', '👨‍👨‍👧‍👦', 2));
     }
 
     public function test_insert(): void
@@ -482,7 +482,7 @@ class StrTest extends TestCase
     public function test_lastIndexOf(): void
     {
         // empty string
-        self::assertFalse(Str::lastIndexOf('', 'a'));
+        self::assertNull(Str::lastIndexOf('', 'a'));
 
         // empty search
         self::assertEquals(2, Str::lastIndexOf('ab', ''));
@@ -508,10 +508,10 @@ class StrTest extends TestCase
 
         // offset utf-8
         self::assertEquals(0, Str::lastIndexOf('👨‍👨‍👧‍👦', '👨‍👨‍👧‍👦'));
-        self::assertFalse(Str::lastIndexOf('👨‍👨‍👧‍👦', '👨'));
+        self::assertNull(Str::lastIndexOf('👨‍👨‍👧‍👦', '👨'));
         self::assertEquals(1, Str::lastIndexOf('あいう', 'い', 1));
         self::assertEquals(1, Str::lastIndexOf('🏴󠁧󠁢󠁳󠁣󠁴󠁿👨‍👨‍👧‍👦', '👨‍👨‍👧‍👦', 1));
-        self::assertFalse(Str::lastIndexOf('🏴󠁧󠁢󠁳󠁣󠁴󠁿👨‍👨‍👧‍👦', '👨‍👨‍👧‍👦', 2));
+        self::assertNull(Str::lastIndexOf('🏴󠁧󠁢󠁳󠁣󠁴󠁿👨‍👨‍👧‍👦', '👨‍👨‍👧‍👦', 2));
     }
 
     public function test_length(): void

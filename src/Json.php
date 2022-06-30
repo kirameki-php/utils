@@ -8,9 +8,21 @@ use function json_encode;
 class Json
 {
     /**
+     * Encode data as JSON string.
+     *
+     * Example:
+     * ```php
+     * Json::encode(true); // 'true'
+     * Json::encode(['a' => 1]); // '{"a":1}'
+     * Json::encode(['a' => 1], true); // "{\n    "a": 1\n}"
+     * ```
+     *
      * @param mixed $data
+     * The data being encoded. String data must be UTF-8 encoded.
      * @param bool $formatted
+     * Format JSON in a human-readable format.
      * @return string
+     * JSON encoded string.
      */
     public static function encode(mixed $data, bool $formatted = false): string
     {
@@ -26,8 +38,18 @@ class Json
     }
 
     /**
+     * Decodes a JSON string.
+     *
+     * Example:
+     * ```php
+     * Json::decode('true'); // true
+     * Json::decode('{"a":1}'); // ['a' => 1]
+     * ```
+     *
      * @param string $json
+     * The value being decoded. Must be a valid UTF-8 encoded string.
      * @return mixed
+     * Decoded data.
      */
     public static function decode(string $json): mixed
     {

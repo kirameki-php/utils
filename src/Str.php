@@ -428,14 +428,28 @@ class Str
     }
 
     /**
+     * Extracts the substring from string based on the given position.
+     * The position is determined by bytes.
+     * If the position happens to be between a multibyte character, the cut is performed on the entire character.
+     * Grapheme string is not supported for this method.
+     *
+     * Example:
+     * ```php
+     * Str::cut('abc', 1); // 'a'
+     * Str::cut('あいう', 1); // '' since あ is 3 bytes long.
+     * ```
+     *
      * @param string $string
-     * @param int $byteLimit
+     * The string to look in. Must be a valid UTF-8 string.
+     * @param int $position
+     * The position where the string will be cut.
      * @param string $ellipsis
+     * An ellipsis which will be appended to the cut string if string is greater than cut string.
      * @return string
      */
-    public static function cut(string $string, int $byteLimit, string $ellipsis = ''): string
+    public static function cut(string $string, int $position, string $ellipsis = ''): string
     {
-        $cut = mb_strcut($string, 0, $byteLimit, self::Encoding);
+        $cut = mb_strcut($string, 0, $position, self::Encoding);
         if ($ellipsis !== '' && mb_strlen($cut) < mb_strlen($string)) {
             $cut .= $ellipsis;
         }
@@ -561,18 +575,37 @@ class Str
     }
 
     /**
-     * @param string $string
-     * @param string $search
+     * Find position (in grapheme units) of first occurrence of substring in string.
+     *
+     * Example:
+     * ```php
+     * Str::firstIndexOf('abb', 'b'); // 1
+     * Str::firstIndexOf('abb', 'b', 2); // 2
+     * Str::firstIndexOf('abb', 'b', 3); // null
+     * ```
+     *
+     * @param string $haystack
+     * The string to look in.
+     * @param string $needle
+     * The substring to search for in the haystack.
      * @param int $offset
-     * @return int|false
+     * The optional `$offset` parameter allows you to specify where in `$haystack` to
+     * start searching as an offset in grapheme units.
+     * @return int|null
+     * Position where the needle was found. **null** if no match was found.
      */
-    public static function firstIndexOf(string $string, string $search, int $offset = 0): int|false
+    public static function firstIndexOf(string $haystack, string $needle, int $offset = 0): ?int
     {
-        $length = static::length($string);
-        if (abs($offset) > $length) {
-            return false;
+        $length = static::length($haystack);
+        if (abs($offset) >= $length) {
+            return null;
         }
-        return grapheme_strpos($string, $search, $offset);
+
+        $result = grapheme_strpos($haystack, $needle, $offset);
+
+        return $result !== false
+            ? $result
+            : null;
     }
 
     /**
@@ -642,18 +675,37 @@ class Str
     }
 
     /**
-     * @param string $string
-     * @param string $search
+     * Find position (in grapheme units) of last occurrence of substring in string.
+     *
+     * Example:
+     * ```php
+     * Str::lastIndexOf('abb', 'b'); // 2
+     * Str::lastIndexOf('abb', 'b', 2); // 2
+     * Str::lastIndexOf('abb', 'b', 3); // null
+     * ```
+     *
+     * @param string $haystack
+     * The string to look in.
+     * @param string $needle
+     * The substring to search for in the haystack.
      * @param int $offset
-     * @return int|false
+     * The optional `$offset` parameter allows you to specify where in `$haystack` to
+     * start searching as an offset in grapheme units.
+     * @return int|null
+     * Position where the needle was found. **null** if no match was found.
      */
-    public static function lastIndexOf(string $string, string $search, int $offset = 0): int|false
+    public static function lastIndexOf(string $haystack, string $needle, int $offset = 0): ?int
     {
-        $length = static::length($string);
-        if (abs($offset) > $length) {
-            return false;
+        $length = static::length($haystack);
+        if (abs($offset) >= $length) {
+            return null;
         }
-        return grapheme_strrpos($string, $search, $offset);
+
+        $result = grapheme_strrpos($haystack, $needle, $offset);
+
+        return $result !== false
+            ? $result
+            : null;
     }
 
     /**
