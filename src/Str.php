@@ -606,10 +606,23 @@ class Str
     }
 
     /**
+     * Insert a substring before the given position.
+     *
+     * Example:
+     * ```php
+     * Str::insert('abc', 'xyz', 0); // 'xyzabc'
+     * Str::insert('abc', 'xyz', 3); // 'abcxyz'
+     * Str::insert('abc', 'xyz', -1); // 'abxyzc'
+     * ```
+     *
      * @param string $string
+     * String to be inserted.
      * @param string $insert
+     * String that will be inserted.
      * @param int $position
+     * Position where the `$insert` will be inserted.
      * @return string
+     * String which contains `$insert` string at `$position`.
      */
     public static function insert(string $string, string $insert, int $position): string
     {
