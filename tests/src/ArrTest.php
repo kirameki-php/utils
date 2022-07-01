@@ -9,7 +9,6 @@ use Kirameki\Utils\Arr;
 use Kirameki\Utils\Exception\DuplicateKeyException;
 use Kirameki\Utils\Iter;
 use Kirameki\Utils\Str;
-use Kirameki\Utils\Support\Nil;
 use LogicException;
 use RuntimeException;
 use stdClass;
@@ -80,7 +79,7 @@ class ArrTest extends TestCase
         self::assertEquals(1, Arr::atOr([1, 2, 3], 3, 1));
 
         // miss with object
-        $miss = Nil::instance();
+        $miss = new stdClass();
         self::assertEquals($miss, Arr::atOr([1, 2, 3], 3, $miss));
 
         // hit
@@ -647,9 +646,10 @@ class ArrTest extends TestCase
 
     public function test_getOr(): void
     {
+        $miss = new stdClass();
         $assoc = ['a' => 1, 'b' => 2];
-        self::assertEquals(1, Arr::getOr($assoc, 'a', Nil::instance()));
-        self::assertEquals(Nil::instance(), Arr::getOr($assoc, 'c', Nil::instance()));
+        self::assertEquals(1, Arr::getOr($assoc, 'a', $miss));
+        self::assertEquals($miss, Arr::getOr($assoc, 'c', $miss));
     }
 
     public function test_getOrFail(): void
@@ -1260,7 +1260,7 @@ class ArrTest extends TestCase
 
     public function test_lastOr(): void
     {
-        $miss = Nil::instance();
+        $miss = new stdClass();
 
         // empty
         self::assertEquals($miss, Arr::lastOr([], $miss));
@@ -1687,7 +1687,7 @@ class ArrTest extends TestCase
 
     public function test_pullOr(): void
     {
-        $nil = Nil::instance();
+        $miss = new stdClass();
 
         // empty
         $list = [];
@@ -1700,7 +1700,7 @@ class ArrTest extends TestCase
 
         // list miss
         $list = [1, 2, 3];
-        self::assertEquals($nil, Arr::pullOr($list, 3, $nil));
+        self::assertEquals($miss, Arr::pullOr($list, 3, $miss));
         self::assertEquals([1, 2, 3], $list);
 
         // assoc
@@ -1710,7 +1710,7 @@ class ArrTest extends TestCase
 
         // assoc miss
         $assoc = ['a' => null];
-        self::assertEquals($nil, Arr::pullOr($assoc, 'b', $nil));
+        self::assertEquals($miss, Arr::pullOr($assoc, 'b', $miss));
         self::assertEquals(['a' => null], $assoc);
 
         // reindex: false

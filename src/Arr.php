@@ -4,7 +4,6 @@ namespace Kirameki\Utils;
 
 use Closure;
 use Kirameki\Utils\Exception\DuplicateKeyException;
-use Kirameki\Utils\Support\Nil;
 use LogicException;
 use RuntimeException;
 use Webmozart\Assert\Assert;
@@ -139,11 +138,9 @@ class Arr
      */
     public static function atOrFail(iterable $iterable, int $position): mixed
     {
-        $miss = Nil::instance();
+        $result = static::atOr($iterable, $position, self::miss());
 
-        $result = static::atOr($iterable, $position, $miss);
-
-        if ($result instanceof Nil) {
+        if ($result instanceof self) {
             throw new RuntimeException("Index out of bounds. position: $position");
         }
 
@@ -567,11 +564,9 @@ class Arr
      */
     public static function firstOrFail(iterable $iterable, ?Closure $condition = null): mixed
     {
-        $miss = Nil::instance();
+        $result = static::firstOr($iterable, self::miss(), $condition);
 
-        $result = static::firstOr($iterable, $miss, $condition);
-
-        if ($result instanceof Nil) {
+        if ($result instanceof self) {
             $message = ($condition !== null)
                 ? 'Failed to find matching condition.'
                 : 'Iterable must contain at least one element.';
@@ -697,10 +692,9 @@ class Arr
      */
     public static function getOrFail(iterable $iterable, int|string $key)
     {
-        $miss = Nil::instance();
-        $result = static::getOr($iterable, $key, $miss);
+        $result = static::getOr($iterable, $key, self::miss());
 
-        if ($result instanceof Nil) {
+        if ($result instanceof self) {
             throw new RuntimeException("Undefined array key $key");
         }
 
@@ -1016,11 +1010,9 @@ class Arr
      */
     public static function lastOrFail(iterable $iterable, ?Closure $condition = null): mixed
     {
-        $miss = Nil::instance();
+        $result = static::lastOr($iterable, self::miss(), $condition);
 
-        $result = static::lastOr($iterable, $miss, $condition);
-
-        if ($result instanceof Nil) {
+        if ($result instanceof self) {
             $message = ($condition !== null)
                 ? 'Failed to find matching condition.'
                 : 'Iterable must contain at least one element.';
@@ -1387,11 +1379,12 @@ class Arr
      */
     public static function pullOrFail(array &$array, int|string $key, ?bool $reindex = null): mixed
     {
-        $miss = Nil::instance();
-        $result = static::pullOr($array, $key, $miss, $reindex);
-        if ($result instanceof Nil) {
+        $result = static::pullOr($array, $key, self::miss(), $reindex);
+
+        if ($result instanceof self) {
             throw new RuntimeException("Tried to pull undefined array key \"$key\"");
         }
+
         return $result;
     }
 
@@ -2109,5 +2102,22 @@ class Arr
     protected static function verify(Closure $condition, mixed $key, mixed $val): bool
     {
         return $condition($val, $key);
+    }
+
+    /**
+     * A dummy instance used to check for miss in methods below
+     *
+     * @see atOrFail
+     * @see firstOrFail
+     * @see getOrFail
+     * @see lastOrFail
+     * @see pullOrFail
+     * @return self
+     */
+    private static ?self $miss = null;
+
+    private static function miss(): self
+    {
+        return self::$miss ??= new self();
     }
 }
