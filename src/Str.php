@@ -773,9 +773,20 @@ class Str
     }
 
     /**
+     * Perform a regular expression match
+     *
+     * Example:
+     * ```php
+     * Str::match('abcabc', '/a/'); // ['a']
+     * Str::match('abcabc', '/(?<p1>a)bc/'); // ['abc', 'p1' => 'a', 'a']
+     * ```
+     *
      * @param string $string
+     * The string to be matched.
      * @param string $pattern
+     * The pattern to search for. Must be a valid regex.
      * @return array<int, array<string>>
+     * Array of matches in multidimensional array.
      */
     public static function match(string $string, string $pattern): array
     {
@@ -787,9 +798,20 @@ class Str
     }
 
     /**
+     * Perform a global regular expression match.
+     *
+     * Example:
+     * ```php
+     * Str::matchAll('abcabc', '/a/'); // [['a', 'a']]
+     * Str::matchAll('abcabc', '/(?<p1>a)bc/'); // [['abc', 'abc'], 'p1' => ['a', 'a'], ['a', 'a']]
+     * ```
+     *
      * @param string $string
+     * The string to be matched.
      * @param string $pattern
+     * The pattern to search for. Must be a valid regex.
      * @return array<int, array<string>>
+     * Array of all matches in multidimensional array.
      */
     public static function matchAll(string $string, string $pattern): array
     {
