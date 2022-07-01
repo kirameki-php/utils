@@ -2106,7 +2106,7 @@ class Arr
 
     /**
      * A dummy instance used to check for miss in methods below
-     * 
+     *
      * @see atOrFail
      * @see firstOrFail
      * @see getOrFail
