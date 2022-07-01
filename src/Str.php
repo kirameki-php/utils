@@ -441,7 +441,7 @@ class Str
      * @param int $position
      * The position where the string will be cut.
      * @param string $ellipsis
-     * An ellipsis which will be appended to the cut string if string is greater than cut string.
+     * An ellipsis which will be appended to the cut string if string is greater than cut string. Defaults to **''**.
      * @return string
      */
     public static function cut(string $string, int $position, string $ellipsis = ''): string
@@ -490,7 +490,7 @@ class Str
      * @param string $needle
      * The substring to search for in the `$haystack`.
      * @param int|null $limit
-     * Number of times matching string will be removed. If `null` is given, there will be no limit.
+     * Number of times matching string will be removed. If **null** is given, there will be no limit. Defaults to **null**.
      * @return string
      * Returns string with `$needle` removed.
      */
@@ -587,7 +587,7 @@ class Str
      * The substring to search for in the haystack.
      * @param int $offset
      * The optional `$offset` parameter allows you to specify where in `$haystack` to
-     * start searching as an offset in grapheme units.
+     * start searching as an offset in grapheme units. Defaults to **0**.
      * @return int|null
      * Position where the needle was found. **null** if no match was found.
      */
@@ -716,7 +716,7 @@ class Str
      * The substring to search for in the haystack.
      * @param int $offset
      * The optional `$offset` parameter allows you to specify where in `$haystack` to
-     * start searching as an offset in grapheme units.
+     * start searching as an offset in grapheme units. Defaults to **0**.
      * @return int|null
      * Position where the needle was found. **null** if no match was found.
      */
@@ -851,7 +851,7 @@ class Str
      * The length of the string once it has been padded.
      * If the value is lower than the length, the current string will be returned as-is.
      * @param string $pad
-     * The string used for padding.
+     * The string used for padding. Defaults to **' '**.
      * @return string
      * The padded string.
      */
@@ -869,7 +869,7 @@ class Str
      * The length of the string once it has been padded.
      * If the value is lower than the length, the current string will be returned as-is.
      * @param string $pad
-     * The string used for padding.
+     * The string used for padding. Defaults to **' '**.
      * @return string
      * The padded string.
      */
@@ -887,7 +887,7 @@ class Str
      * The length of the string once it has been padded.
      * If the value is lower than the length, the current string will be returned as-is.
      * @param string $pad
-     * The string used for padding.
+     * The string used for padding. Defaults to **' '**.
      * @return string
      * The padded string.
      */
@@ -907,7 +907,7 @@ class Str
      * @param string $pad
      * The string used for padding.
      * @param int $type
-     * The padding type. Type can be STR_PAD_RIGHT, STR_PAD_LEFT, STR_PAD_BOTH.
+     * The padding type. Type can be STR_PAD_RIGHT, STR_PAD_LEFT, STR_PAD_BOTH. Defaults to **STR_PAD_RIGHT**
      * @return string
      * The padded string.
      */
@@ -990,10 +990,22 @@ class Str
     }
 
     /**
+     * Replace occurrences of the search string with the replacement string.
+     *
+     * Example:
+     * ```php
+     * Str::replace('bb', 'b', 'a'); // 'aa'
+     * Str::replace('aaa', 'a', '', 2); // 'a'
+     * ```
+     *
      * @param string $string
+     * The string to be replaced.
      * @param string $search
+     * The string to search for.
      * @param string $replace
+     * The string to replace.
      * @param int|null $limit
+     * The maximum times a replacement occurs. Unlimited, if **null** is given. Defaults to **null**.
      * @return string
      */
     public static function replace(string $string, string $search, string $replace, ?int $limit = null): string
@@ -1008,9 +1020,19 @@ class Str
     }
 
     /**
+     * Replace the first occurrence of the search string with the replacement string.
+     *
+     * Example:
+     * ```php
+     * Str::replaceFirst('bbb', 'b', 'a'); // 'abb'
+     * ```
+     *
      * @param string $string
+     * The string to be replaced.
      * @param string $search
+     * The string to search for.
      * @param string $replace
+     * The string to replace.
      * @return string
      */
     public static function replaceFirst(string $string, string $search, string $replace): string
@@ -1026,9 +1048,19 @@ class Str
     }
 
     /**
+     * Replace the last occurrence of the search string with the replacement string.
+     *
+     * Example:
+     * ```php
+     * Str::replaceLast('bbb', 'b', 'a'); // 'bba'
+     * ```
+     *
      * @param string $string
+     * The string to be replaced.
      * @param string $search
+     * The string to search for.
      * @param string $replace
+     * The string to replace.
      * @return string
      */
     public static function replaceLast(string $string, string $search, string $replace): string
@@ -1044,10 +1076,22 @@ class Str
     }
 
     /**
+     * Replace substring that match the pattern with the replacement string.
+     *
+     * Example:
+     * ```php
+     * Str::replaceMatch('abcc', '/c/', 'b'); // 'abbb'
+     * Str::replaceMatch('abcde', '/[A-Za-z]+/', 'x'); // 'x'
+     * ```
+     *
      * @param string $string
+     * The string to be matched and replaced.
      * @param string $pattern
+     * The pattern to search for. Must be a valid regex.
      * @param string $replace
+     * The string to replace.
      * @param int|null $limit
+     * The maximum possible replacements for each pattern. Unlimited, if **null** is given. Defaults to **null**.
      * @return string
      */
     public static function replaceMatch(string $string, string $pattern, string $replace, ?int $limit = null): string
@@ -1144,10 +1188,22 @@ class Str
     }
 
     /**
+     * Split a string into an array using a given string.
+     *
+     * Example:
+     * ```php
+     * Str::split('abcbd', 'b'); // ['a', 'c', 'd']
+     * Str::split('abcbd', 'b', 2); // ['a', 'cbd']
+     * ```
+     *
      * @param string $string
+     * The string to be split.
      * @param string|iterable<int, string> $separator
+     * The boundary string(s) used to split.
      * @param int<0, max>|null $limit
+     * Maximum number of chunks.
      * @return array<int, string>
+     * Returns an array of strings created by splitting.
      */
     public static function split(string $string, string|iterable $separator, ?int $limit = null): array
     {
@@ -1165,10 +1221,17 @@ class Str
     }
 
     /**
+     * Return a subset of given string.
+     *
      * @param string $string
+     * The input string to be sliced. Must be valid UTF-8 encoded string.
      * @param int $offset
+     * Starting position. When negative, it will count from the end of the string.
      * @param int|null $length
+     * Length of string from `$offset`. When negative, that many charts will be omitted from the end of string.
+     * Defaults to **null**.
      * @return string
+     * The extracted part of string.
      */
     public static function substring(string $string, int $offset, ?int $length = null): string
     {
@@ -1296,9 +1359,9 @@ class Str
      * @param string $string
      * The string to be wrapped.
      * @param int $width
-     * The number of characters at which the string will be wrapped.
+     * The number of characters at which the string will be wrapped. Defaults to **80**.
      * @param string $break
-     * String used for wrapping.
+     * String used for wrapping. Defaults to **"\n"**.
      * @param bool $overflow
      * Allow overflowing of words. Defaults to **false**.
      * @return string
