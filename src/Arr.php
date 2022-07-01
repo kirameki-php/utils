@@ -2114,10 +2114,9 @@ class Arr
      * @see pullOrFail
      * @return self
      */
-    private static ?self $miss = null;
-
     private static function miss(): self
     {
-        return self::$miss ??= new self();
+        static $miss = new self();
+        return $miss;
     }
 }
