@@ -594,6 +594,9 @@ class StrTest extends TestCase
         self::assertEquals('a_', Str::pad('a', 2, '_'));
         self::assertEquals('__', Str::pad('_', 2, '_'));
         self::assertEquals('ab', Str::pad('ab', 1, '_'));
+
+        // overflow padding
+        self::assertEquals('abcd', Str::pad('a', 4, 'bcde'));
     }
 
     public function test_pad_invalid_pad(): void

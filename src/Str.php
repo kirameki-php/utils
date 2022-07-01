@@ -821,10 +821,17 @@ class Str
     }
 
     /**
+     * Pad a string on both ends to a certain length with another string.
+     *
      * @param string $string
+     * The string to be padded.
      * @param int $length
+     * The length of the string once it has been padded.
+     * If the value is lower than the length, the current string will be returned as-is.
      * @param string $pad
+     * The string used for padding.
      * @return string
+     * The padded string.
      */
     public static function padBoth(string $string, int $length, string $pad = ' '): string
     {
@@ -832,10 +839,17 @@ class Str
     }
 
     /**
+     * Pad a string on the left to a certain length with another string.
+     *
      * @param string $string
+     * The string to be padded.
      * @param int $length
+     * The length of the string once it has been padded.
+     * If the value is lower than the length, the current string will be returned as-is.
      * @param string $pad
+     * The string used for padding.
      * @return string
+     * The padded string.
      */
     public static function padLeft(string $string, int $length, string $pad = ' '): string
     {
@@ -843,10 +857,17 @@ class Str
     }
 
     /**
+     * Pad a string on the right to a certain length with another string.
+     *
      * @param string $string
+     * The string to be padded.
      * @param int $length
+     * The length of the string once it has been padded.
+     * If the value is lower than the length, the current string will be returned as-is.
      * @param string $pad
+     * The string used for padding.
      * @return string
+     * The padded string.
      */
     public static function padRight(string $string, int $length, string $pad = ' '): string
     {
@@ -854,11 +875,19 @@ class Str
     }
 
     /**
+     * Pad a string to a certain length with another string.
+     *
      * @param string $string
+     * The string to be padded.
      * @param int $length
+     * The length of the string once it has been padded.
+     * If the value is lower than the length of `$string`, the current string will be returned as-is.
      * @param string $pad
+     * The string used for padding.
      * @param int $type
+     * The padding type. Type can be STR_PAD_RIGHT, STR_PAD_LEFT, STR_PAD_BOTH.
      * @return string
+     * The padded string.
      */
     public static function pad(string $string, int $length, string $pad = ' ', int $type = STR_PAD_RIGHT): string
     {
@@ -919,9 +948,19 @@ class Str
     }
 
     /**
+     * Repeat a string.
+     *
+     * Example:
+     * ```php
+     * Str::repeat('a', 3); // 'aaa'
+     * ```
+     *
      * @param string $string
+     * The string to be repeated.
      * @param int<0, max> $times
+     * Number of times to repeat `$string`.
      * @return string
+     * The repeated string.
      */
     public static function repeat(string $string, int $times): string
     {
@@ -1161,9 +1200,20 @@ class Str
     }
 
     /**
+     * Strip whitespace (or other characters) from the beginning and end of a string.
+     *
+     * Example:
+     * ```php
+     * Str::trim(' foo bar '); // 'foo bar'
+     * Str::trim("\t\rfoo bar\n\r"); // 'foo bar'
+     * ```
+     *
      * @param string $string
+     * The string to be trimmed.
      * @param string $character
+     * Characters that would be stripped.
      * @return string
+     * The trimmed string.
      */
     public static function trim(string $string, string $character = " \t\n\r\0\x0B"): string
     {
@@ -1171,9 +1221,20 @@ class Str
     }
 
     /**
+     * Strip whitespace (or other characters) from the end of a string.
+     *
+     * Example:
+     * ```php
+     * Str::trimEnd(' foo bar '); // ' foo bar'
+     * Str::trimEnd("\t\rfoo bar\n\r"); // "\t\rfoo bar"
+     * ```
+     *
      * @param string $string
+     * The string to be trimmed.
      * @param string $character
+     * Characters that would be stripped.
      * @return string
+     * The trimmed string.
      */
     public static function trimEnd(string $string, string $character = " \t\n\r\0\x0B"): string
     {
@@ -1181,9 +1242,20 @@ class Str
     }
 
     /**
+     * Strip whitespace (or other characters) from the start of a string.
+     *
+     * Example:
+     * ```php
+     * Str::trimStart(' foo bar '); // 'foo bar '
+     * Str::trimStart("\t\rfoo bar\n\r"); // "foo bar\n\r"
+     * ```
+     *
      * @param string $string
+     * The string to be trimmed.
      * @param string $character
+     * Characters that would be stripped.
      * @return string
+     * The trimmed string.
      */
     public static function trimStart(string $string, string $character = " \t\n\r\0\x0B"): string
     {
@@ -1191,11 +1263,24 @@ class Str
     }
 
     /**
+     * Wraps a string to a given number of characters.
+     *
+     * Example:
+     * ```php
+     * Str::wordWrap('wrap around', 1, overflow: true); // "wrap\naround"
+     * Str::wordWrap('wrap around', 3); // "wra\np\naro\nund"
+     * ```
+     *
      * @param string $string
+     * The string to be wrapped.
      * @param int $width
+     * The number of characters at which the string will be wrapped.
      * @param string $break
+     * String used for wrapping.
      * @param bool $overflow
+     * Allow overflowing of words. Defaults to **false**.
      * @return string
+     * String wrapped at the specified length.
      */
     public static function wordWrap(string $string, int $width = 80, string $break = "\n", bool $overflow = false): string
     {
