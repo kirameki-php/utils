@@ -1007,6 +1007,7 @@ class Str
      * @param int|null $limit
      * The maximum times a replacement occurs. Unlimited, if **null** is given. Defaults to **null**.
      * @return string
+     * String with the replaced values.
      */
     public static function replace(string $string, string $search, string $replace, ?int $limit = null): string
     {
@@ -1034,6 +1035,7 @@ class Str
      * @param string $replace
      * The string to replace.
      * @return string
+     * String with the replaced values.
      */
     public static function replaceFirst(string $string, string $search, string $replace): string
     {
@@ -1062,6 +1064,7 @@ class Str
      * @param string $replace
      * The string to replace.
      * @return string
+     * String with the replaced values.
      */
     public static function replaceLast(string $string, string $search, string $replace): string
     {
@@ -1093,6 +1096,7 @@ class Str
      * @param int|null $limit
      * The maximum possible replacements for each pattern. Unlimited, if **null** is given. Defaults to **null**.
      * @return string
+     * String with the replaced values.
      */
     public static function replaceMatch(string $string, string $pattern, string $replace, ?int $limit = null): string
     {
