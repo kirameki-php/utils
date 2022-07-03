@@ -11,12 +11,18 @@ use function is_iterable;
 class Iter
 {
     /**
+     *  Chunk iterable into given size and pass it as iterator value.
+     *
      * @template TKey of array-key
      * @template TValue
-     * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
-     * @param int $size Size of each chunk. Must be >= 1.
+     * @param iterable<TKey, TValue> $iterable
+     * Iterable to be traversed.
+     * @param int $size
+     * Size of each chunk. Must be >= 1.
      * @param bool $reindex
+     * If set to **true** the array will be reindexed.
      * @return Iterator<int, array<TKey, TValue>>
+     * Returns iterator with chunked array.
      */
     public static function chunk(iterable $iterable, int $size, bool $reindex = false): Iterator
     {
@@ -42,11 +48,16 @@ class Iter
     }
 
     /**
+     * Iterate through the iterable with all **null** values ignored.
+     *
      * @template TKey of array-key
      * @template TValue
-     * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
+     * @param iterable<TKey, TValue> $iterable
+     * Iterable to be traversed.
      * @param bool $reindex
+     * If set to **true** the array will be reindexed.
      * @return Iterator<TKey, TValue>
+     * Iterator with **null** values removed.
      */
     public static function compact(iterable $iterable, bool $reindex = false): Iterator
     {
@@ -62,12 +73,18 @@ class Iter
     }
 
     /**
+     * Create an iterator which drop the given amount of values.
+     *
      * @template TKey of array-key
      * @template TValue
-     * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
-     * @param int $amount Amount of elements to drop. Must be >= 0.
+     * @param iterable<TKey, TValue> $iterable
+     * Iterable to be traversed.
+     * @param int $amount
+     * Amount of elements to drop. Must be >= 0.
      * @param bool $reindex
+     * If set to **true** the array will be reindexed.
      * @return Iterator<TKey, TValue>
+     * Iterator that will drop the given amount of values.
      */
     public static function drop(iterable $iterable, int $amount, bool $reindex = false): Iterator
     {
@@ -76,12 +93,17 @@ class Iter
     }
 
     /**
+     * Create an iterator which drop values until the condition is met.
+     *
      * @template TKey of array-key
      * @template TValue
      * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
      * @param Closure(TValue, TKey): bool $condition
+     * A condition that should return a boolean.
      * @param bool $reindex
+     * If set to **true** the array will be reindexed.
      * @return Iterator<TKey, TValue>
+     * Iterator that will drop values until condition is met.
      */
     public static function dropUntil(iterable $iterable, Closure $condition, bool $reindex = false): Iterator
     {
@@ -102,12 +124,18 @@ class Iter
     }
 
     /**
+     * Create an iterator which drop values while the condition is met.
+     *
      * @template TKey of array-key
      * @template TValue
-     * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
+     * @param iterable<TKey, TValue> $iterable
+     * Iterable to be traversed.
      * @param Closure(TValue, TKey): bool $condition
+     * A condition that should return a boolean.
      * @param bool $reindex
+     * If set to **true** the array will be reindexed.
      * @return Iterator<TKey, TValue>
+     * Iterator that will drop values while condition is met.
      */
     public static function dropWhile(iterable $iterable, Closure $condition, bool $reindex = false): Iterator
     {
@@ -128,12 +156,18 @@ class Iter
     }
 
     /**
+     * Create an iterator that will filter out values that do not meet the condition.
+     *
      * @template TKey of array-key
      * @template TValue
-     * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
+     * @param iterable<TKey, TValue> $iterable
+     * Iterable to be traversed.
      * @param Closure(TValue, TKey): bool $condition
+     * A condition that should return a boolean.
      * @param bool $reindex
+     * If set to **true** the array will be reindexed.
      * @return Iterator<TKey, TValue>
+     * Iterator that will filter out values that do not meet the condition.
      */
     public static function filter(iterable $iterable, Closure $condition, bool $reindex = false): Iterator
     {
@@ -149,11 +183,16 @@ class Iter
     }
 
     /**
+     * Create an iterator that will map and also flatten the result.
+     *
      * @template TKey of array-key
      * @template TValue
-     * @param iterable<TKey, TValue> $iterable Iterable to be traversed.
+     * @param iterable<TKey, TValue> $iterable
+     * Iterable to be traversed.
      * @param Closure(TValue, TKey): mixed $callback
+     * Closure that will be called for each key/value. The returned value will be yielded.
      * @return Iterator<int, mixed>
+     * Iterator that will map and also flatten the result.
      */
     public static function flatMap(iterable $iterable, Closure $callback): Iterator
     {
@@ -170,10 +209,15 @@ class Iter
     }
 
     /**
+     * Create an iterator that will flatten any iterable value.
+     *
      * @template TKey of array-key
-     * @param iterable<TKey, mixed> $iterable Iterable to be traversed.
-     * @param int $depth Depth must be >= 1. Default: 1.
+     * @param iterable<TKey, mixed> $iterable
+     * Iterable to be traversed.
+     * @param int $depth
+     * Depth must be >= 1. Default: 1.
      * @return Iterator<mixed, mixed>
+     * Iterator that will flatten any iterable value.
      */
     public static function flatten(iterable $iterable, int $depth = 1): Iterator
     {
