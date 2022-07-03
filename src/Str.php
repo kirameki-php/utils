@@ -1017,7 +1017,9 @@ class Str
             return $string;
         }
 
-        return static::replaceMatch($string, "/\Q$search\E/", $replace, $limit);
+        $search = '/' . preg_quote($search, '/') . '/s';
+
+        return static::replaceMatch($string, $search, $replace, $limit);
     }
 
     /**
@@ -1301,12 +1303,13 @@ class Str
      * The string to be trimmed.
      * @param string $character
      * Characters that would be stripped.
+     * Defaults to PCRE spaces. (https://www.pcre.org/original/doc/html/pcrepattern.html)
      * @return string
      * The trimmed string.
      */
-    public static function trim(string $string, string $character = " \t\n\r\0\x0B"): string
+    public static function trim(string $string, string $character = '\s'): string
     {
-        return trim($string, $character);
+        return static::trimEnd(static::trimStart($string, $character), $character);
     }
 
     /**
@@ -1322,12 +1325,19 @@ class Str
      * The string to be trimmed.
      * @param string $character
      * Characters that would be stripped.
+     * Defaults to PCRE spaces. (https://www.pcre.org/original/doc/html/pcrepattern.html)
      * @return string
      * The trimmed string.
      */
-    public static function trimEnd(string $string, string $character = " \t\n\r\0\x0B"): string
+    public static function trimEnd(string $string, string $character = '\s'): string
     {
-        return rtrim($string, $character);
+        $result = preg_replace('/[' . $character . ']*$/us', '', $string);
+
+        if ($result === null) {
+            return $string;
+        }
+
+        return $result;
     }
 
     /**
@@ -1343,12 +1353,19 @@ class Str
      * The string to be trimmed.
      * @param string $character
      * Characters that would be stripped.
+     * Defaults to PCRE spaces. (https://www.pcre.org/original/doc/html/pcrepattern.html)
      * @return string
      * The trimmed string.
      */
-    public static function trimStart(string $string, string $character = " \t\n\r\0\x0B"): string
+    public static function trimStart(string $string, string $character = '\s'): string
     {
-        return ltrim($string, $character);
+        $result = preg_replace('/^[' . $character . ']*/us', '', $string);
+
+        if ($result === null) {
+            return $string;
+        }
+
+        return $result;
     }
 
     /**

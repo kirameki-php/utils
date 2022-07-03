@@ -671,6 +671,15 @@ class StrTest extends TestCase
         self::assertEquals('あえいえう', Str::replace('あ-い-う', '-', 'え'));
         self::assertEquals('__🏴󠁧󠁢󠁳󠁣󠁴󠁿', Str::replace('🏴󠁧󠁢󠁳󠁣󠁴󠁿a🏴󠁧󠁢󠁳󠁣󠁴󠁿a🏴󠁧󠁢󠁳󠁣󠁴󠁿', '🏴󠁧󠁢󠁳󠁣󠁴󠁿a', '_'));
 
+        // slash
+        self::assertEquals('abc', Str::replace('ab\c', '\\', ''));
+
+        // dot
+        self::assertEquals('abc', Str::replace('abc.*', '.*', ''));
+
+        // regex chars
+        self::assertEquals('a', Str::replace('[]/\\!?', '[]/\\!?', 'a'));
+
         // with limit
         self::assertEquals('a', Str::replace('aaa', 'a', '', 2));
     }
@@ -896,6 +905,12 @@ class StrTest extends TestCase
         // tab and mixed line on both ends
         self::assertEquals('abc', Str::trim("\t\nabc\n\t"));
 
+        // tab and mixed line on both ends
+        self::assertEquals('abc', Str::trim("\t\nabc\n\t"));
+
+        // multibyte spaces (https://3v4l.org/s16FF)
+        self::assertEquals('abc', Str::trim("\u{2000}\u{2001}abc\u{2002}\u{2003}"));
+
         // grapheme (nothing happens)
         self::assertEquals('👨‍👨‍👧‍👦🏴󠁧󠁢󠁳󠁣󠁴󠁿', Str::trim('👨‍👨‍👧‍👦🏴󠁧󠁢󠁳󠁣󠁴󠁿'));
 
@@ -926,6 +941,9 @@ class StrTest extends TestCase
         // tab and mixed line on both ends
         self::assertEquals('abc', Str::trimEnd("abc\n\t"));
 
+        // multibyte spaces (https://3v4l.org/s16FF)
+        self::assertEquals(' abc', Str::trimEnd(" abc\n\t\u{0009}\u{2028}\u{2029}\v "));
+
         // grapheme (nothing happens)
         self::assertEquals('👨‍👨‍👧‍👦🏴󠁧󠁢󠁳󠁣󠁴󠁿', Str::trimEnd('👨‍👨‍👧‍👦🏴󠁧󠁢󠁳󠁣󠁴󠁿'));
 
@@ -953,8 +971,11 @@ class StrTest extends TestCase
         // new line on both ends
         self::assertEquals("abc\n", Str::trimStart("\nabc\n"));
 
-        // tab and mixed line on both ends
+        // tab and new line
         self::assertEquals('abc', Str::trimStart("\n\tabc"));
+
+        // multibyte spaces (https://3v4l.org/s16FF)
+        self::assertEquals('abc ', Str::trimStart("\n\t\u{0009}\u{2028}\u{2029}\v abc "));
 
         // grapheme (nothing happens)
         self::assertEquals('👨‍👨‍👧‍👦🏴󠁧󠁢󠁳󠁣󠁴󠁿', Str::trimStart('👨‍👨‍👧‍👦🏴󠁧󠁢󠁳󠁣󠁴󠁿'));
