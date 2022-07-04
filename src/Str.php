@@ -44,7 +44,7 @@ use function wordwrap;
 
 class Str
 {
-    public const Encoding = 'UTF-8';
+    public const ENCODING = 'UTF-8';
 
     /**
      * Extract string after the `$search` string.
@@ -446,7 +446,7 @@ class Str
      */
     public static function cut(string $string, int $position, string $ellipsis = ''): string
     {
-        $cut = mb_strcut($string, 0, $position, self::Encoding);
+        $cut = mb_strcut($string, 0, $position, self::ENCODING);
         if ($ellipsis !== '' && mb_strlen($cut) < mb_strlen($string)) {
             $cut .= $ellipsis;
         }
@@ -1017,7 +1017,7 @@ class Str
             return $string;
         }
 
-        $search = '/' . preg_quote($search, '/') . '/s';
+        $search = '/' . preg_quote($search, '/') . '/su';
 
         return static::replaceMatch($string, $search, $replace, $limit);
     }
@@ -1217,7 +1217,7 @@ class Str
 
         $separators = is_iterable($separator) ? $separator : [$separator];
         $separators = Arr::map($separators, static fn(string $str): string => preg_quote($str, '/'));
-        $pattern = '/(' . implode('|', $separators) . ')/';
+        $pattern = '/(' . implode('|', $separators) . ')/su';
 
         $splits = preg_split($pattern, $string, $limit ?? -1);
 
@@ -1267,7 +1267,7 @@ class Str
      */
     public static function toLower(string $string): string
     {
-        return mb_strtolower($string, self::Encoding);
+        return mb_strtolower($string, self::ENCODING);
     }
 
     /**
@@ -1287,7 +1287,7 @@ class Str
      */
     public static function toUpper(string $string): string
     {
-        return mb_strtoupper($string, self::Encoding);
+        return mb_strtoupper($string, self::ENCODING);
     }
 
     /**
@@ -1331,7 +1331,7 @@ class Str
      */
     public static function trimEnd(string $string, string $character = '\s'): string
     {
-        $result = preg_replace('/[' . $character . ']*$/us', '', $string);
+        $result = preg_replace('/[' . $character . ']*$/su', '', $string);
 
         if ($result === null) {
             return $string;
@@ -1359,7 +1359,7 @@ class Str
      */
     public static function trimStart(string $string, string $character = '\s'): string
     {
-        $result = preg_replace('/^[' . $character . ']*/us', '', $string);
+        $result = preg_replace('/^[' . $character . ']*/su', '', $string);
 
         if ($result === null) {
             return $string;
