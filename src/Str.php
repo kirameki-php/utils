@@ -845,6 +845,12 @@ class Str
     /**
      * Pad a string on both ends to a certain length with another string.
      *
+     * Example:
+     * ```php
+     * Str::padBoth('a', 6, '_'); // '__a___'
+     * Str::padBoth('hello', 10, '123'); // '12hello123'
+     * ```
+     *
      * @param string $string
      * The string to be padded.
      * @param int $length
@@ -862,6 +868,11 @@ class Str
 
     /**
      * Pad a string on the left to a certain length with another string.
+     *
+     * Example:
+     * ```php
+     * Str::padLeft('a', 3, '_'); // '__a'
+     * ```
      *
      * @param string $string
      * The string to be padded.
@@ -881,6 +892,11 @@ class Str
     /**
      * Pad a string on the right to a certain length with another string.
      *
+     * Example:
+     * ```php
+     * Str::padRight('a', 3, '_'); // 'a__'
+     * ```
+     *
      * @param string $string
      * The string to be padded.
      * @param int $length
@@ -898,6 +914,13 @@ class Str
 
     /**
      * Pad a string to a certain length with another string.
+     *
+     * Example:
+     * ```php
+     * Str::pad('a', 3, '_'); // 'a__'
+     * Str::pad('a', 3, '_', STR_PAD_LEFT); // '__a'
+     * Str::pad('a', 3, '_', STR_PAD_BOTH); // '_a_'
+     * ```
      *
      * @param string $string
      * The string to be padded.
@@ -1228,6 +1251,14 @@ class Str
 
     /**
      * Return a subset of given string.
+     *
+     * Example:
+     * ```php
+     * Str::substring('abc', 1); // 'a'
+     * Str::substring('👨‍👨‍👧‍👦', 1); // ''
+     * Str::substring('abc', 0, 1); // 'a'
+     * Str::substring('abc', 1, 2); // 'bc'
+     * ```
      *
      * @param string $string
      * The input string to be sliced. Must be valid UTF-8 encoded string.
