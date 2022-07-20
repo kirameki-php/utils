@@ -4,6 +4,7 @@ namespace Kirameki\Utils;
 
 use LogicException;
 use RuntimeException;
+use Traversable;
 use Webmozart\Assert\Assert;
 use function abs;
 use function assert;
@@ -15,9 +16,7 @@ use function grapheme_strrpos;
 use function grapheme_substr;
 use function implode;
 use function intl_get_error_message;
-use function is_array;
 use function iterator_to_array;
-use function ltrim;
 use function mb_strcut;
 use function mb_strlen;
 use function mb_strtolower;
@@ -27,7 +26,6 @@ use function preg_match_all;
 use function preg_quote;
 use function preg_replace;
 use function preg_split;
-use function rtrim;
 use function str_contains;
 use function str_ends_with;
 use function str_repeat;
@@ -38,7 +36,6 @@ use function strpos;
 use function strrev;
 use function strrpos;
 use function substr_replace;
-use function trim;
 use function ucwords;
 use function wordwrap;
 
@@ -354,7 +351,9 @@ class Str
      */
     public static function containsAll(string $haystack, iterable $needles): bool
     {
-        $needles = is_array($needles) ? $needles : iterator_to_array($needles);
+        $needles = ($needles instanceof Traversable)
+            ? iterator_to_array($needles)
+            : $needles;
 
         Assert::minCount($needles, 1);
 
@@ -386,7 +385,9 @@ class Str
      */
     public static function containsAny(string $haystack, iterable $needles): bool
     {
-        $needles = is_array($needles) ? $needles : iterator_to_array($needles);
+        $needles = ($needles instanceof Traversable)
+            ? iterator_to_array($needles)
+            : $needles;
 
         Assert::minCount($needles, 1);
 

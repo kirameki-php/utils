@@ -74,6 +74,7 @@
     <inspection_tool class="PhpLoopNeverIteratesInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="PhpPluralMixedCanBeReplacedWithArrayInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="PhpStanGlobal" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="level" value="8" />
       <option name="config" value="$PROJECT_DIR$/phpstan.neon" />
     </inspection_tool>
     <inspection_tool class="PhpStrictTypeCheckingInspection" enabled="false" level="ERROR" enabled_by_default="false" />
