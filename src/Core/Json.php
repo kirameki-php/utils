@@ -6,6 +6,7 @@ use JsonException as PhpJsonException;
 use Kirameki\Core\Exceptions\JsonException;
 use function json_decode;
 use function json_encode;
+use function json_validate;
 use const JSON_PRESERVE_ZERO_FRACTION;
 use const JSON_PRETTY_PRINT;
 use const JSON_THROW_ON_ERROR;
@@ -100,12 +101,6 @@ class Json extends StaticClass
      */
     public static function validate(string $json): bool
     {
-        try {
-            json_decode($json, flags: JSON_THROW_ON_ERROR);
-        }
-        catch (PhpJsonException) {
-            return false;
-        }
-        return true;
+        return json_validate($json, flags: JSON_THROW_ON_ERROR);
     }
 }
