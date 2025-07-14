@@ -1,20 +1,12 @@
 parameters:
     level: 8
+    treatPhpDocTypesAsCertain: false
     paths:
         - src/
     excludePaths:
         - tests/*
     ignoreErrors:
-        - message: '#^Unsafe usage of new static\(\)\.$#'
-        - message: "#^Result of && is always false\\.$#"
-          count: 1
-          path: src/Text/Str.php
-        - message: "#^Call to function array_is_list\\(\\) with non\\-empty\\-array\\<string, float\\|int\\|string\\> will always evaluate to false\\.$#"
-          count: 1
-          path: src/Text/Str.php
-        - message: "#^Method Kirameki\\\\Time\\\\Time\\:\\:createFromInterface\\(\\) should return static\\(Kirameki\\\\Time\\\\Time\\) but returns DateTimeImmutable\\.$#"
-          count: 1
-          path: src/Time/Time.php
+        - identifier: new.static
         - message: '#^Generator expects key type TKey of \(int\|string\), int given\.$#'
           count: 5
           path: src/Collections/Utils/Iter.php
