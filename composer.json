@@ -1,0 +1,42 @@
+{
+  "name": "kirameki/utils",
+  "description": "Kirameki Utility Classes",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": ">=8.4",
+    "ext-bcmath": "*",
+    "ext-intl": "*",
+    "ext-mbstring": "*",
+    "psr/clock": "^1.0",
+    "south-pointe/ansi": "dev-main"
+  },
+  "require-dev": {
+    "ext-posix": "*",
+    "kirameki/dumper": "dev-main",
+    "phpstan/phpstan": "^2",
+    "phpunit/phpunit": "^12"
+  },
+  "autoload": {
+    "psr-4": {
+      "Kirameki\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\Kirameki\\": "tests/src/"
+    }
+  },
+  "config": {
+    "discard-changes": true,
+    "preferred-install": "dist",
+    "sort-packages": true
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "scripts": {
+    "test": "vendor/bin/phpunit --coverage-html=coverage",
+    "ci-test": "vendor/bin/phpunit --coverage-clover ./coverage.xml",
+    "analyze": "vendor/bin/phpstan analyse --memory-limit 1G"
+  }
+}
