@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Tests\Kirameki\Core\Testing;
+namespace Tests\Kirameki\Testing;
 
 use Kirameki\Core\Exceptions\ErrorException;
 use Kirameki\Testing\TestCase;
