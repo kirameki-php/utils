@@ -2,10 +2,9 @@
 
 namespace Kirameki\Backoff;
 
-use;
 use Closure;
 use Kirameki\Core\Exceptions\LogicException;
-use Kirameki\Core\Sleep;
+use Kirameki\System\Sleep;
 use Random\Randomizer;
 use Throwable;
 use function is_a;

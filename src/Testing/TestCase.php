@@ -1,10 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace Kirameki\Core\Testing;
+namespace Kirameki\Testing;
 
 use Closure;
 use Kirameki\Core\Exceptions\ErrorException;
-use Kirameki\Core\Exceptions\LogicException;
 use PHPUnit\Framework\TestCase as BaseTestCase;
 use function array_map;
 use function restore_error_handler;
@@ -18,22 +17,22 @@ use const E_WARNING;
 abstract class TestCase extends BaseTestCase
 {
     /**
-     * @var array<Closure(): mixed>
+     * @var Closure
      */
     private array $beforeSetupCallbacks = [];
 
     /**
-     * @var array<Closure(): mixed>
+     * @var Closure
      */
     private array $afterSetupCallbacks = [];
 
     /**
-     * @var array<Closure(): mixed>
+     * @var Closure
      */
     private array $beforeTearDownCallbacks = [];
 
     /**
-     * @var array<Closure(): mixed>
+     * @var Closure
      */
     private array $afterTearDownCallbacks = [];
 

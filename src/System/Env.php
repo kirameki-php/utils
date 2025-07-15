@@ -1,9 +1,10 @@
 <?php declare(strict_types=1);
 
-namespace Kirameki\Core;
+namespace Kirameki\System;
 
 use Kirameki\Core\Exceptions\KeyNotFoundException;
 use Kirameki\Core\Exceptions\TypeMismatchException;
+use Kirameki\Core\StaticClass;
 use function array_key_exists;
 use function filter_var;
 use function gettype;

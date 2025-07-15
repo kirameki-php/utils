@@ -7,7 +7,7 @@ use Kirameki\Collections\Map;
 use Kirameki\Collections\MapMutable;
 use Kirameki\Collections\Vec;
 use Kirameki\Collections\VecMutable;
-use Kirameki\Core\Testing\TestCase as BaseTestCase;
+use Kirameki\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
 {

@@ -3,7 +3,7 @@
 namespace Tests\Kirameki\Clock;
 
 use Kirameki\Clock\FixedClock;
-use Kirameki\Core\Testing\TestCase;
+use Kirameki\Testing\TestCase;
 use Kirameki\Time\Time;
 
 final class FixedClockTest extends TestCase

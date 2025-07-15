@@ -1,8 +1,7 @@
 <?php declare(strict_types=1);
 
-namespace Kirameki\Core\Testing;
+namespace Kirameki\System;
 
-use Kirameki\Core\Sleep;
 use Override;
 
 class SleepMock extends Sleep

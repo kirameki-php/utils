@@ -6,7 +6,7 @@ use DateTime;
 use Kirameki\Core\Exceptions\JsonException;
 use Kirameki\Core\Exceptions\NotSupportedException;
 use Kirameki\Core\Json;
-use Kirameki\Core\Testing\TestCase;
+use Kirameki\Testing\TestCase;
 use stdClass;
 use Tests\Kirameki\Core\_JsonTest\IntEnum;
 use Tests\Kirameki\Core\_JsonTest\NonBackedEnum;

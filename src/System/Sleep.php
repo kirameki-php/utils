@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Kirameki\Core;
+namespace Kirameki\System;
 
 use DateTimeInterface;
 use function microtime;

@@ -2,7 +2,7 @@
 
 namespace Tests\Kirameki\Text;
 
-use Kirameki\Core\Testing\TestCase;
+use Kirameki\Testing\TestCase;
 use Kirameki\Text\Utf8Object;
 
 class Utf8ObjectTest extends TestCase

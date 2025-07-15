@@ -1,11 +1,11 @@
 <?php declare(strict_types=1);
 
-namespace Tests\Kirameki\Core;
+namespace Tests\Kirameki\System;
 
 use DateTimeImmutable;
-use Kirameki\Core\Sleep;
-use Kirameki\Core\Testing\SleepMock;
-use Kirameki\Core\Testing\TestCase;
+use Kirameki\System\Sleep;
+use Kirameki\System\SleepMock;
+use Kirameki\Testing\TestCase;
 use function hrtime;
 
 final class SleepTest extends TestCase

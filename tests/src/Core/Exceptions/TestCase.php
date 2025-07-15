@@ -2,7 +2,7 @@
 
 namespace Tests\Kirameki\Core\Exceptions;
 
-use Kirameki\Core\Testing\TestCase as BaseTestCase;
+use Kirameki\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
 {

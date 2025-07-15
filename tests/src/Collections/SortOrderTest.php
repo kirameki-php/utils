@@ -1,9 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace Tests\Kirameki\Core;
+namespace Tests\Kirameki\Collections;
 
 use Kirameki\Collections\SortOrder;
-use Kirameki\Core\Testing\TestCase;
+use Kirameki\Testing\TestCase;
 use const SORT_ASC;
 use const SORT_DESC;
 

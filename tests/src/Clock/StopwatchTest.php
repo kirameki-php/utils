@@ -3,7 +3,7 @@
 namespace Tests\Kirameki\Clock;
 
 use Kirameki\Clock\Stopwatch;
-use Kirameki\Core\Testing\TestCase;
+use Kirameki\Testing\TestCase;
 use function usleep;
 
 final class StopwatchTest extends TestCase

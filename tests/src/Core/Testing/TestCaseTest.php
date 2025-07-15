@@ -3,8 +3,7 @@
 namespace Tests\Kirameki\Core\Testing;
 
 use Kirameki\Core\Exceptions\ErrorException;
-use Kirameki\Core\Exceptions\LogicException;
-use Kirameki\Core\Testing\TestCase;
+use Kirameki\Testing\TestCase;
 use const E_WARNING;
 
 final class TestCaseTest extends TestCase

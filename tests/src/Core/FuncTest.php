@@ -3,7 +3,7 @@
 namespace Tests\Kirameki\Core;
 
 use Kirameki\Core\Func;
-use Kirameki\Core\Testing\TestCase;
+use Kirameki\Testing\TestCase;
 
 final class FuncTest extends TestCase
 {

@@ -4,7 +4,7 @@ namespace Tests\Kirameki\Clock;
 
 use DateTimeZone;
 use Kirameki\Clock\SystemClock;
-use Kirameki\Core\Testing\TestCase;
+use Kirameki\Testing\TestCase;
 use Kirameki\Time\Time;
 use function microtime;
 

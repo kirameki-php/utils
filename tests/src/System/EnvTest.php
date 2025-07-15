@@ -1,12 +1,12 @@
 <?php declare(strict_types=1);
 
-namespace Tests\Kirameki\Core;
+namespace Tests\Kirameki\System;
 
-use Kirameki\Core\Env;
-use Kirameki\Core\Exceptions\NotSupportedException;
 use Kirameki\Core\Exceptions\KeyNotFoundException;
+use Kirameki\Core\Exceptions\NotSupportedException;
 use Kirameki\Core\Exceptions\TypeMismatchException;
-use Kirameki\Core\Testing\TestCase;
+use Kirameki\System\Env;
+use Kirameki\Testing\TestCase;
 use function array_keys;
 use function array_search;
 use function gethostname;
@@ -16,7 +16,7 @@ final class EnvTest extends TestCase
 {
     public function test_instantiate(): void
     {
-        $this->expectExceptionMessage('Cannot instantiate static class: Kirameki\Core\Env');
+        $this->expectExceptionMessage('Cannot instantiate static class: ' . Env::class);
         $this->expectException(NotSupportedException::class);
         new Env();
     }

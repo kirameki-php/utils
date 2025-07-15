@@ -2,13 +2,12 @@
 
 namespace Tests\Kirameki\Time;
 
-use DateMalformedStringException;
 use DateTime;
 use DateTimeImmutable;
 use DateTimeZone;
 use Kirameki\Core\Exceptions\InvalidArgumentException;
 use Kirameki\Core\Exceptions\NotSupportedException;
-use Kirameki\Core\Testing\TestCase;
+use Kirameki\Testing\TestCase;
 use Kirameki\Time\DayOfWeek;
 use Kirameki\Time\Exceptions\InvalidFormatException;
 use Kirameki\Time\Instant;
