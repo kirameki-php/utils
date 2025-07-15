@@ -4,12 +4,10 @@ namespace Kirameki\Time;
 
 use DateTime;
 use DateTimeImmutable;
-use DateTimeInterface;
 use DateTimeZone;
 use JsonSerializable;
 use Kirameki\Core\Exceptions\InvalidArgumentException;
 use Stringable;
-use function assert;
 use function date_default_timezone_get;
 use function in_array;
 

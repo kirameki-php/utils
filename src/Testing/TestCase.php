@@ -17,22 +17,22 @@ use const E_WARNING;
 abstract class TestCase extends BaseTestCase
 {
     /**
-     * @var Closure
+     * @var list<Closure(): mixed>
      */
     private array $beforeSetupCallbacks = [];
 
     /**
-     * @var Closure
+     * @var list<Closure(): mixed>
      */
     private array $afterSetupCallbacks = [];
 
     /**
-     * @var Closure
+     * @var list<Closure(): mixed>
      */
     private array $beforeTearDownCallbacks = [];
 
     /**
-     * @var Closure
+     * @var list<Closure(): mixed>
      */
     private array $afterTearDownCallbacks = [];
 

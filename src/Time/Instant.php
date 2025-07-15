@@ -23,7 +23,7 @@ class Instant extends DateTimeImmutable implements JsonSerializable, Stringable
     public const string MAX = '9999-12-31 23:59:59.999999+00:00';
 
     /**
-     * @param int|float|null $time
+     * @param int|float|DateTimeInterface|null $time
      */
     public function __construct(int|float|DateTimeInterface|null $time = null)
     {
