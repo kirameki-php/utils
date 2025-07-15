@@ -101,6 +101,6 @@ class Json extends StaticClass
      */
     public static function validate(string $json): bool
     {
-        return json_validate($json, flags: JSON_THROW_ON_ERROR);
+        return json_validate($json);
     }
 }
