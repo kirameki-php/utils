@@ -1,21 +1,20 @@
 <?php declare(strict_types=1);
 
-namespace Tests\Kirameki\Core;
+namespace Tests\Kirameki\Backoff;
 
 use BadMethodCallException;
+use Kirameki\Backoff\ExponentialBackoff;
+use Kirameki\Backoff\JitterStrategy;
 use Kirameki\Core\Exceptions\Exception;
 use Kirameki\Core\Exceptions\InvalidArgumentException;
 use Kirameki\Core\Exceptions\LogicException;
 use Kirameki\Core\Exceptions\RuntimeException;
-use Kirameki\Core\ExponentialBackoff;
-use Kirameki\Core\JitterStrategy;
 use Kirameki\Core\Testing\SleepMock;
 use Kirameki\Core\Testing\TestCase;
 use Random\Engine\Xoshiro256StarStar;
 use Random\Randomizer;
 use function array_splice;
 use function array_sum;
-use function random_int;
 
 final class ExponentialBackoffTest extends TestCase
 {

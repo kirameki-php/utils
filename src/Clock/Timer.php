@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Kirameki\Core;
+namespace Kirameki\Clock;
 
 use Kirameki\Core\Exceptions\LogicException;
 use function hrtime;

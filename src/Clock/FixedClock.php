@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Kirameki\Time\Clock;
+namespace Kirameki\Clock;
 
 use DateTimeZone;
 use Kirameki\Time\Time;

@@ -1,12 +1,10 @@
 <?php declare(strict_types=1);
 
-namespace Tests\Kirameki\Time\Clock;
+namespace Tests\Kirameki\Clock;
 
-use DateTimeZone;
+use Kirameki\Clock\FixedClock;
 use Kirameki\Core\Testing\TestCase;
-use Kirameki\Time\Clock\FixedClock;
 use Kirameki\Time\Time;
-use function microtime;
 
 final class FixedClockTest extends TestCase
 {

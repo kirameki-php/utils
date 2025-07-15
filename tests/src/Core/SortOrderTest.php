@@ -2,7 +2,7 @@
 
 namespace Tests\Kirameki\Core;
 
-use Kirameki\Core\SortOrder;
+use Kirameki\Collections\SortOrder;
 use Kirameki\Core\Testing\TestCase;
 use const SORT_ASC;
 use const SORT_DESC;

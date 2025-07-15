@@ -8,7 +8,6 @@ use Kirameki\Collections\Utils\Iter;
 use Kirameki\Core\Exceptions\InvalidArgumentException;
 use Kirameki\Core\Exceptions\TypeMismatchException;
 use Kirameki\Core\Json;
-use Kirameki\Core\SortOrder;
 use Random\Randomizer;
 use function array_map;
 use function gettype;

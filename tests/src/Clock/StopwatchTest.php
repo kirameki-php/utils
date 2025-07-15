@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace Tests\Kirameki\Core;
+namespace Tests\Kirameki\Clock;
 
-use Kirameki\Core\Stopwatch;
+use Kirameki\Clock\Stopwatch;
 use Kirameki\Core\Testing\TestCase;
 use function usleep;
 

@@ -1,10 +1,10 @@
 <?php declare(strict_types=1);
 
-namespace Tests\Kirameki\Time\Clock;
+namespace Tests\Kirameki\Clock;
 
 use DateTimeZone;
+use Kirameki\Clock\SystemClock;
 use Kirameki\Core\Testing\TestCase;
-use Kirameki\Time\Clock\SystemClock;
 use Kirameki\Time\Time;
 use function microtime;
 

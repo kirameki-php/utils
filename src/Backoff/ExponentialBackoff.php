@@ -1,9 +1,11 @@
 <?php declare(strict_types=1);
 
-namespace Kirameki\Core;
+namespace Kirameki\Backoff;
 
+use;
 use Closure;
 use Kirameki\Core\Exceptions\LogicException;
+use Kirameki\Core\Sleep;
 use Random\Randomizer;
 use Throwable;
 use function is_a;

@@ -1,9 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace Tests\Kirameki\Core;
+namespace Tests\Kirameki\Clock;
 
+use Kirameki\Clock\Timer;
 use Kirameki\Core\Testing\TestCase;
-use Kirameki\Core\Timer;
 use function usleep;
 
 final class TimerTest extends TestCase
