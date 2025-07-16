@@ -13,7 +13,7 @@ use const JSON_THROW_ON_ERROR;
 use const JSON_UNESCAPED_SLASHES;
 use const JSON_UNESCAPED_UNICODE;
 
-class Json extends StaticClass
+final class Json extends StaticClass
 {
     /**
      * Encode data as JSON string.
