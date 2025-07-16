@@ -48,8 +48,11 @@ class Env extends StaticClass
      */
     public static function getBool(string $key): bool
     {
-        return self::getBoolOrNull($key)
-            ?? self::throwKeyNotFoundException($key);
+        $value = self::getBoolOrNull($key);
+        if ($value === null) {
+            self::throwKeyNotFoundException($key);
+        }
+        return $value;
     }
 
     /**
@@ -84,8 +87,11 @@ class Env extends StaticClass
      */
     public static function getInt(string $key): int
     {
-        return self::getIntOrNull($key)
-            ?? self::throwKeyNotFoundException($key);
+        $value = self::getIntOrNull($key);
+        if ($value === null) {
+            self::throwKeyNotFoundException($key);
+        }
+        return $value;
     }
 
     /**
@@ -120,8 +126,11 @@ class Env extends StaticClass
      */
     public static function getFloat(string $key): float
     {
-        return self::getFloatOrNull($key)
-            ?? self::throwKeyNotFoundException($key);
+        $value = self::getFloatOrNull($key);
+        if ($value === null) {
+            self::throwKeyNotFoundException($key);
+        }
+        return $value;
     }
 
     /**
@@ -164,8 +173,11 @@ class Env extends StaticClass
      */
     public static function getString(string $key): string
     {
-        return self::getStringOrNull($key)
-            ?? self::throwKeyNotFoundException($key);
+        $value = self::getStringOrNull($key);
+        if ($value === null) {
+            self::throwKeyNotFoundException($key);
+        }
+        return $value;
     }
 
     /**

@@ -10,8 +10,6 @@ final class Version implements Comparable
 {
     use Comparison;
 
-    public const MIN = '0.0.0';
-
     public static function parse(string $value): self
     {
         $self = self::parseOrNull($value);
@@ -29,11 +27,19 @@ final class Version implements Comparable
      * @param string $value
      * @return self|null
      */
-    public static function parseOrNull(string $value): ?self
+    public static function tryParse(string $value): ?self
     {
         return preg_match('/^(\d+)\.(\d+)\.(\d+)$/', $value, $matches) === 1
             ? new self((int) $matches[1], (int) $matches[2], (int) $matches[3])
             : null;
+    }
+
+    /**
+     * @return self
+     */
+    public static function zero(): self
+    {
+        return new self(0, 0, 0);
     }
 
     /**
