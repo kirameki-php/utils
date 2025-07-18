@@ -12,7 +12,7 @@ final class Version implements Comparable
 
     public static function parse(string $value): self
     {
-        $self = self::parseOrNull($value);
+        $self = self::tryParse($value);
 
         if ($self !== null) {
             return $self;
