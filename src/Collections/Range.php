@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Kirameki\Collections\Utils;
+namespace Kirameki\Collections;
 
 use Countable;
 use IteratorAggregate;

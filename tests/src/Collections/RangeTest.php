@@ -1,9 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace Tests\Kirameki\Collections\Utils;
+namespace Tests\Kirameki\Collections;
 
-use Kirameki\Collections\Utils\Range;
-use Tests\Kirameki\Collections\TestCase;
+use Kirameki\Collections\Range;
 use function iterator_to_array;
 
 final class RangeTest extends TestCase
