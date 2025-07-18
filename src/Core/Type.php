@@ -17,7 +17,7 @@ use function is_scalar;
 use function is_string;
 use function substr;
 
-final class Value extends StaticClass
+final class Type extends StaticClass
 {
     /**
      * Get the name of the type of `$value` as string.
@@ -25,7 +25,7 @@ final class Value extends StaticClass
      * @param mixed $value
      * @return string
      */
-    public static function getType(mixed $value): string
+    public static function for(mixed $value): string
     {
         return get_debug_type($value);
     }
@@ -37,7 +37,7 @@ final class Value extends StaticClass
      * @param string $type
      * @return bool
      */
-    public static function isType(mixed $value, string $type): bool
+    public static function is(mixed $value, string $type): bool
     {
         if (!str_contains($type, '|')) {
             return self::checkIntersectionType($value, $type, $type, false);
