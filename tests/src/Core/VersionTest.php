@@ -74,4 +74,24 @@ class VersionTest extends TestCase
         $this->assertTrue($to->isPatchUpdate($from));
         $this->assertFalse($from->isPatchUpdate($to));
     }
+
+    public function test_comparison_trait_methods(): void
+    {
+        $v1 = Version::parse('1.2.3');
+        $v2 = Version::parse('1.2.4');
+        $v3 = Version::parse('1.2.3');
+
+        $this->assertTrue($v1->isEqualTo($v3));
+        $this->assertFalse($v1->isEqualTo($v2));
+        $this->assertTrue($v1->isNotEqualTo($v2));
+        $this->assertFalse($v1->isNotEqualTo($v3));
+        $this->assertTrue($v1->isLessThan($v2));
+        $this->assertTrue($v1->isLessThanOrEqualTo($v2));
+        $this->assertTrue($v1->isLessThanOrEqualTo($v3));
+        $this->assertFalse($v2->isLessThan($v1));
+        $this->assertTrue($v2->isGreaterThan($v1));
+        $this->assertTrue($v2->isGreaterThanOrEqualTo($v1));
+        $this->assertTrue($v2->isGreaterThanOrEqualTo($v2));
+        $this->assertFalse($v1->isGreaterThan($v2));
+    }
 }

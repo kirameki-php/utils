@@ -222,7 +222,7 @@ final class EnvTest extends TestCase
     {
         $this->expectExceptionMessage('ENV: DEBUG is not defined.');
         $this->expectException(KeyNotFoundException::class);
-        Env::getFloat('DEBUG');
+        Env::getString('DEBUG');
     }
 
     public function test_getStringOrNull(): void

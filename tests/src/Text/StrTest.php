@@ -1243,6 +1243,8 @@ class StrTest extends TestCase
         $this->assertNull(self::$ref::toFloatOrNull('inf'), 'Lowercase inf is not INF');
         $this->assertInfinite(self::$ref::toFloatOrNull('INF'), 'upper case INF');
         $this->assertInfinite(self::$ref::toFloatOrNull('Infinity'), 'INF from Javascript');
+        $this->assertInfinite(self::$ref::toFloatOrNull('-INF'), 'negative INF');
+        $this->assertInfinite(self::$ref::toFloatOrNull('-Infinity'), 'negative INF from Javascript');
         $this->assertNull(self::$ref::toFloatOrNull(''), 'empty');
         $this->assertNull(self::$ref::toFloatOrNull('a1'), 'invalid string');
         $this->assertNull(self::$ref::toFloatOrNull('01.1'), 'zero start');

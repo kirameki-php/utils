@@ -1,6 +1,5 @@
 <?php declare(strict_types=1);
 
-use Kirameki\Dumper\Config;
 use Kirameki\Dumper\Dumper;
 
 if (!function_exists('dump'))

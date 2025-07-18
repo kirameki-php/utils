@@ -5,6 +5,7 @@ namespace Tests\Kirameki\Collections;
 use Kirameki\Collections\Exceptions\IndexOutOfBoundsException;
 use Kirameki\Collections\Exceptions\InvalidKeyException;
 use Kirameki\Collections\Vec;
+use Kirameki\Collections\VecMutable;
 use Kirameki\Core\Exceptions\TypeMismatchException;
 
 final class VecMutableTest extends TestCase
@@ -101,5 +102,13 @@ final class VecMutableTest extends TestCase
     public function test_immutable():void
     {
         self::assertInstanceOf(Vec::class, $this->vecMut([1])->immutable());
+    }
+
+    public function test_instantiate(): void
+    {
+        $original = $this->vecMut([10, 20, 30]);
+        $copy = $original->instantiate([40, 50]);
+        self::assertInstanceOf(VecMutable::class, $copy);
+        self::assertSame([40, 50], $copy->all());
     }
 }

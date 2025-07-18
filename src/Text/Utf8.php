@@ -519,7 +519,9 @@ class Utf8 extends Str
         }
 
         if (!extension_loaded('intl')) {
+            // @codeCoverageIgnoreStart
             throw new ExtensionRequiredException('extension: "intl" is required to use this method.');
+            // @codeCoverageIgnoreEnd
         }
 
         if (!ini_get('intl.use_exceptions')) {
