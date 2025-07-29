@@ -4,29 +4,62 @@ declare(strict_types=1);
 
 namespace Kirameki\File;
 
+use Kirameki\Core\Exceptions\RuntimeException;
+use Kirameki\Time\Instant;
+use function dirname;
 use function pathinfo;
+use function touch;
 use const PATHINFO_EXTENSION;
 
 class FileInfo extends FileSystemInfo
 {
     /**
-     * @return string
+     * @var string
      */
-    public function extension(): string
-    {
-        return pathinfo($this->relativePath, PATHINFO_EXTENSION);
+    public string $extension {
+        get => pathinfo($this->pathname, PATHINFO_EXTENSION);
     }
 
     /**
-     * @return int
+     * @var int
      */
-    public function bytes(): int
-    {
-        return $this->stat()['size'];
+    public int $bytes {
+        get => $this->stat('size');
     }
 
-    public function linkCount(): int
+    public DirectoryInfo $directory {
+        get => $this->directory ??= new DirectoryInfo(dirname($this->pathname));
+    }
+
+    /**
+     * @return string
+     */
+    public function getContents(): string
     {
-        return $this->stat()['nlink'];
+        $contents = file_get_contents($this->pathname);
+        if ($contents === false) {
+            throw new RuntimeException("Failed to read file: {$this->pathname}");
+        }
+        return $contents;
+    }
+
+    /**
+     * @param Instant|null $mtime
+     * @param Instant|null $ctime
+     * @return void
+     */
+    public function touch(?Instant $mtime = null, ?Instant $ctime = null): void
+    {
+        touch($this->pathname, $mtime?->toInt(), $ctime?->toInt());
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function delete(): void
+    {
+        if (!unlink($this->pathname)) {
+            throw new RuntimeException("Failed to delete file: {$this->pathname}");
+        }
     }
 }
