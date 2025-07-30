@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kirameki\File;
 
 use FilesystemIterator;
+use GlobIterator;
 use Iterator;
 use Kirameki\Collections\LazyIterator;
 use Kirameki\Collections\Vec;
@@ -24,7 +25,7 @@ class DirectoryInfo extends FileSystemInfo
     /**
      * @return Vec<FileSystemInfo>
      */
-    public function getFiles(): Vec
+    public function getFiles(bool $followSymlinks = true): Vec
     {
         $flags = 0;
         $flags |= FilesystemIterator::CURRENT_AS_PATHNAME;
@@ -32,7 +33,7 @@ class DirectoryInfo extends FileSystemInfo
 
         $iterator = new FilesystemIterator($this->pathname, $flags);
 
-        return $this->iterateFiles($iterator, true);
+        return $this->iterateFiles($iterator, $followSymlinks);
     }
 
     /**
@@ -40,9 +41,9 @@ class DirectoryInfo extends FileSystemInfo
      */
     public function getFilesRecursively(bool $followSymlinks = true): Vec
     {
-        $flags = 0;
-        $flags |= FilesystemIterator::CURRENT_AS_PATHNAME;
-        $flags |= FilesystemIterator::SKIP_DOTS;
+        $flags = FilesystemIterator::CURRENT_AS_PATHNAME
+               | FilesystemIterator::SKIP_DOTS;
+
         if ($followSymlinks) {
             $flags |= FilesystemIterator::FOLLOW_SYMLINKS;
         }
@@ -54,6 +55,22 @@ class DirectoryInfo extends FileSystemInfo
 
         return $this->iterateFiles($iterator, $followSymlinks);
     }
+
+    /**
+     * @param string $pattern
+     * @param bool $followSymlinks
+     * @return Vec<FileSystemInfo>
+     */
+    public function glob(string $pattern, bool $followSymlinks = true): Vec
+    {
+        $flags = FilesystemIterator::CURRENT_AS_PATHNAME
+               | FilesystemIterator::SKIP_DOTS;
+
+        $iterator = new GlobIterator("{$this->pathname}/{$pattern}", $flags);
+
+        return new Vec($this->iterateFiles($iterator, $followSymlinks));
+    }
+
 
     /**
      * @param Iterator<string> $iterator
@@ -69,6 +86,7 @@ class DirectoryInfo extends FileSystemInfo
                         is_dir($pathname) => new DirectoryInfo($pathname),
                         default => new FileInfo($pathname),
                     };
+                    clearstatcache(false, $pathname);
                 }
             })(),
         ));
@@ -79,12 +97,16 @@ class DirectoryInfo extends FileSystemInfo
      * @param int $permissions
      * @return DirectoryInfo
      */
-    public function createSubDirectory(string $name, int $permissions): DirectoryInfo
+    public function createSubDirectory(string $name, int $permissions, bool &$created = false): DirectoryInfo
     {
         $dirPath = $this->pathname . '/' . $name;
+        $exists = is_dir($dirPath);
 
-        if (!is_dir($dirPath)) {
+        if (!$exists) {
             mkdir($dirPath, $permissions, true);
+            $created = true;
+        } else {
+            clearstatcache(false, $dirPath);
         }
 
         return new DirectoryInfo($dirPath);
@@ -111,9 +133,8 @@ class DirectoryInfo extends FileSystemInfo
      */
     public function delete(): void
     {
-        $flags = 0;
-        $flags |= FilesystemIterator::CURRENT_AS_PATHNAME;
-        $flags |= FilesystemIterator::SKIP_DOTS;
+        $flags = FilesystemIterator::CURRENT_AS_PATHNAME
+               | FilesystemIterator::SKIP_DOTS;
 
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($this->pathname, $flags),

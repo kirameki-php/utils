@@ -85,21 +85,7 @@ abstract class FileSystemInfo
 
     /**
      * @param string $pathname
-     * @param array{
-     *      dev: int,
-     *      ino: int,
-     *      mode: int,
-     *      nlink: int,
-     *      uid: int,
-     *      gid: int,
-     *      rdev: int,
-     *      size: int,
-     *      atime: int,
-     *      mtime: int,
-     *      ctime: int,
-     *      blksize: int,
-     *      blocks: int,
-     *  }|null $stat
+     * @param array<int|string, int>|null $stat
      */
     public function __construct(
         public readonly string $pathname,
@@ -255,16 +241,32 @@ abstract class FileSystemInfo
      */
     public function stat(string $key): int
     {
-        if ($this->stat === null) {
-            if (($stat = stat($this->pathname)) === false) {
-                throw new RuntimeException("Failed to retrieve file stat for {$this->pathname}", [
-                    'path' => $this->pathname,
-                ]);
-            }
-            $this->stat = array_slice($stat, 13, null, true);
-            clearstatcache(false, $this->pathname);
-        }
+        $this->stat ??= $this->resolveStat();
         return $this->stat[$key] ?? throw new RuntimeException("Stat key '{$key}' does not exist.");
+    }
+
+    /**
+     * @return array<int|string, int>
+     */
+    protected function resolveStat(): array
+    {
+        $stat = $this->callStat();
+        if ($stat === false) {
+            throw new RuntimeException("Failed to retrieve file stat for {$this->pathname}", [
+                'path' => $this->pathname,
+            ]);
+        }
+        $sliced = array_slice($stat, 13, null, true);
+        clearstatcache(false, $this->pathname);
+        return $sliced;
+    }
+
+    /**
+     * @return array<int|string, int>|false
+     */
+    protected function callStat(): array|false
+    {
+        return stat($this->pathname);
     }
 
     # endregion File Metadata ------------------------------------------------------------------------------------------

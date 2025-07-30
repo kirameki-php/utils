@@ -43,6 +43,13 @@ class FileInfo extends FileSystemInfo
         return $contents;
     }
 
+    public function putContent(string $contents): void
+    {
+        if (file_put_contents($this->pathname, $contents) === false) {
+            throw new RuntimeException("Failed to write file: {$this->pathname}");
+        }
+    }
+
     /**
      * @param Instant|null $mtime
      * @param Instant|null $ctime
