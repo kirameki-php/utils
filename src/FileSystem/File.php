@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Kirameki\File;
+namespace Kirameki\FileSystem;
 
 use Kirameki\Core\Exceptions\RuntimeException;
 use Kirameki\Time\Instant;
@@ -11,7 +11,7 @@ use function pathinfo;
 use function touch;
 use const PATHINFO_EXTENSION;
 
-class FileInfo extends FileSystemInfo
+class File extends Storable
 {
     /**
      * @var string
@@ -27,14 +27,14 @@ class FileInfo extends FileSystemInfo
         get => $this->stat('size');
     }
 
-    public DirectoryInfo $directory {
-        get => $this->directory ??= new DirectoryInfo(dirname($this->pathname));
+    public Directory $directory {
+        get => $this->directory ??= new Directory(dirname($this->pathname));
     }
 
     /**
      * @return string
      */
-    public function getContents(): string
+    public function readContents(): string
     {
         $contents = file_get_contents($this->pathname);
         if ($contents === false) {
@@ -43,10 +43,31 @@ class FileInfo extends FileSystemInfo
         return $contents;
     }
 
-    public function putContent(string $contents): void
+    /**
+     * @param string $contents
+     * @param bool $append
+     * @return void
+     */
+    public function writeContents(string $contents, bool $append = false): void
     {
-        if (file_put_contents($this->pathname, $contents) === false) {
+        $flags = 0;
+
+        if ($append) {
+            $flags |= FILE_APPEND;
+        }
+
+        if (file_put_contents($this->pathname, $contents, $flags) === false) {
             throw new RuntimeException("Failed to write file: {$this->pathname}");
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function delete(): void
+    {
+        if (!unlink($this->pathname)) {
+            throw new RuntimeException("Failed to delete file: {$this->pathname}");
         }
     }
 
@@ -58,15 +79,5 @@ class FileInfo extends FileSystemInfo
     public function touch(?Instant $mtime = null, ?Instant $ctime = null): void
     {
         touch($this->pathname, $mtime?->toInt(), $ctime?->toInt());
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function delete(): void
-    {
-        if (!unlink($this->pathname)) {
-            throw new RuntimeException("Failed to delete file: {$this->pathname}");
-        }
     }
 }

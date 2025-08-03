@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Kirameki\File;
+namespace Kirameki\FileSystem;
 
 use FilesystemIterator;
 use GlobIterator;
@@ -20,10 +20,10 @@ use function mkdir;
 use function rmdir;
 use function unlink;
 
-class DirectoryInfo extends FileSystemInfo
+class Directory extends Storable
 {
     /**
-     * @return Vec<FileSystemInfo>
+     * @return Vec<Storable>
      */
     public function getFiles(bool $followSymlinks = true): Vec
     {
@@ -37,7 +37,7 @@ class DirectoryInfo extends FileSystemInfo
     }
 
     /**
-     * @return Vec<FileSystemInfo>
+     * @return Vec<Storable>
      */
     public function getFilesRecursively(bool $followSymlinks = true): Vec
     {
@@ -59,7 +59,7 @@ class DirectoryInfo extends FileSystemInfo
     /**
      * @param string $pattern
      * @param bool $followSymlinks
-     * @return Vec<FileSystemInfo>
+     * @return Vec<Storable>
      */
     public function glob(string $pattern, bool $followSymlinks = true): Vec
     {
@@ -74,7 +74,7 @@ class DirectoryInfo extends FileSystemInfo
 
     /**
      * @param Iterator<string> $iterator
-     * @return Vec<FileSystemInfo>
+     * @return Vec<Storable>
      */
     protected function iterateFiles(Iterator $iterator, bool $followSymlinks): Vec
     {
@@ -82,9 +82,9 @@ class DirectoryInfo extends FileSystemInfo
             (static function () use ($iterator, $followSymlinks) {
                 foreach ($iterator as $pathname) {
                     yield match (true) {
-                        !$followSymlinks && is_link($pathname) => new SymlinkInfo($pathname),
-                        is_dir($pathname) => new DirectoryInfo($pathname),
-                        default => new FileInfo($pathname),
+                        !$followSymlinks && is_link($pathname) => new Symlink($pathname),
+                        is_dir($pathname) => new Directory($pathname),
+                        default => new File($pathname),
                     };
                     clearstatcache(false, $pathname);
                 }
@@ -95,9 +95,11 @@ class DirectoryInfo extends FileSystemInfo
     /**
      * @param string $name
      * @param int $permissions
-     * @return DirectoryInfo
+     * @param bool $created
+     * @param-out bool $created
+     * @return Directory
      */
-    public function createSubDirectory(string $name, int $permissions, bool &$created = false): DirectoryInfo
+    public function createSubDirectory(string $name, int $permissions, bool &$created = false): Directory
     {
         $dirPath = $this->pathname . '/' . $name;
         $exists = is_dir($dirPath);
@@ -109,15 +111,15 @@ class DirectoryInfo extends FileSystemInfo
             clearstatcache(false, $dirPath);
         }
 
-        return new DirectoryInfo($dirPath);
+        return new Directory($dirPath);
     }
 
     /**
      * @param string $name
      * @param string $contents
-     * @return FileInfo
+     * @return File
      */
-    public function createFile(string $name, string $contents): FileInfo
+    public function createFile(string $name, string $contents): File
     {
         $filePath = $this->pathname . '/' . $name;
 
@@ -125,7 +127,7 @@ class DirectoryInfo extends FileSystemInfo
             throw new RuntimeException("Failed to create file: {$filePath}");
         }
 
-        return new FileInfo($filePath);
+        return new File($filePath);
     }
 
     /**

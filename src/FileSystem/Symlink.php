@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Kirameki\File;
+namespace Kirameki\FileSystem;
 
 use Kirameki\Core\Exceptions\RuntimeException;
 use function clearstatcache;
@@ -12,12 +12,12 @@ use function lchown;
 use function lstat;
 use function readlink;
 
-class SymlinkInfo extends FileInfo
+class Symlink extends File
 {
     /**
-     * @return FileSystemInfo
+     * @return Storable
      */
-    public function getTarget(): FileSystemInfo
+    public function getTarget(): Storable
     {
         $targetPath = readlink($this->pathname);
         if ($targetPath === false) {
@@ -28,8 +28,8 @@ class SymlinkInfo extends FileInfo
         clearstatcache(false, $targetPath);
 
         return $isDir
-            ? new DirectoryInfo($this->pathname)
-            : new FileInfo($this->pathname);
+            ? new Directory($this->pathname)
+            : new File($this->pathname);
     }
 
     /**

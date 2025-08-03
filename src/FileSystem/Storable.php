@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Kirameki\File;
+namespace Kirameki\FileSystem;
 
 use Kirameki\Core\Exceptions\RuntimeException;
 use Kirameki\Time\Instant;
@@ -25,7 +25,7 @@ use function rename;
 use function stat;
 use const PATHINFO_FILENAME;
 
-abstract class FileSystemInfo
+abstract class Storable
 {
     /**
      * @var string
@@ -35,10 +35,10 @@ abstract class FileSystemInfo
     }
 
     /**
-     * @var FileSystemType
+     * @var FileType
      */
-    public FileSystemType $type {
-        get => FileSystemType::from($this->stat('mode') &- 0o7777);
+    public FileType $type {
+        get => FileType::from($this->stat('mode') &- 0o7777);
     }
 
     /**
