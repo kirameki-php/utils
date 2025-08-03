@@ -19,6 +19,7 @@ use function file_exists;
 use function is_executable;
 use function is_readable;
 use function is_writable;
+use function lchgrp;
 use function pathinfo;
 use function realpath;
 use function rename;
@@ -184,7 +185,7 @@ abstract class Storable
      */
     public function chown(int|string $uid, int|string|null $gid = null): void
     {
-        if (!chown($this->pathname, $uid)) {
+        if (!$this->callChownCommand($uid)) {
             throw new RuntimeException("Failed to change ownership for {$this->pathname} to UID: {$uid}, GID: {$gid}");
         }
 
@@ -194,14 +195,32 @@ abstract class Storable
     }
 
     /**
+     * @param int|string $uid
+     * @return bool
+     */
+    protected function callChownCommand(int|string $uid): bool
+    {
+        return chown($this->pathname, $uid);
+    }
+
+    /**
      * @param int|string $gid
      * @return void
      */
     public function chgrp(int|string $gid): void
     {
-        if (!chgrp($this->pathname, $gid)) {
+        if (!$this->callChGrpCommand($gid)) {
             throw new RuntimeException("Failed to change group for {$this->pathname} to GID: {$gid}");
         }
+    }
+
+    /**
+     * @param int|string $gid
+     * @return bool
+     */
+    protected function callChGrpCommand(int|string $gid): bool
+    {
+        return chgrp($this->pathname, $gid);
     }
 
     /**
@@ -219,7 +238,7 @@ abstract class Storable
      * @param string $destination
      * @return void
      */
-    public function rename(string $destination): void
+    public function moveTo(string $destination): void
     {
         if (!rename($this->pathname, $destination)) {
             throw new RuntimeException("Failed to move directory from {$this->pathname} to {$destination}");
@@ -250,7 +269,7 @@ abstract class Storable
      */
     protected function resolveStat(): array
     {
-        $stat = $this->callStat();
+        $stat = $this->callStatCommand();
         if ($stat === false) {
             throw new RuntimeException("Failed to retrieve file stat for {$this->pathname}", [
                 'path' => $this->pathname,
@@ -264,7 +283,7 @@ abstract class Storable
     /**
      * @return array<int|string, int>|false
      */
-    protected function callStat(): array|false
+    protected function callStatCommand(): array|false
     {
         return stat($this->pathname);
     }

@@ -8,11 +8,11 @@
     "ext-bcmath": "*",
     "ext-intl": "*",
     "ext-mbstring": "*",
+    "ext-posix": "*",
     "psr/clock": "^1.0",
     "south-pointe/ansi": "dev-main"
   },
   "require-dev": {
-    "ext-posix": "*",
     "kirameki/dumper": "dev-main",
     "phpstan/phpstan": "^2",
     "phpunit/phpunit": "^12"

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kirameki\FileSystem;
 
 use Kirameki\Core\Exceptions\RuntimeException;
+use function chown;
 use function clearstatcache;
 use function is_dir;
 use function lchgrp;
@@ -35,31 +36,23 @@ class Symlink extends File
     /**
      * @inheritDoc
      */
-    public function chown(int|string $uid, int|string|null $gid = null): void
+    protected function callChownCommand(int|string $uid): bool
     {
-        if (!lchown($this->pathname, $uid)) {
-            throw new RuntimeException("Failed to change ownership for {$this->pathname} to UID: {$uid}, GID: {$gid}");
-        }
-
-        if ($gid !== null) {
-            $this->chgrp($gid);
-        }
+        return lchown($this->pathname, $uid);
     }
 
     /**
      * @inheritDoc
      */
-    public function chgrp(int|string $gid): void
+    protected function callChGrpCommand(int|string $gid): bool
     {
-        if (!lchgrp($this->pathname, $gid)) {
-            throw new RuntimeException("Failed to change group for {$this->pathname} to GID: {$gid}");
-        }
+        return lchgrp($this->pathname, $gid);
     }
 
     /**
      * @inheritDoc
      */
-    protected function callStat(): array|false
+    protected function callStatCommand(): array|false
     {
         return lstat($this->pathname);
     }

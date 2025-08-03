@@ -8,7 +8,10 @@ use Kirameki\Core\Exceptions\RuntimeException;
 use Kirameki\Time\Instant;
 use function dirname;
 use function pathinfo;
+use function posix_getpid;
+use function time;
 use function touch;
+use const LOCK_EX;
 use const PATHINFO_EXTENSION;
 
 class File extends Storable
@@ -27,6 +30,9 @@ class File extends Storable
         get => $this->stat('size');
     }
 
+    /**
+     * @var Directory 
+     */
     public Directory $directory {
         get => $this->directory ??= new Directory(dirname($this->pathname));
     }
@@ -45,20 +51,34 @@ class File extends Storable
 
     /**
      * @param string $contents
-     * @param bool $append
+     * @param bool $lock
      * @return void
      */
-    public function writeContents(string $contents, bool $append = false): void
+    public function writeContents(string $contents, bool $lock = true): void
     {
         $flags = 0;
 
-        if ($append) {
-            $flags |= FILE_APPEND;
+        if ($lock) {
+            $flags |= LOCK_EX;
         }
 
         if (file_put_contents($this->pathname, $contents, $flags) === false) {
             throw new RuntimeException("Failed to write file: {$this->pathname}");
         }
+    }
+
+    /**
+     * @param string $contents
+     * @param string|null $tempFilePath
+     * @return void
+     */
+    public function replaceContents(string $contents, ?string $tempFilePath = null): void
+    {
+        $tempFilePath ??= $this->pathname . '.tmp-' . time() . '-' . posix_getpid();
+        $file = new File($tempFilePath);
+        $file->copyTo($tempFilePath);
+        $file->writeContents($contents, false);
+        $file->moveTo($this->pathname);
     }
 
     /**
