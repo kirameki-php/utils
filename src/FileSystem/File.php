@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace Kirameki\FileSystem;
 
 use Kirameki\Core\Exceptions\RuntimeException;
+use Kirameki\Stream\FileStream;
 use Kirameki\Time\Instant;
 use function dirname;
+use function file_get_contents;
+use function file_put_contents;
 use function pathinfo;
 use function posix_getpid;
 use function time;
 use function touch;
+use function unlink;
 use const LOCK_EX;
 use const PATHINFO_EXTENSION;
 
@@ -31,16 +35,25 @@ class File extends Storable
     }
 
     /**
-     * @var Directory 
+     * @var Directory
      */
     public Directory $directory {
         get => $this->directory ??= new Directory(dirname($this->pathname));
     }
 
     /**
+     * @param string $mode
+     * @return FileStream
+     */
+    public function open(string $mode = 'c+b'): FileStream
+    {
+        return new FileStream($this->pathname, $mode);
+    }
+
+    /**
      * @return string
      */
-    public function readContents(): string
+    public function read(): string
     {
         $contents = file_get_contents($this->pathname);
         if ($contents === false) {
@@ -50,11 +63,11 @@ class File extends Storable
     }
 
     /**
-     * @param string $contents
+     * @param string $data
      * @param bool $lock
      * @return void
      */
-    public function writeContents(string $contents, bool $lock = true): void
+    public function write(string $data, bool $lock = true): void
     {
         $flags = 0;
 
@@ -62,23 +75,24 @@ class File extends Storable
             $flags |= LOCK_EX;
         }
 
-        if (file_put_contents($this->pathname, $contents, $flags) === false) {
+        if (file_put_contents($this->pathname, $data, $flags) === false) {
             throw new RuntimeException("Failed to write file: {$this->pathname}");
         }
     }
 
     /**
-     * @param string $contents
+     * @param string $data
      * @param string|null $tempFilePath
      * @return void
      */
-    public function replaceContents(string $contents, ?string $tempFilePath = null): void
+    public function replace(string $data, ?string $tempFilePath = null): void
     {
         $tempFilePath ??= $this->pathname . '.tmp-' . time() . '-' . posix_getpid();
-        $file = new File($tempFilePath);
-        $file->copyTo($tempFilePath);
-        $file->writeContents($contents, false);
-        $file->moveTo($this->pathname);
+        $tempFile = new File($tempFilePath);
+        $tempFile->write($data, false);
+        $tempFile->chmod($this->permissions);
+        $tempFile->chown($this->uid, $this->gid);
+        $tempFile->moveTo($this->pathname);
     }
 
     /**
