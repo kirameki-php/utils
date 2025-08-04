@@ -10,7 +10,5 @@ final class FileSystemTest extends TestCase
 {
     public function test_instantiate(): void
     {
-        // check if executable
-        dump(lstat(__FILE__ . '2'));
     }
 }
