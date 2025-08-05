@@ -10,7 +10,7 @@ class TmpFileStream extends ResourceStreamable
     use CanRead;
     use CanWrite;
     use CanSeek;
-    use CanLock;
+    use CanScan;
 
     public function __construct()
     {

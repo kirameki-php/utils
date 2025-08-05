@@ -11,12 +11,6 @@ interface StreamReadable extends Streamable
     function read(int $length): string;
 
     /**
-     * @param StreamWritable $writer
-     * @return int
-     */
-    function copyTo(StreamWritable $writer): int;
-
-    /**
      * @return bool
      */
     function isEof(): bool;

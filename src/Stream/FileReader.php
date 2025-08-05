@@ -6,6 +6,7 @@ class FileReader extends ResourceStreamable implements StreamReadable, StreamSee
 {
     use CanRead;
     use CanSeek;
+    use CanScan;
 
     /**
      * @param string $path

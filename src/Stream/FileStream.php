@@ -7,7 +7,7 @@ class FileStream extends ResourceStreamable implements StreamLockable, StreamRea
     use CanRead;
     use CanWrite;
     use CanSeek;
-    use CanLock;
+    use CanScan;
 
     /**
      * @param string $path
