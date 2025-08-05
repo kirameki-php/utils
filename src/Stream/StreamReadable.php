@@ -5,7 +5,7 @@ namespace Kirameki\Stream;
 interface StreamReadable extends Streamable
 {
     /**
-     * @param int<0, max> $length
+     * @param int<1, max> $length
      * @return string
      */
     function read(int $length): string;

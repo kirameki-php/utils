@@ -20,7 +20,7 @@ trait CanRead
     abstract public function getResource(): mixed;
 
     /**
-     * @param int<0, max> $length
+     * @param int<1, max> $length
      * @return string
      */
     public function read(int $length): string
@@ -35,7 +35,7 @@ trait CanRead
     }
 
     /**
-     * @param int $length
+     * @param int<1, max> $length
      * @param string $ending
      * @return string
      */
@@ -53,7 +53,7 @@ trait CanRead
     }
 
     /**
-     * @param int<0, max> $buffer
+     * @param int<1, max> $buffer
      * @return string
      */
     public function readToEnd(int $buffer = 4096): string

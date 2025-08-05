@@ -17,7 +17,7 @@ trait CanWrite
 
     /**
      * @param string $data
-     * @param int<0, max>|null $length
+     * @param int<1, max>|null $length
      * @return int
      */
     public function write(string $data, ?int $length = null): int
