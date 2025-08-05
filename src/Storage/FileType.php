@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Kirameki\FileSystem;
+namespace Kirameki\Storage;
 
 enum FileType: int
 {
