@@ -7,7 +7,6 @@ namespace Kirameki\Storage;
 use FilesystemIterator;
 use GlobIterator;
 use Iterator;
-use Kirameki\Collections\LazyIterator;
 use Kirameki\Collections\Vec;
 use Kirameki\Core\Exceptions\RuntimeException;
 use RecursiveDirectoryIterator;
@@ -23,13 +22,12 @@ use function unlink;
 class Directory extends Storable
 {
     /**
-     * @return Vec<Storable>
+     * @return Vec<covariant Storable>
      */
     public function getFiles(bool $followSymlinks = true): Vec
     {
-        $flags = 0;
-        $flags |= FilesystemIterator::CURRENT_AS_PATHNAME;
-        $flags |= FilesystemIterator::SKIP_DOTS;
+        $flags = FilesystemIterator::CURRENT_AS_PATHNAME
+               | FilesystemIterator::SKIP_DOTS;
 
         $iterator = new FilesystemIterator($this->pathname, $flags);
 
@@ -37,7 +35,7 @@ class Directory extends Storable
     }
 
     /**
-     * @return Vec<Storable>
+     * @return Vec<covariant Storable>
      */
     public function getFilesRecursively(bool $followSymlinks = true): Vec
     {
@@ -59,7 +57,7 @@ class Directory extends Storable
     /**
      * @param string $pattern
      * @param bool $followSymlinks
-     * @return Vec<Storable>
+     * @return Vec<covariant Storable>
      */
     public function glob(string $pattern, bool $followSymlinks = true): Vec
     {
@@ -68,28 +66,27 @@ class Directory extends Storable
 
         $iterator = new GlobIterator("{$this->pathname}/{$pattern}", $flags);
 
-        return new Vec($this->iterateFiles($iterator, $followSymlinks));
+        return $this->iterateFiles($iterator, $followSymlinks);
     }
 
 
     /**
      * @param Iterator<string> $iterator
-     * @return Vec<Storable>
+     * @return Vec<covariant Storable>
      */
     protected function iterateFiles(Iterator $iterator, bool $followSymlinks): Vec
     {
-        return new Vec(new LazyIterator(
-            (static function () use ($iterator, $followSymlinks) {
-                foreach ($iterator as $pathname) {
-                    yield match (true) {
-                        !$followSymlinks && is_link($pathname) => new Symlink($pathname),
-                        is_dir($pathname) => new Directory($pathname),
-                        default => new File($pathname),
-                    };
-                    clearstatcache(false, $pathname);
-                }
-            })(),
-        ));
+        $storables = [];
+        foreach ($iterator as $pathname) {
+            $storables[] = match (true) {
+                !$followSymlinks && is_link($pathname) => new Symlink($pathname),
+                is_dir($pathname) => new Directory($pathname),
+                default => new File($pathname),
+            };
+            clearstatcache(false, $pathname);
+        };
+
+        return new Vec($storables);
     }
 
     /**
@@ -148,5 +145,6 @@ class Directory extends Storable
                 ? rmdir($pathname)
                 : unlink($pathname);
         }
+        rmdir($this->pathname);
     }
 }
