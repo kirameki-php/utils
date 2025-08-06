@@ -198,7 +198,7 @@ trait Enumerable
      */
     public function count(?Closure $condition = null): int
     {
-        return Arr::count($this, $condition);
+        return Arr::count($this->items, $condition);
     }
 
     /**
