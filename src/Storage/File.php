@@ -26,20 +26,6 @@ class File extends Storable
     }
 
     /**
-     * @var int
-     */
-    public int $bytes {
-        get => $this->info->getSize();
-    }
-
-    /**
-     * @var Directory
-     */
-    public Directory $directory {
-        get => $this->directory ??= new Directory(dirname($this->pathname));
-    }
-
-    /**
      * @return string
      */
     public function filenameWithoutExtension(): string

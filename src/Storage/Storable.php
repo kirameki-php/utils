@@ -21,10 +21,10 @@ use function rename;
 abstract class Storable
 {
     /**
-     * @var string
+     * @var Directory
      */
-    public string $filename {
-        get => $this->info->getFilename();
+    public Directory $directory {
+        get => $this->directory ??= new Directory(dirname($this->pathname));
     }
 
     /**
@@ -32,6 +32,13 @@ abstract class Storable
      */
     public FileType $type {
         get => FileType::from($this->info->getType());
+    }
+
+    /**
+     * @var string
+     */
+    public string $filename {
+        get => $this->info->getFilename();
     }
 
     /**
@@ -56,6 +63,13 @@ abstract class Storable
     }
 
     /**
+     * @var int
+     */
+    public int $bytes {
+        get => $this->info->getSize();
+    }
+
+    /**
      * @var Instant
      */
     public Instant $atime {
@@ -76,6 +90,9 @@ abstract class Storable
         get => new Instant($this->info->getCTime());
     }
 
+    /**
+     * @var SplFileInfo
+     */
     protected SplFileInfo $info;
 
     /**
