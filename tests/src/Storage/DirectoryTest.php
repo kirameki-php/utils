@@ -76,7 +76,7 @@ final class DirectoryTest extends TestCase
         symlink($originalDir, $this->testDir . '/symlink_dir');
 
         $directory = new Directory($this->testDir);
-        $files = $directory->scan(true);
+        $files = $directory->scan();
 
         $this->assertCount(4, $files); // original.txt + symlink_file.txt + original_dir + symlink_dir
         $this->assertCount(2, $files->filter(fn($s) => $s instanceof File)); // both treated as files
