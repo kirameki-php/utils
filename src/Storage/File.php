@@ -7,7 +7,6 @@ namespace Kirameki\Storage;
 use Kirameki\Core\Exceptions\RuntimeException;
 use Kirameki\Stream\FileStream;
 use Kirameki\Time\Instant;
-use function dirname;
 use function file_get_contents;
 use function file_put_contents;
 use function posix_getpid;
@@ -18,21 +17,6 @@ use const LOCK_EX;
 
 class File extends Storable
 {
-    /**
-     * @var string
-     */
-    public string $extension {
-        get => $this->info->getExtension();
-    }
-
-    /**
-     * @return string
-     */
-    public function filenameWithoutExtension(): string
-    {
-        return $this->basename($this->extension);
-    }
-
     /**
      * @param string $mode
      * @return FileStream

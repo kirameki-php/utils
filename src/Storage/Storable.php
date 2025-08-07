@@ -42,6 +42,13 @@ abstract class Storable
     }
 
     /**
+     * @var string
+     */
+    public string $extension {
+        get => $this->info->getExtension();
+    }
+
+    /**
      * @var int
      */
     public int $permissions {
@@ -113,6 +120,14 @@ abstract class Storable
     public function basename(string $suffix = ''): string
     {
         return basename($this->pathname, $suffix);
+    }
+
+    /**
+     * @return string
+     */
+    public function basenameWithoutExtension(): string
+    {
+        return $this->basename($this->extension);
     }
 
     /**

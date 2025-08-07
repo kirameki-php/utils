@@ -6,13 +6,16 @@ use Kirameki\Storage\Directory;
 use Kirameki\Storage\File;
 use Kirameki\Storage\Storable;
 use Kirameki\Storage\Symlink;
-use function dump;
 use function mkdir;
 use function symlink;
 use function touch;
 
 final class DirectoryTest extends TestCase
 {
+//    public function test_tt(): void
+//    {
+//    }
+
     public function test_scan_empty_directory(): void
     {
         $directory = new Directory($this->testDir);
