@@ -23,9 +23,9 @@ final class DirectoryTest extends TestCase
 
     public function test_scan_with_files_only(): void
     {
-        touch($this->testDir . '/file1.txt');
-        touch($this->testDir . '/file2.php');
-        touch($this->testDir . '/file3.json');
+        touch($this->testDir . '/f1.txt');
+        touch($this->testDir . '/f2.php');
+        touch($this->testDir . '/f3.json');
 
         $directory = new Directory($this->testDir);
         $files = $directory->scan();
@@ -36,7 +36,7 @@ final class DirectoryTest extends TestCase
             $this->assertInstanceOf(File::class, $file);
         }
         $this->assertSame(
-            ['file1.txt', 'file2.php', 'file3.json'],
+            ['f1.txt', 'f2.php', 'f3.json'],
             $files->map(fn(Storable $s) => $s->basename())->sortAsc()->toArray(),
         );
     }
@@ -44,10 +44,10 @@ final class DirectoryTest extends TestCase
     public function test_scan_with_subdirectories(): void
     {
         // Create test files and subdirectories
-        touch($this->testDir . '/file1.txt');
-        mkdir($this->testDir . '/dir1');
-        mkdir($this->testDir . '/dir2');
-        touch($this->testDir . '/dir1/nested_file.txt');
+        touch($this->testDir . '/f1.txt');
+        mkdir($this->testDir . '/d1');
+        touch($this->testDir . '/d1/nested_file.txt');
+        mkdir($this->testDir . '/d2');
 
         $directory = new Directory($this->testDir);
         $files = $directory->scan();
@@ -57,7 +57,7 @@ final class DirectoryTest extends TestCase
         $this->assertCount(2, $files->filter(fn($s) => $s instanceof Directory));
 
         $this->assertSame(
-            ['dir1', 'dir2', 'file1.txt'],
+            ['d1', 'd2', 'f1.txt'],
             $files->map(fn(Storable $s) => $s->basename())->sortAsc()->toArray(),
         );
     }
@@ -112,11 +112,12 @@ final class DirectoryTest extends TestCase
         $this->assertCount(1, $files->filter(fn($s) => $s instanceof Directory)); // only original_dir
         $this->assertCount(2, $files->filter(fn($s) => $s instanceof Symlink)); // both symlinks
 
-        $basenames = $files->map(fn(Storable $s) => $s->basename())->toArray();
-        $this->assertContains('original.txt', $basenames);
-        $this->assertContains('symlink_file.txt', $basenames);
-        $this->assertContains('original_dir', $basenames);
-        $this->assertContains('symlink_dir', $basenames);
+        $this->assertSame([
+            'original.txt',
+            'original_dir',
+            'symlink_dir',
+            'symlink_file.txt',
+        ], $files->map(fn(Storable $s) => $s->basename())->sortAsc()->toArray());
     }
 
     public function test_scan_does_not_recurse(): void
@@ -136,7 +137,7 @@ final class DirectoryTest extends TestCase
 
         $this->assertSame(
             ['root_file.txt', 'subdir'],
-            $files->map(fn(Storable $s) => $s->basename())->toArray(),
+            $files->map(fn(Storable $s) => $s->basename())->sortAsc()->toArray(),
         );
     }
 }
