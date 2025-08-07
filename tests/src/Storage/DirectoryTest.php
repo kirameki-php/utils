@@ -6,6 +6,7 @@ use Kirameki\Storage\Directory;
 use Kirameki\Storage\File;
 use Kirameki\Storage\Storable;
 use Kirameki\Storage\Symlink;
+use function dump;
 use function mkdir;
 use function symlink;
 use function touch;
@@ -78,8 +79,8 @@ final class DirectoryTest extends TestCase
         $files = $directory->scan(true);
 
         $this->assertCount(4, $files); // original.txt + symlink_file.txt + original_dir + symlink_dir
-        $this->assertCount(3, $files->filter(fn($s) => $s instanceof File)); // both treated as files
-        $this->assertCount(1, $files->filter(fn($s) => $s instanceof Directory)); // both treated as directories
+        $this->assertCount(2, $files->filter(fn($s) => $s instanceof File)); // both treated as files
+        $this->assertCount(2, $files->filter(fn($s) => $s instanceof Directory)); // both treated as directories
         $this->assertCount(0, $files->filter(fn($s) => $s instanceof Symlink)); // no symlinks when following
 
         $this->assertSame([

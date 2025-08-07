@@ -29,11 +29,21 @@ class Directory extends Storable
         $flags = FilesystemIterator::SKIP_DOTS;
         $iterator = new FilesystemIterator($this->pathname, $flags);
 
-        return $this->iterate($iterator, $followSymlinks);
+        $storables = [];
+        foreach ($iterator as $pathname => $info) {
+            if ($info instanceof SplFileInfo) {
+                $storables[] = match ($info->getType()) {
+                    'dir' => new Directory($pathname, $info),
+                    'link' => $this->resolveLink($pathname, $info, $followSymlinks),
+                    default => new File($pathname, $info),
+                };
+            }
+        }
+        return new Vec($storables);
     }
 
     /**
-     * @return Vec<covariant Storable>
+     * @return Vec<covariant File>
      */
     public function getFilesRecursively(bool $followSymlinks = true): Vec
     {
@@ -47,7 +57,15 @@ class Directory extends Storable
             RecursiveIteratorIterator::LEAVES_ONLY,
         );
 
-        return $this->iterate($iterator, $followSymlinks);
+        $storables = [];
+        foreach ($iterator as $pathname => $info) {
+            if ($info->isFile()) {
+                $storables[] = $info->isLink()
+                    ? new Symlink($pathname, $info)
+                    : new File($pathname, $info);
+            }
+        }
+        return new Vec($storables);
     }
 
     /**
@@ -60,13 +78,6 @@ class Directory extends Storable
             $flags |= FilesystemIterator::FOLLOW_SYMLINKS;
         }
 
-        // $info->isDir() returns true for directories and symlinks to directories
-        // So if $followSymlinks is false, we need to check the type explicitly
-        // by calling $info->getType() and checking if it equals 'dir'.
-        $checker = $followSymlinks
-            ? static fn(SplFileInfo $info) => $info->isDir()
-            : static fn(SplFileInfo $info) => $info->getType() === 'dir';
-
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($this->pathname, $flags),
             RecursiveIteratorIterator::SELF_FIRST,
@@ -74,40 +85,21 @@ class Directory extends Storable
 
         $directories = [];
         foreach ($iterator as $pathname => $info) {
-            if ($checker($info)) {
+            if ($info->isDir()) {
                 $directories[] = new Directory($pathname, $info);
             }
         }
         return new Vec($directories);
     }
 
-    /**
-     * @param Iterator<string, SplFileInfo> $iterator
-     * @return Vec<covariant Storable>
-     */
-    protected function iterate(Iterator $iterator, bool $followSymlinks): Vec
-    {
-        $storables = [];
-        foreach ($iterator as $pathname => $info) {
-            $storables[] = match ($info->getType()) {
-                'dir' => new Directory($pathname, $info),
-                'link' => $this->resolveLink($pathname, $info, $followSymlinks),
-                default => new File($pathname, $info),
-            };
-        }
-
-        return new Vec($storables);
-    }
-
     protected function resolveLink(string $pathname, SplFileInfo $info, bool $followLink): Storable
     {
-        if (!$followLink) {
-            return new Symlink($pathname, $info);
+        if ($followLink) {
+            return $info->isDir()
+                ? new Directory($pathname, $info)
+                : new File($pathname, $info);
         }
-
-        return $info->isDir()
-            ? new Directory($pathname, $info)
-            : new File($pathname, $info);
+        return new Symlink($pathname, $info);
     }
 
     /**
