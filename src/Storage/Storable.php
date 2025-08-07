@@ -19,7 +19,6 @@ use function file_exists;
 use function is_executable;
 use function is_readable;
 use function is_writable;
-use function lchgrp;
 use function pathinfo;
 use function realpath;
 use function rename;

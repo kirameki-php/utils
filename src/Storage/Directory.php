@@ -24,14 +24,14 @@ class Directory extends Storable
     /**
      * @return Vec<covariant Storable>
      */
-    public function getFiles(bool $followSymlinks = true): Vec
+    public function scan(bool $followSymlinks = true): Vec
     {
         $flags = FilesystemIterator::CURRENT_AS_PATHNAME
                | FilesystemIterator::SKIP_DOTS;
 
         $iterator = new FilesystemIterator($this->pathname, $flags);
 
-        return $this->iterateFiles($iterator, $followSymlinks);
+        return $this->iterate($iterator, $followSymlinks);
     }
 
     /**
@@ -51,7 +51,7 @@ class Directory extends Storable
             RecursiveIteratorIterator::LEAVES_ONLY,
         );
 
-        return $this->iterateFiles($iterator, $followSymlinks);
+        return $this->iterate($iterator, $followSymlinks);
     }
 
     /**
@@ -66,7 +66,7 @@ class Directory extends Storable
 
         $iterator = new GlobIterator("{$this->pathname}/{$pattern}", $flags);
 
-        return $this->iterateFiles($iterator, $followSymlinks);
+        return $this->iterate($iterator, $followSymlinks);
     }
 
 
@@ -74,7 +74,7 @@ class Directory extends Storable
      * @param Iterator<string> $iterator
      * @return Vec<covariant Storable>
      */
-    protected function iterateFiles(Iterator $iterator, bool $followSymlinks): Vec
+    protected function iterate(Iterator $iterator, bool $followSymlinks): Vec
     {
         $storables = [];
         foreach ($iterator as $pathname) {

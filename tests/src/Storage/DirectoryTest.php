@@ -12,22 +12,22 @@ use function touch;
 
 final class DirectoryTest extends TestCase
 {
-    public function test_getFiles_empty_directory(): void
+    public function test_scan_empty_directory(): void
     {
         $directory = new Directory($this->testDir);
-        $files = $directory->getFiles();
+        $files = $directory->scan();
 
         $this->assertCount(0, $files);
     }
 
-    public function test_getFiles_with_files_only(): void
+    public function test_scan_with_files_only(): void
     {
         touch($this->testDir . '/file1.txt');
         touch($this->testDir . '/file2.php');
         touch($this->testDir . '/file3.json');
 
         $directory = new Directory($this->testDir);
-        $files = $directory->getFiles();
+        $files = $directory->scan();
 
         $this->assertCount(3, $files);
 
@@ -40,7 +40,7 @@ final class DirectoryTest extends TestCase
         );
     }
 
-    public function test_getFiles_with_subdirectories(): void
+    public function test_scan_with_subdirectories(): void
     {
         // Create test files and subdirectories
         touch($this->testDir . '/file1.txt');
@@ -49,7 +49,7 @@ final class DirectoryTest extends TestCase
         touch($this->testDir . '/dir1/nested_file.txt');
 
         $directory = new Directory($this->testDir);
-        $files = $directory->getFiles();
+        $files = $directory->scan();
 
         $this->assertCount(3, $files); // 1 file + 2 directories
         $this->assertCount(1, $files->filter(fn($s) => $s instanceof File));
@@ -61,7 +61,7 @@ final class DirectoryTest extends TestCase
         );
     }
 
-    public function test_getFiles_with_symlinks_follow_true(): void
+    public function test_scan_with_symlinks_follow_true(): void
     {
         // Create a regular file and a symlink to it
         $originalFile = $this->testDir . '/original.txt';
@@ -69,13 +69,13 @@ final class DirectoryTest extends TestCase
         symlink($originalFile, $this->testDir . '/symlink.txt');
 
         $directory = new Directory($this->testDir);
-        $files = $directory->getFiles(true);
+        $files = $directory->scan(true);
 
         $this->assertCount(2, $files);
         $this->assertCount(2, $files->filter(fn($s) => $s instanceof File));
     }
 
-    public function test_getFiles_with_symlinks_follow_false(): void
+    public function test_scan_with_symlinks_follow_false(): void
     {
         // Create a regular file and a symlink to it
         $originalFile = $this->testDir . '/original.txt';
@@ -85,14 +85,14 @@ final class DirectoryTest extends TestCase
         symlink($originalFile, $symlinkPath);
 
         $directory = new Directory($this->testDir);
-        $files = $directory->getFiles(false);
+        $files = $directory->scan(false);
 
         $this->assertCount(2, $files);
         $this->assertCount(2, $files->filter(fn($s) => $s instanceof File));
         $this->assertCount(1, $files->filter(fn($s) => $s instanceof Symlink));
     }
 
-    public function test_getFiles_does_not_recurse(): void
+    public function test_scan_does_not_recurse(): void
     {
         // Create nested structure
         touch($this->testDir . '/root_file.txt');
@@ -102,7 +102,7 @@ final class DirectoryTest extends TestCase
         touch($this->testDir . '/subdir/nested_dir/deep_file.txt');
 
         $directory = new Directory($this->testDir);
-        $files = $directory->getFiles();
+        $files = $directory->scan();
 
         // Should only return direct children (not recursive)
         $this->assertCount(2, $files); // root_file.txt + subdir
