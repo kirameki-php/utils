@@ -6,7 +6,7 @@ namespace Kirameki\Storage;
 
 use Kirameki\Core\Exceptions\RuntimeException;
 use Kirameki\Time\Instant;
-use function array_slice;
+use SplFileInfo;
 use function basename;
 use function chgrp;
 use function chmod;
@@ -16,14 +16,7 @@ use function copy;
 use function decoct;
 use function dirname;
 use function file_exists;
-use function is_executable;
-use function is_readable;
-use function is_writable;
-use function pathinfo;
-use function realpath;
 use function rename;
-use function stat;
-use const PATHINFO_FILENAME;
 
 abstract class Storable
 {
@@ -31,66 +24,69 @@ abstract class Storable
      * @var string
      */
     public string $filename {
-        get => pathinfo($this->pathname, PATHINFO_FILENAME);
+        get => $this->info->getFilename();
     }
 
     /**
      * @var FileType
      */
     public FileType $type {
-        get => FileType::from($this->stat('mode') &- 0o7777);
+        get => FileType::from($this->info->getType());
     }
 
     /**
      * @var int
      */
     public int $permissions {
-        get => $this->stat('mode') & 0o7777;
+        get => $this->info->getPerms();
     }
 
     /**
      * @var int
      */
     public int $uid {
-        get => $this->stat('uid');
+        get => $this->info->getOwner();
     }
 
     /**
      * @var int
      */
     public int $gid {
-        get => $this->stat('gid');
+        get => $this->info->getGroup();
     }
 
     /**
      * @var Instant
      */
     public Instant $atime {
-        get => new Instant($this->stat('atime'));
+        get => new Instant($this->info->getATime());
     }
 
     /**
      * @var Instant
      */
     public Instant $mtime {
-        get => new Instant($this->stat('mtime'));
+        get => new Instant($this->info->getMTime());
     }
 
     /**
      * @var Instant
      */
     public Instant $ctime {
-        get => new Instant($this->stat('ctime'));
+        get => new Instant($this->info->getCTime());
     }
+
+    protected SplFileInfo $info;
 
     /**
      * @param string $pathname
-     * @param array<int|string, int>|null $stat
+     * @param SplFileInfo|null $info
      */
     public function __construct(
         public readonly string $pathname,
-        protected ?array $stat = null,
+        ?SplFileInfo $info = null,
     ) {
+        $this->info = $info ?? new SplFileInfo($pathname);
     }
 
     /**
@@ -114,14 +110,9 @@ abstract class Storable
     /**
      * @return string
      */
-    public function realpath(): string
+    public function realPath(): string
     {
-        $path = realpath($this->pathname);
-        if ($path === false) {
-            throw new RuntimeException("Failed to resolve real path for {$this->pathname}");
-        }
-        clearstatcache(true, $path);
-        return $path;
+        return $this->info->getRealPath();
     }
 
     /**
@@ -129,9 +120,7 @@ abstract class Storable
      */
     public function isWritable(): bool
     {
-        $writable = is_writable($this->pathname);
-        clearstatcache(false, $this->pathname);
-        return $writable;
+        return $this->info->isWritable();
     }
 
     /**
@@ -139,9 +128,7 @@ abstract class Storable
      */
     public function isReadable(): bool
     {
-        $readable = is_readable($this->pathname);
-        clearstatcache(false, $this->pathname);
-        return $readable;
+        return $this->info->isReadable();
     }
 
     /**
@@ -149,9 +136,15 @@ abstract class Storable
      */
     public function isExecutable(): bool
     {
-        $executable = is_executable($this->pathname);
-        clearstatcache(false, $this->pathname);
-        return $executable;
+        return $this->info->isExecutable();
+    }
+
+    /**
+     * @return bool
+     */
+    public function isLink(): bool
+    {
+        return $this->info->isLink();
     }
 
     # region Operations ------------------------------------------------------------------------------------------------
@@ -250,42 +243,4 @@ abstract class Storable
     abstract public function delete(): void;
 
     # endregion Operations ---------------------------------------------------------------------------------------------
-
-    # region File Metadata ---------------------------------------------------------------------------------------------
-
-    /**
-     * @param string $key
-     * @return int
-     */
-    public function stat(string $key): int
-    {
-        $this->stat ??= $this->resolveStat();
-        return $this->stat[$key] ?? throw new RuntimeException("Stat key '{$key}' does not exist.");
-    }
-
-    /**
-     * @return array<int|string, int>
-     */
-    protected function resolveStat(): array
-    {
-        $stat = $this->callStatCommand();
-        if ($stat === false) {
-            throw new RuntimeException("Failed to retrieve file stat for {$this->pathname}", [
-                'path' => $this->pathname,
-            ]);
-        }
-        $sliced = array_slice($stat, 13, null, true);
-        clearstatcache(false, $this->pathname);
-        return $sliced;
-    }
-
-    /**
-     * @return array<int|string, int>|false
-     */
-    protected function callStatCommand(): array|false
-    {
-        return stat($this->pathname);
-    }
-
-    # endregion File Metadata ------------------------------------------------------------------------------------------
 }

@@ -36,7 +36,7 @@ final class DirectoryTest extends TestCase
         }
         $this->assertSame(
             ['file1.txt', 'file2.php', 'file3.json'],
-            $files->map(fn(Storable $s) => $s->basename())->toArray(),
+            $files->map(fn(Storable $s) => $s->basename())->sortAsc()->toArray(),
         );
     }
 
@@ -56,8 +56,8 @@ final class DirectoryTest extends TestCase
         $this->assertCount(2, $files->filter(fn($s) => $s instanceof Directory));
 
         $this->assertSame(
-            ['file1.txt', 'dir1', 'dir2'],
-            $files->map(fn(Storable $s) => $s->basename())->toArray(),
+            ['dir1', 'dir2', 'file1.txt'],
+            $files->map(fn(Storable $s) => $s->basename())->sortAsc()->toArray(),
         );
     }
 
@@ -66,13 +66,28 @@ final class DirectoryTest extends TestCase
         // Create a regular file and a symlink to it
         $originalFile = $this->testDir . '/original.txt';
         touch($originalFile);
-        symlink($originalFile, $this->testDir . '/symlink.txt');
+        symlink($originalFile, $this->testDir . '/symlink_file.txt');
+
+        // Create a regular directory and a symlink to it
+        $originalDir = $this->testDir . '/original_dir';
+        mkdir($originalDir);
+        touch($originalDir . '/nested_file.txt');
+        symlink($originalDir, $this->testDir . '/symlink_dir');
 
         $directory = new Directory($this->testDir);
         $files = $directory->scan(true);
 
-        $this->assertCount(2, $files);
-        $this->assertCount(2, $files->filter(fn($s) => $s instanceof File));
+        $this->assertCount(4, $files); // original.txt + symlink_file.txt + original_dir + symlink_dir
+        $this->assertCount(3, $files->filter(fn($s) => $s instanceof File)); // both treated as files
+        $this->assertCount(1, $files->filter(fn($s) => $s instanceof Directory)); // both treated as directories
+        $this->assertCount(0, $files->filter(fn($s) => $s instanceof Symlink)); // no symlinks when following
+
+        $this->assertSame([
+            'original.txt',
+            'original_dir',
+            'symlink_dir',
+            'symlink_file.txt',
+        ], $files->map(fn(Storable $s) => $s->basename())->sortAsc()->toArray());
     }
 
     public function test_scan_with_symlinks_follow_false(): void
@@ -80,16 +95,27 @@ final class DirectoryTest extends TestCase
         // Create a regular file and a symlink to it
         $originalFile = $this->testDir . '/original.txt';
         touch($originalFile);
+        symlink($originalFile, $this->testDir . '/symlink_file.txt');
 
-        $symlinkPath = $this->testDir . '/symlink.txt';
-        symlink($originalFile, $symlinkPath);
+        // Create a regular directory and a symlink to it
+        $originalDir = $this->testDir . '/original_dir';
+        mkdir($originalDir);
+        touch($originalDir . '/nested_file.txt');
+        symlink($originalDir, $this->testDir . '/symlink_dir');
 
         $directory = new Directory($this->testDir);
         $files = $directory->scan(false);
 
-        $this->assertCount(2, $files);
-        $this->assertCount(2, $files->filter(fn($s) => $s instanceof File));
-        $this->assertCount(1, $files->filter(fn($s) => $s instanceof Symlink));
+        $this->assertCount(4, $files); // original.txt + symlink_file.txt + original_dir + symlink_dir
+        $this->assertCount(3, $files->filter(fn($s) => $s instanceof File)); // only original.txt
+        $this->assertCount(1, $files->filter(fn($s) => $s instanceof Directory)); // only original_dir
+        $this->assertCount(2, $files->filter(fn($s) => $s instanceof Symlink)); // both symlinks
+
+        $basenames = $files->map(fn(Storable $s) => $s->basename())->toArray();
+        $this->assertContains('original.txt', $basenames);
+        $this->assertContains('symlink_file.txt', $basenames);
+        $this->assertContains('original_dir', $basenames);
+        $this->assertContains('symlink_dir', $basenames);
     }
 
     public function test_scan_does_not_recurse(): void

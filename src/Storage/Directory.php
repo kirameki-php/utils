@@ -11,10 +11,10 @@ use Kirameki\Collections\Vec;
 use Kirameki\Core\Exceptions\RuntimeException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use SplFileInfo;
 use function clearstatcache;
 use function file_put_contents;
 use function is_dir;
-use function is_link;
 use function mkdir;
 use function rmdir;
 use function unlink;
@@ -26,9 +26,7 @@ class Directory extends Storable
      */
     public function scan(bool $followSymlinks = true): Vec
     {
-        $flags = FilesystemIterator::CURRENT_AS_PATHNAME
-               | FilesystemIterator::SKIP_DOTS;
-
+        $flags = FilesystemIterator::SKIP_DOTS;
         $iterator = new FilesystemIterator($this->pathname, $flags);
 
         return $this->iterate($iterator, $followSymlinks);
@@ -39,9 +37,7 @@ class Directory extends Storable
      */
     public function getFilesRecursively(bool $followSymlinks = true): Vec
     {
-        $flags = FilesystemIterator::CURRENT_AS_PATHNAME
-               | FilesystemIterator::SKIP_DOTS;
-
+        $flags = FilesystemIterator::SKIP_DOTS;
         if ($followSymlinks) {
             $flags |= FilesystemIterator::FOLLOW_SYMLINKS;
         }
@@ -55,38 +51,63 @@ class Directory extends Storable
     }
 
     /**
-     * @param string $pattern
-     * @param bool $followSymlinks
-     * @return Vec<covariant Storable>
+     * @return Vec<Directory>
      */
-    public function glob(string $pattern, bool $followSymlinks = true): Vec
+    public function getDirectoryRecursively(bool $followSymlinks = true): Vec
     {
-        $flags = FilesystemIterator::CURRENT_AS_PATHNAME
-               | FilesystemIterator::SKIP_DOTS;
+        $flags = FilesystemIterator::SKIP_DOTS;
+        if ($followSymlinks) {
+            $flags |= FilesystemIterator::FOLLOW_SYMLINKS;
+        }
 
-        $iterator = new GlobIterator("{$this->pathname}/{$pattern}", $flags);
+        // $info->isDir() returns true for directories and symlinks to directories
+        // So if $followSymlinks is false, we need to check the type explicitly
+        // by calling $info->getType() and checking if it equals 'dir'.
+        $checker = $followSymlinks
+            ? static fn(SplFileInfo $info) => $info->isDir()
+            : static fn(SplFileInfo $info) => $info->getType() === 'dir';
 
-        return $this->iterate($iterator, $followSymlinks);
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->pathname, $flags),
+            RecursiveIteratorIterator::SELF_FIRST,
+        );
+
+        $directories = [];
+        foreach ($iterator as $pathname => $info) {
+            if ($checker($info)) {
+                $directories[] = new Directory($pathname, $info);
+            }
+        }
+        return new Vec($directories);
     }
 
-
     /**
-     * @param Iterator<string> $iterator
+     * @param Iterator<string, SplFileInfo> $iterator
      * @return Vec<covariant Storable>
      */
     protected function iterate(Iterator $iterator, bool $followSymlinks): Vec
     {
         $storables = [];
-        foreach ($iterator as $pathname) {
-            $storables[] = match (true) {
-                !$followSymlinks && is_link($pathname) => new Symlink($pathname),
-                is_dir($pathname) => new Directory($pathname),
-                default => new File($pathname),
+        foreach ($iterator as $pathname => $info) {
+            $storables[] = match ($info->getType()) {
+                'dir' => new Directory($pathname, $info),
+                'link' => $this->resolveLink($pathname, $info, $followSymlinks),
+                default => new File($pathname, $info),
             };
-            clearstatcache(false, $pathname);
-        };
+        }
 
         return new Vec($storables);
+    }
+
+    protected function resolveLink(string $pathname, SplFileInfo $info, bool $followLink): Storable
+    {
+        if (!$followLink) {
+            return new Symlink($pathname, $info);
+        }
+
+        return $info->isDir()
+            ? new Directory($pathname, $info)
+            : new File($pathname, $info);
     }
 
     /**
@@ -132,16 +153,15 @@ class Directory extends Storable
      */
     public function delete(): void
     {
-        $flags = FilesystemIterator::CURRENT_AS_PATHNAME
-               | FilesystemIterator::SKIP_DOTS;
+        $flags = FilesystemIterator::SKIP_DOTS;
 
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($this->pathname, $flags),
             RecursiveIteratorIterator::CHILD_FIRST,
         );
 
-        foreach ($iterator as $pathname) {
-            is_dir($pathname)
+        foreach ($iterator as $pathname => $info) {
+            $info->getType() === 'dir'
                 ? rmdir($pathname)
                 : unlink($pathname);
         }

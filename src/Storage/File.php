@@ -10,13 +10,11 @@ use Kirameki\Time\Instant;
 use function dirname;
 use function file_get_contents;
 use function file_put_contents;
-use function pathinfo;
 use function posix_getpid;
 use function time;
 use function touch;
 use function unlink;
 use const LOCK_EX;
-use const PATHINFO_EXTENSION;
 
 class File extends Storable
 {
@@ -24,14 +22,14 @@ class File extends Storable
      * @var string
      */
     public string $extension {
-        get => pathinfo($this->pathname, PATHINFO_EXTENSION);
+        get => $this->info->getExtension();
     }
 
     /**
      * @var int
      */
     public int $bytes {
-        get => $this->stat('size');
+        get => $this->info->getSize();
     }
 
     /**
