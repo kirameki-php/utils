@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Kirameki\Storage;
 
 use FilesystemIterator;
-use GlobIterator;
-use Iterator;
 use Kirameki\Collections\Vec;
 use Kirameki\Core\Exceptions\RuntimeException;
 use RecursiveDirectoryIterator;

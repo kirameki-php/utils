@@ -40,6 +40,14 @@ class File extends Storable
     }
 
     /**
+     * @return string
+     */
+    public function filenameWithoutExtension(): string
+    {
+        return $this->basename($this->extension);
+    }
+
+    /**
      * @param string $mode
      * @return FileStream
      */
