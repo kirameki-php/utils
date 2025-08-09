@@ -8,8 +8,9 @@ use Kirameki\Core\Exceptions\RuntimeException;
 use SplFileInfo;
 use function lchgrp;
 use function lchown;
+use function unlink;
 
-class Symlink extends File
+class Symlink extends Storable
 {
     /**
      * @return Storable
@@ -26,6 +27,16 @@ class Symlink extends File
         return $info->isDir()
             ? new Directory($this->pathname, $info)
             : new File($this->pathname, $info);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function delete(): void
+    {
+        if (!unlink($this->pathname)) {
+            throw new RuntimeException("Failed to delete file: {$this->pathname}");
+        }
     }
 
     /**

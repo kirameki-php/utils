@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kirameki\Storage;
 
 use FilesystemIterator;
+use Generator;
 use Kirameki\Collections\Vec;
 use Kirameki\Core\Exceptions\RuntimeException;
 use RecursiveDirectoryIterator;
@@ -20,15 +21,13 @@ use function unlink;
 class Directory extends Storable
 {
     /**
+     * @param bool $followSymlinks
      * @return Vec<covariant Storable>
      */
     public function scan(bool $followSymlinks = true): Vec
     {
-        $flags = FilesystemIterator::SKIP_DOTS;
-        $iterator = new FilesystemIterator($this->pathname, $flags);
-
         $storables = [];
-        foreach ($iterator as $pathname => $info) {
+        foreach (new FilesystemIterator($this->pathname) as $pathname => $info) {
             if ($info instanceof SplFileInfo) {
                 $storables[] = match ($info->getType()) {
                     'dir' => new Directory($pathname, $info),
@@ -41,63 +40,87 @@ class Directory extends Storable
     }
 
     /**
-     * @return Vec<covariant File>
+     * @param string $pathname
+     * @param SplFileInfo $info
+     * @param bool $followSymlinks
+     * @return Storable
+     */
+    protected function resolveLink(string $pathname, SplFileInfo $info, bool $followSymlinks): Storable
+    {
+        if (!$followSymlinks) {
+            return new Symlink($pathname, $info);
+        }
+
+        return $info->isDir()
+            ? new Directory($pathname, $info)
+            : new File($pathname, $info);
+    }
+
+    /**
+     * @param bool $followSymlinks
+     * @return ($followSymlinks is true ? Vec<File> : Vec<File|Symlink>)
      */
     public function getFilesRecursively(bool $followSymlinks = true): Vec
+    {
+        $iterator = $this->instantiateDirectoryIterator($followSymlinks);
+        $iteratorIterator = new RecursiveIteratorIterator($iterator);
+        return new Vec($this->iterateFiles($iteratorIterator, $followSymlinks));
+    }
+
+    /**
+     * @param bool $followSymlinks
+     * @return ($followSymlinks is true ? Vec<Directory> : Vec<Directory|Symlink>)
+     */
+    public function getDirectoryRecursively(bool $followSymlinks = true): Vec
+    {
+        $iterator = $this->instantiateDirectoryIterator($followSymlinks);
+        $iteratorIterator = new RecursiveIteratorIterator($iterator, RecursiveIteratorIterator::SELF_FIRST);
+        return new Vec($this->iterateDirectories($iteratorIterator, $followSymlinks));
+    }
+
+    /**
+     * @param bool $followSymlinks
+     * @return RecursiveDirectoryIterator
+     */
+    protected function instantiateDirectoryIterator(bool $followSymlinks): RecursiveDirectoryIterator
     {
         $flags = FilesystemIterator::SKIP_DOTS;
         if ($followSymlinks) {
             $flags |= FilesystemIterator::FOLLOW_SYMLINKS;
         }
+        return new RecursiveDirectoryIterator($this->pathname, $flags);
+    }
 
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($this->pathname, $flags),
-            RecursiveIteratorIterator::LEAVES_ONLY,
-        );
-
-        $storables = [];
+    /**
+     * @param iterable<string, SplFileInfo> $iterator
+     * @param bool $followSymlinks
+     * @return ($followSymlinks is true ? Generator<File> : Generator<File|Symlink>)
+     */
+    protected function iterateFiles(iterable $iterator, bool $followSymlinks): Generator
+    {
         foreach ($iterator as $pathname => $info) {
             if ($info->isFile()) {
-                $storables[] = $info->isLink()
+                yield !$followSymlinks && $info->isLink()
                     ? new Symlink($pathname, $info)
                     : new File($pathname, $info);
             }
         }
-        return new Vec($storables);
     }
 
     /**
-     * @return Vec<Directory>
+     * @param iterable<string, SplFileInfo> $iterator
+     * @param bool $followSymlinks
+     * @return ($followSymlinks is true ? Generator<Directory> : Generator<Directory|Symlink>)
      */
-    public function getDirectoryRecursively(bool $followSymlinks = true): Vec
+    protected function iterateDirectories(iterable $iterator, bool $followSymlinks): Generator
     {
-        $flags = FilesystemIterator::SKIP_DOTS;
-        if ($followSymlinks) {
-            $flags |= FilesystemIterator::FOLLOW_SYMLINKS;
-        }
-
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($this->pathname, $flags),
-            RecursiveIteratorIterator::SELF_FIRST,
-        );
-
-        $directories = [];
         foreach ($iterator as $pathname => $info) {
             if ($info->isDir()) {
-                $directories[] = new Directory($pathname, $info);
+                yield !$followSymlinks && $info->isLink()
+                    ? new Symlink($pathname, $info)
+                    : new Directory($pathname, $info);
             }
         }
-        return new Vec($directories);
-    }
-
-    protected function resolveLink(string $pathname, SplFileInfo $info, bool $followLink): Storable
-    {
-        if ($followLink) {
-            return $info->isDir()
-                ? new Directory($pathname, $info)
-                : new File($pathname, $info);
-        }
-        return new Symlink($pathname, $info);
     }
 
     /**
