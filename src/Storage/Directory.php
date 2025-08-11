@@ -11,7 +11,6 @@ use Kirameki\Core\Exceptions\RuntimeException;
 use RecursiveDirectoryIterator;
 use RecursiveIterator;
 use RecursiveIteratorIterator;
-use SplFileInfo;
 use function clearstatcache;
 use function file_put_contents;
 use function is_dir;
@@ -27,7 +26,12 @@ class Directory extends Storable
      */
     public function scan(bool $followSymlinks = true): Vec
     {
-        $iterator = new FilesystemIterator($this->pathname);
+        $flags = FilesystemIterator::SKIP_DOTS;
+        if (!$followSymlinks) {
+            $flags |= FilesystemIterator::FOLLOW_SYMLINKS;
+        }
+
+        $iterator = new FilesystemIterator($this->pathname, $flags);
         return new Vec($this->iterate($iterator, $followSymlinks));
     }
 
@@ -37,7 +41,12 @@ class Directory extends Storable
      */
     public function scanRecursively(bool $followSymlinks = true): Vec
     {
-        $iterator = new RecursiveDirectoryIterator($this->pathname);
+        $flags = FilesystemIterator::SKIP_DOTS;
+        if (!$followSymlinks) {
+            $flags |= FilesystemIterator::FOLLOW_SYMLINKS;
+        }
+
+        $iterator = new RecursiveDirectoryIterator($this->pathname, $flags);
         return new Vec($this->iterate($iterator, $followSymlinks));
     }
 

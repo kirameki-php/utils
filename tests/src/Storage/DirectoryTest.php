@@ -82,8 +82,8 @@ final class DirectoryTest extends TestCase
         $files = $directory->scan();
 
         $this->assertCount(4, $files); // original.txt + symlink_file.txt + original_dir + symlink_dir
-        $this->assertCount(2, $files->filter(fn($s) => $s instanceof File)); // both treated as files
-        $this->assertCount(2, $files->filter(fn($s) => $s instanceof Directory)); // both treated as directories
+        $this->assertCount(3, $files->filter(fn($s) => $s instanceof File)); // both treated as files
+        $this->assertCount(1, $files->filter(fn($s) => $s instanceof Directory)); // both treated as directories
         $this->assertCount(0, $files->filter(fn($s) => $s instanceof Symlink)); // no symlinks when following
 
         $this->assertSame([
@@ -111,7 +111,7 @@ final class DirectoryTest extends TestCase
         $files = $directory->scan(false);
 
         $this->assertCount(4, $files); // original.txt + symlink_file.txt + original_dir + symlink_dir
-        $this->assertCount(3, $files->filter(fn($s) => $s instanceof File)); // only original.txt
+        $this->assertCount(1, $files->filter(fn($s) => $s instanceof File)); // only original.txt
         $this->assertCount(1, $files->filter(fn($s) => $s instanceof Directory)); // only original_dir
         $this->assertCount(2, $files->filter(fn($s) => $s instanceof Symlink)); // both symlinks
 
@@ -142,5 +142,92 @@ final class DirectoryTest extends TestCase
             ['root_file.txt', 'subdir'],
             $files->map(fn(Storable $s) => $s->basename())->sortAsc()->toArray(),
         );
+    }
+
+    public function test_scanRecursively_empty_directory(): void
+    {
+        $directory = new Directory($this->testDir);
+        $files = $directory->scanRecursively();
+
+        $this->assertCount(0, $files);
+    }
+
+    public function test_scanRecursively_with_nested_structure(): void
+    {
+        touch($this->testDir . '/root_file.txt');
+        mkdir($this->testDir . '/dir1');
+        touch($this->testDir . '/dir1/file1.txt');
+        mkdir($this->testDir . '/dir1/subdir1');
+        touch($this->testDir . '/dir1/subdir1/nested_file.txt');
+        mkdir($this->testDir . '/dir2');
+        touch($this->testDir . '/dir2/file2.txt');
+
+        $files = new Directory($this->testDir)->scanRecursively();
+
+        $this->assertSame([
+            'file1.txt',
+            'file2.txt',
+            'nested_file.txt',
+            'root_file.txt',
+        ], $files->map(fn(Storable $s) => $s->basename())->sortAsc()->toArray());
+
+        $this->assertCount(4, $files);
+        $this->assertCount(4, $files->filter(fn($s) => $s instanceof File));
+        $this->assertCount(0, $files->filter(fn($s) => $s instanceof Directory));
+    }
+
+    public function test_scanRecursively_with_symlinks_follow_true(): void
+    {
+        mkdir($this->testDir . '/dir1');
+        touch($this->testDir . '/dir1/file1.txt');
+        mkdir($this->testDir . '/dir2');
+        touch($this->testDir . '/dir2/file2.txt');
+        symlink($this->testDir . '/dir1/file1.txt', $this->testDir . '/symlink_file.txt');
+        symlink($this->testDir . '/dir2', $this->testDir . '/symlink_dir');
+
+        $files = new Directory($this->testDir)->scanRecursively();
+
+        $this->assertCount(4, $files);
+        $this->assertCount(0, $files->filter(fn($s) => $s instanceof Symlink));
+        $this->assertCount(4, $files->filter(fn($s) => $s instanceof File));
+        $this->assertCount(0, $files->filter(fn($s) => $s instanceof Directory));
+    }
+
+    public function test_scanRecursively_with_symlinks_follow_false(): void
+    {
+        mkdir($this->testDir . '/dir1');
+        touch($this->testDir . '/dir1/file1.txt');
+        mkdir($this->testDir . '/dir2');
+        touch($this->testDir . '/dir2/file2.txt');
+        symlink($this->testDir . '/dir1/file1.txt', $this->testDir . '/symlink_file.txt');
+        symlink($this->testDir . '/dir2', $this->testDir . '/symlink_dir');
+
+        $files = new Directory($this->testDir)->scanRecursively(false);
+
+        $this->assertCount(4, $files);
+        $this->assertCount(1, $files->filter(fn($s) => $s instanceof Symlink));
+        $this->assertCount(3, $files->filter(fn($s) => $s instanceof File));
+        $this->assertCount(0, $files->filter(fn($s) => $s instanceof Directory));
+    }
+
+    public function test_scanRecursively_deep_nesting(): void
+    {
+        $currentPath = $this->testDir;
+        for ($i = 1; $i <= 3; $i++) {
+            $currentPath .= "/level{$i}";
+            mkdir($currentPath);
+            touch($currentPath . "/file{$i}.txt");
+        }
+
+        $directory = new Directory($this->testDir);
+        $files = $directory->scanRecursively();
+
+        $this->assertCount(3, $files);
+
+        $this->assertSame([
+            'file1.txt',
+            'file2.txt',
+            'file3.txt',
+        ], $files->map(fn(Storable $s) => $s->basename())->sortAsc()->toArray());
     }
 }
