@@ -27,6 +27,10 @@ class TestCase extends BaseTestCase
     #[After]
     protected function removeTestDir(): void
     {
+        if (!is_dir($this->testDir)) {
+            return;
+        }
+
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($this->testDir, FilesystemIterator::SKIP_DOTS),
             RecursiveIteratorIterator::CHILD_FIRST

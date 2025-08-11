@@ -7,7 +7,6 @@ use Kirameki\Storage\File;
 use Kirameki\Storage\FileType;
 use Kirameki\Storage\Storable;
 use Kirameki\Storage\Symlink;
-use function dump;
 use function mkdir;
 use function symlink;
 use function touch;
@@ -338,5 +337,296 @@ final class DirectoryTest extends TestCase
         $this->assertFalse($created);
         $this->assertInstanceOf(Directory::class, $subDir);
         $this->assertTrue($subDir->exists());
+    }
+
+    public function test_createFile_new_file(): void
+    {
+        $directory = new Directory($this->testDir);
+        $content = 'Hello, World!';
+
+        $file = $directory->createFile('test.txt', $content);
+
+        $this->assertInstanceOf(File::class, $file);
+        $this->assertTrue($file->exists());
+        $this->assertSame('test.txt', $file->basename());
+        $this->assertSame($this->testDir . '/test.txt', $file->pathname);
+        $this->assertSame($content, file_get_contents($file->pathname));
+    }
+
+    public function test_createFile_empty_content(): void
+    {
+        $directory = new Directory($this->testDir);
+
+        $file = $directory->createFile('empty.txt', '');
+
+        $this->assertInstanceOf(File::class, $file);
+        $this->assertTrue($file->exists());
+        $this->assertSame('empty.txt', $file->basename());
+        $this->assertSame('', file_get_contents($file->pathname));
+    }
+
+    public function test_createFile_overwrites_existing(): void
+    {
+        $directory = new Directory($this->testDir);
+        $originalContent = 'Original content';
+        $newContent = 'New content';
+
+        // Create file first
+        touch($this->testDir . '/existing.txt');
+        file_put_contents($this->testDir . '/existing.txt', $originalContent);
+
+        // Create file with same name (should overwrite)
+        $file = $directory->createFile('existing.txt', $newContent);
+
+        $this->assertInstanceOf(File::class, $file);
+        $this->assertTrue($file->exists());
+        $this->assertSame('existing.txt', $file->basename());
+        $this->assertSame($newContent, file_get_contents($file->pathname));
+        $this->assertNotSame($originalContent, file_get_contents($file->pathname));
+    }
+
+    public function test_createFile_with_subdirectory_path(): void
+    {
+        $directory = new Directory($this->testDir);
+        $content = 'Content in subdirectory';
+
+        // Create subdirectory first
+        mkdir($this->testDir . '/subdir');
+
+        $file = $directory->createFile('subdir/nested.txt', $content);
+
+        $this->assertInstanceOf(File::class, $file);
+        $this->assertTrue($file->exists());
+        $this->assertSame('nested.txt', $file->basename());
+        $this->assertSame($this->testDir . '/subdir/nested.txt', $file->pathname);
+        $this->assertSame($content, file_get_contents($file->pathname));
+    }
+
+    public function test_createFile_special_characters(): void
+    {
+        $directory = new Directory($this->testDir);
+        $fileName = 'test file_with-special.chars & symbols.txt';
+        $content = "Content with special chars: àáâãäåæçèéêë\n\t!@#$%^&*()";
+
+        $file = $directory->createFile($fileName, $content);
+
+        $this->assertInstanceOf(File::class, $file);
+        $this->assertTrue($file->exists());
+        $this->assertSame($fileName, $file->basename());
+        $this->assertSame($content, file_get_contents($file->pathname));
+    }
+
+    public function test_createFile_binary_content(): void
+    {
+        $directory = new Directory($this->testDir);
+        // Create some binary data
+        $binaryContent = pack('C*', 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A); // PNG header
+
+        $file = $directory->createFile('binary.dat', $binaryContent);
+
+        $this->assertInstanceOf(File::class, $file);
+        $this->assertTrue($file->exists());
+        $this->assertSame('binary.dat', $file->basename());
+        $this->assertSame($binaryContent, file_get_contents($file->pathname));
+    }
+
+    public function test_createFile_large_content(): void
+    {
+        $directory = new Directory($this->testDir);
+        // Create large content (1MB)
+        $largeContent = str_repeat('Large content line ' . PHP_EOL, 50000);
+
+        $file = $directory->createFile('large.txt', $largeContent);
+
+        $this->assertInstanceOf(File::class, $file);
+        $this->assertTrue($file->exists());
+        $this->assertSame('large.txt', $file->basename());
+        $this->assertSame($largeContent, file_get_contents($file->pathname));
+    }
+
+    public function test_createFile_multiline_content(): void
+    {
+        $directory = new Directory($this->testDir);
+        $content = "Line 1\nLine 2\r\nLine 3\n\nLine 5 with spaces   \n\tTabbed line";
+
+        $file = $directory->createFile('multiline.txt', $content);
+
+        $this->assertInstanceOf(File::class, $file);
+        $this->assertTrue($file->exists());
+        $this->assertSame($content, file_get_contents($file->pathname));
+    }
+
+    public function test_createFile_throws_exception_on_write_failure(): void
+    {
+        $this->expectErrorMessage('file_put_contents(' . $this->testDir . '/nonexistent/file.txt): Failed to open stream: No such file or directory');
+
+        $directory = new Directory($this->testDir);
+        $directory->createFile('nonexistent/file.txt', 'content');
+    }
+
+    public function test_delete_empty_directory(): void
+    {
+        $directory = new Directory($this->testDir);
+
+        $this->assertTrue($directory->exists());
+
+        $directory->delete();
+
+        $this->assertFalse($directory->exists());
+        $this->assertFalse(is_dir($this->testDir));
+    }
+
+    public function test_delete_directory_with_files(): void
+    {
+        touch($this->testDir . '/file1.txt');
+        touch($this->testDir . '/file2.php');
+        file_put_contents($this->testDir . '/file3.json', '{"test": "content"}');
+
+        $directory = new Directory($this->testDir);
+
+        $this->assertTrue(file_exists($this->testDir . '/file1.txt'));
+        $this->assertTrue(file_exists($this->testDir . '/file2.php'));
+        $this->assertTrue(file_exists($this->testDir . '/file3.json'));
+
+        $directory->delete();
+
+        $this->assertFalse($directory->exists());
+        $this->assertFalse(file_exists($this->testDir . '/file1.txt'));
+        $this->assertFalse(file_exists($this->testDir . '/file2.php'));
+        $this->assertFalse(file_exists($this->testDir . '/file3.json'));
+    }
+
+    public function test_delete_directory_with_subdirectories(): void
+    {
+        mkdir($this->testDir . '/subdir1');
+        mkdir($this->testDir . '/subdir2');
+        mkdir($this->testDir . '/subdir1/nested');
+
+        touch($this->testDir . '/root_file.txt');
+        touch($this->testDir . '/subdir1/file1.txt');
+        touch($this->testDir . '/subdir2/file2.txt');
+        touch($this->testDir . '/subdir1/nested/deep_file.txt');
+
+        $directory = new Directory($this->testDir);
+
+        $this->assertTrue(is_dir($this->testDir . '/subdir1'));
+        $this->assertTrue(is_dir($this->testDir . '/subdir2'));
+        $this->assertTrue(is_dir($this->testDir . '/subdir1/nested'));
+        $this->assertTrue(file_exists($this->testDir . '/root_file.txt'));
+        $this->assertTrue(file_exists($this->testDir . '/subdir1/file1.txt'));
+        $this->assertTrue(file_exists($this->testDir . '/subdir2/file2.txt'));
+        $this->assertTrue(file_exists($this->testDir . '/subdir1/nested/deep_file.txt'));
+
+        $directory->delete();
+
+        $this->assertFalse($directory->exists());
+        $this->assertFalse(is_dir($this->testDir . '/subdir1'));
+        $this->assertFalse(is_dir($this->testDir . '/subdir2'));
+        $this->assertFalse(is_dir($this->testDir . '/subdir1/nested'));
+        $this->assertFalse(file_exists($this->testDir . '/root_file.txt'));
+        $this->assertFalse(file_exists($this->testDir . '/subdir1/file1.txt'));
+        $this->assertFalse(file_exists($this->testDir . '/subdir2/file2.txt'));
+        $this->assertFalse(file_exists($this->testDir . '/subdir1/nested/deep_file.txt'));
+    }
+
+    public function test_delete_directory_with_symlinks(): void
+    {
+        touch($this->testDir . '/original_file.txt');
+        mkdir($this->testDir . '/original_dir');
+        touch($this->testDir . '/original_dir/nested_file.txt');
+
+        symlink($this->testDir . '/original_file.txt', $this->testDir . '/symlink_file.txt');
+        symlink($this->testDir . '/original_dir', $this->testDir . '/symlink_dir');
+
+        $directory = new Directory($this->testDir);
+
+        $this->assertTrue(is_link($this->testDir . '/symlink_file.txt'));
+        $this->assertTrue(is_link($this->testDir . '/symlink_dir'));
+
+        $directory->delete();
+
+        $this->assertFalse($directory->exists());
+        $this->assertFalse(file_exists($this->testDir . '/symlink_file.txt'));
+        $this->assertFalse(file_exists($this->testDir . '/symlink_dir'));
+        $this->assertFalse(file_exists($this->testDir . '/original_file.txt'));
+        $this->assertFalse(file_exists($this->testDir . '/original_dir'));
+    }
+
+    public function test_delete_deeply_nested_structure(): void
+    {
+        // Create deeply nested structure (5 levels)
+        $currentPath = $this->testDir;
+        for ($i = 1; $i <= 5; $i++) {
+            $currentPath .= "/level{$i}";
+            mkdir($currentPath);
+            touch($currentPath . "/file{$i}.txt");
+
+            // Add some branches
+            if ($i <= 3) {
+                mkdir($currentPath . "/branch{$i}");
+                touch($currentPath . "/branch{$i}/branch_file{$i}.txt");
+            }
+        }
+
+        $directory = new Directory($this->testDir);
+
+        // Verify deep structure exists
+        $this->assertTrue(is_dir($this->testDir . '/level1/level2/level3/level4/level5'));
+        $this->assertTrue(file_exists($this->testDir . '/level1/level2/level3/level4/level5/file5.txt'));
+        $this->assertTrue(file_exists($this->testDir . '/level1/branch1/branch_file1.txt'));
+
+        $directory->delete();
+
+        // Verify complete deletion
+        $this->assertFalse($directory->exists());
+        $this->assertFalse(is_dir($this->testDir . '/level1'));
+    }
+
+    public function test_delete_directory_with_special_filenames(): void
+    {
+        // Create files with special characters in names
+        touch($this->testDir . '/file with spaces.txt');
+        touch($this->testDir . '/file-with_special.chars');
+        touch($this->testDir . '/файл.txt'); // Cyrillic characters
+        mkdir($this->testDir . '/dir with spaces');
+        touch($this->testDir . '/dir with spaces/nested file.txt');
+
+        $directory = new Directory($this->testDir);
+
+        // Verify files exist
+        $this->assertTrue(file_exists($this->testDir . '/file with spaces.txt'));
+        $this->assertTrue(file_exists($this->testDir . '/file-with_special.chars'));
+        $this->assertTrue(file_exists($this->testDir . '/файл.txt'));
+        $this->assertTrue(is_dir($this->testDir . '/dir with spaces'));
+
+        $directory->delete();
+
+        // Verify all deleted
+        $this->assertFalse($directory->exists());
+        $this->assertFalse(file_exists($this->testDir . '/file with spaces.txt'));
+        $this->assertFalse(file_exists($this->testDir . '/file-with_special.chars'));
+        $this->assertFalse(file_exists($this->testDir . '/файл.txt'));
+        $this->assertFalse(is_dir($this->testDir . '/dir with spaces'));
+    }
+
+    public function test_delete_directory_with_large_files(): void
+    {
+        $largeContent = str_repeat('Large file content line ' . PHP_EOL, 10000);
+        file_put_contents($this->testDir . '/large_file.txt', $largeContent);
+
+        $binaryContent = str_repeat(pack('C*', 0x00, 0xFF, 0xAB, 0xCD), 1000);
+        file_put_contents($this->testDir . '/binary_file.dat', $binaryContent);
+
+        $directory = new Directory($this->testDir);
+
+        $this->assertTrue(file_exists($this->testDir . '/large_file.txt'));
+        $this->assertTrue(file_exists($this->testDir . '/binary_file.dat'));
+        $this->assertGreaterThan(100000, filesize($this->testDir . '/large_file.txt'));
+
+        $directory->delete();
+
+        $this->assertFalse($directory->exists());
+        $this->assertFalse(file_exists($this->testDir . '/large_file.txt'));
+        $this->assertFalse(file_exists($this->testDir . '/binary_file.dat'));
     }
 }
