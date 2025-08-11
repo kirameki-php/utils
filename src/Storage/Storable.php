@@ -52,7 +52,7 @@ abstract class Storable
      * @var int
      */
     public int $permissions {
-        get => $this->info->getPerms();
+        get => $this->info->getPerms() & 0777;
     }
 
     /**
