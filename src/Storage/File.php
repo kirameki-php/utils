@@ -7,6 +7,7 @@ namespace Kirameki\Storage;
 use Kirameki\Core\Exceptions\RuntimeException;
 use Kirameki\Stream\FileStream;
 use Kirameki\Time\Instant;
+use function dump;
 use function file_get_contents;
 use function file_put_contents;
 use function posix_getpid;
@@ -83,11 +84,13 @@ class File extends Storable
 
     /**
      * @param Instant|null $mtime
-     * @param Instant|null $ctime
+     * @param Instant|null $atime
      * @return void
      */
-    public function touch(?Instant $mtime = null, ?Instant $ctime = null): void
+    public function touch(?Instant $mtime = null, ?Instant $atime = null): void
     {
-        touch($this->pathname, $mtime?->toInt(), $ctime?->toInt());
+        if (touch($this->pathname, $mtime?->toInt(), $atime?->toInt()) === false) {
+            throw new RuntimeException("Failed to touch file: {$this->pathname}");
+        }
     }
 }

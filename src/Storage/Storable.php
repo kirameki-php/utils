@@ -31,7 +31,14 @@ abstract class Storable
      * @var FileType
      */
     public FileType $type {
-        get => FileType::from($this->info->getType());
+        get => $this->type ??= FileType::from($this->info->getType());
+    }
+
+    /**
+     * @var string
+     */
+    public string $name {
+        get => $this->basename('.' . $this->extension);
     }
 
     /**
@@ -120,14 +127,6 @@ abstract class Storable
     public function basename(string $suffix = ''): string
     {
         return basename($this->pathname, $suffix);
-    }
-
-    /**
-     * @return string
-     */
-    public function basenameWithoutExtension(): string
-    {
-        return $this->basename($this->extension);
     }
 
     /**

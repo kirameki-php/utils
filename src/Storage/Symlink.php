@@ -25,8 +25,8 @@ class Symlink extends Storable
         $info = new SplFileInfo($targetPath);
 
         return $info->isDir()
-            ? new Directory($this->pathname, $info)
-            : new File($this->pathname, $info);
+            ? new Directory($targetPath, $info)
+            : new File($targetPath, $info);
     }
 
     /**
