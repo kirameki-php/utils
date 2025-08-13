@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Kirameki\Storage;
 
-use Kirameki\Core\Exceptions\RuntimeException;
 use Kirameki\Stream\FileStream;
 use Kirameki\Time\Instant;
-use function dump;
 use function file_get_contents;
 use function file_put_contents;
 use function posix_getpid;
@@ -33,9 +31,7 @@ class File extends Storable
     public function read(): string
     {
         $contents = file_get_contents($this->pathname);
-        if ($contents === false) {
-            throw new RuntimeException("Failed to read file: {$this->pathname}");
-        }
+        assert($contents !== false);
         return $contents;
     }
 
@@ -52,9 +48,7 @@ class File extends Storable
             $flags |= LOCK_EX;
         }
 
-        if (file_put_contents($this->pathname, $data, $flags) === false) {
-            throw new RuntimeException("Failed to write file: {$this->pathname}");
-        }
+        file_put_contents($this->pathname, $data, $flags);
     }
 
     /**
@@ -77,9 +71,7 @@ class File extends Storable
      */
     public function delete(): void
     {
-        if (!unlink($this->pathname)) {
-            throw new RuntimeException("Failed to delete file: {$this->pathname}");
-        }
+        unlink($this->pathname);
     }
 
     /**
@@ -89,8 +81,6 @@ class File extends Storable
      */
     public function touch(?Instant $mtime = null, ?Instant $atime = null): void
     {
-        if (touch($this->pathname, $mtime?->toInt(), $atime?->toInt()) === false) {
-            throw new RuntimeException("Failed to touch file: {$this->pathname}");
-        }
+        touch($this->pathname, $mtime?->toInt(), $atime?->toInt());
     }
 }

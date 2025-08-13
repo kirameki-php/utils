@@ -196,9 +196,7 @@ abstract class Storable
      */
     public function chmod(int $permissions): void
     {
-        if (!chmod($this->pathname, $permissions)) {
-            throw new RuntimeException("Failed to change permissions for {$this->pathname} to " . decoct($permissions));
-        }
+        chmod($this->pathname, $permissions);
     }
 
     /**
@@ -232,9 +230,7 @@ abstract class Storable
      */
     public function chgrp(int|string $gid): void
     {
-        if (!$this->callChGrpCommand($gid)) {
-            throw new RuntimeException("Failed to change group for {$this->pathname} to GID: {$gid}");
-        }
+        $this->callChGrpCommand($gid);
     }
 
     /**
@@ -252,9 +248,7 @@ abstract class Storable
      */
     public function copyTo(string $destination): void
     {
-        if (!copy($this->pathname, $destination)) {
-            throw new RuntimeException("Failed to copy file from {$this->pathname} to {$destination}");
-        }
+        copy($this->pathname, $destination);
     }
 
     /**
@@ -263,9 +257,7 @@ abstract class Storable
      */
     public function moveTo(string $destination): void
     {
-        if (!rename($this->pathname, $destination)) {
-            throw new RuntimeException("Failed to move directory from {$this->pathname} to {$destination}");
-        }
+        rename($this->pathname, $destination);
     }
 
     /**

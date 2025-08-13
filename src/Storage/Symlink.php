@@ -34,9 +34,7 @@ class Symlink extends Storable
      */
     public function delete(): void
     {
-        if (!unlink($this->pathname)) {
-            throw new RuntimeException("Failed to delete file: {$this->pathname}");
-        }
+        unlink($this->pathname);
     }
 
     /**
