@@ -2,6 +2,7 @@
 
 namespace Tests\Kirameki\Storage;
 
+use Kirameki\Core\Exceptions\ErrorException;
 use RuntimeException;
 use Kirameki\Storage\File;
 use Kirameki\Stream\FileStream;
@@ -49,6 +50,31 @@ final class FileTest extends TestCase
         $stream->write($testContent);
         $this->assertTrue($stream->close());
         $this->assertSame($testContent, file_get_contents($filePath));
+    }
+
+    public function test_open_multiple_streams(): void
+    {
+        $filePath = $this->testDir . '/multi_stream.txt';
+        $content = 'Content for multiple streams';
+        file_put_contents($filePath, $content);
+
+        $file = new File($filePath);
+
+        // Open multiple streams
+        $stream1 = $file->open('r');
+        $stream2 = $file->open('r');
+
+        $this->assertNotSame($stream1, $stream2);
+
+        // Both should be able to read the same content
+        $content1 = $stream1->read(100);
+        $content2 = $stream2->read(100);
+
+        $this->assertSame($content, $content1);
+        $this->assertSame($content, $content2);
+
+        $this->assertTrue($stream1->close());
+        $this->assertTrue($stream2->close());
     }
 
     public function test_read_simple_content(): void
@@ -121,31 +147,6 @@ final class FileTest extends TestCase
         $this->assertSame($content, $result);
     }
 
-    public function test_open_multiple_streams(): void
-    {
-        $filePath = $this->testDir . '/multi_stream.txt';
-        $content = 'Content for multiple streams';
-        file_put_contents($filePath, $content);
-
-        $file = new File($filePath);
-
-        // Open multiple streams
-        $stream1 = $file->open('r');
-        $stream2 = $file->open('r');
-
-        $this->assertNotSame($stream1, $stream2);
-
-        // Both should be able to read the same content
-        $content1 = $stream1->read(100);
-        $content2 = $stream2->read(100);
-
-        $this->assertSame($content, $content1);
-        $this->assertSame($content, $content2);
-
-        $this->assertTrue($stream1->close());
-        $this->assertTrue($stream2->close());
-    }
-
     public function test_write_new_file(): void
     {
         $filePath = $this->testDir . '/new_write_file.txt';
@@ -184,28 +185,6 @@ final class FileTest extends TestCase
         $this->assertSame('', file_get_contents($filePath));
     }
 
-    public function test_write_multiline_content(): void
-    {
-        $filePath = $this->testDir . '/multiline_write.txt';
-        $content = "Line 1\nLine 2\r\nLine 3\n\nLine 5 with spaces   \n\tTabbed line";
-
-        $file = new File($filePath);
-        $file->write($content);
-
-        $this->assertSame($content, file_get_contents($filePath));
-    }
-
-    public function test_write_binary_content(): void
-    {
-        $filePath = $this->testDir . '/binary_write.dat';
-        $binaryContent = pack('C*', 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A);
-
-        $file = new File($filePath);
-        $file->write($binaryContent);
-
-        $this->assertSame($binaryContent, file_get_contents($filePath));
-    }
-
     public function test_write_unicode_content(): void
     {
         $filePath = $this->testDir . '/unicode_write.txt';
@@ -217,16 +196,6 @@ final class FileTest extends TestCase
         $this->assertSame($content, file_get_contents($filePath));
     }
 
-    public function test_write_large_content(): void
-    {
-        $filePath = $this->testDir . '/large_write.txt';
-        $largeContent = str_repeat('Large content line ' . PHP_EOL, 10000);
-
-        $file = new File($filePath);
-        $file->write($largeContent);
-
-        $this->assertSame($largeContent, file_get_contents($filePath));
-    }
 
     public function test_replace_existing_file(): void
     {

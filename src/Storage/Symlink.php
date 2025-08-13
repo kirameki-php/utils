@@ -18,9 +18,6 @@ class Symlink extends Storable
     public function getTarget(): Storable
     {
         $targetPath = $this->info->getLinkTarget();
-        if ($targetPath === false) {
-            throw new RuntimeException("Failed to read symlink: {$this->pathname}");
-        }
 
         $info = new SplFileInfo($targetPath);
 
