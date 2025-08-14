@@ -1413,11 +1413,21 @@ trait Enumerable
      * Iterable to be traversed.
      * @param Closure(TValue, TKey): bool $condition
      * A condition that should return a boolean.
-     * @return static
+     * @return static<TKey, TValue>
      */
     public function takeIf(Closure $condition): static
     {
-        return $this->instantiate(Iter::takeIf($this, $condition, $this->reindex()));
+        return new static(Iter::takeIf($this, $condition, $this->reindex()));
+    }
+
+    /**
+     * @template TClass
+     * @param class-string<TClass> $class
+     * @return static<TKey, TClass>
+     */
+    public function takeInstanceOf(string $class): static
+    {
+        return new static(Arr::takeInstanceOf($this, $class, $this->reindex()));
     }
 
     /**

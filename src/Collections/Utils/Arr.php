@@ -22,6 +22,7 @@ use Kirameki\Core\Type;
 use Random\Randomizer;
 use function array_diff_ukey;
 use function array_fill;
+use function array_filter;
 use function array_intersect;
 use function array_intersect_key;
 use function array_is_list;
@@ -5823,6 +5824,32 @@ final class Arr
         $array = self::from($iterable);
         $reindex ??= array_is_list($array);
         return iterator_to_array(Iter::takeIf($array, $condition, $reindex));
+    }
+
+    /**
+     * Iterates over each element in $iterable and takes only the elements that are instances of the given class.
+     *
+     * @template TKey of array-key
+     * @template TClass
+     * @param iterable<TKey, mixed> $iterable
+     *  Iterable to be traversed.
+     * @param class-string<TClass> $class
+     * Class to be checked with `instanceof`.
+     * @param bool|null $reindex
+     * [Optional] Result will be re-indexed if **true**.
+     * If **null**, the result will be re-indexed only if it's a list.
+     * Defaults to **null**.
+     * @return array<TKey, TClass>
+     */
+    public static function takeInstanceOf(
+        iterable $iterable,
+        string $class,
+        ?bool $reindex = null,
+    ): array
+    {
+        $array = self::from($iterable);
+        $reindex ??= array_is_list($array);
+        return iterator_to_array(Iter::takeInstanceOf($array, $class, $reindex));
     }
 
     /**

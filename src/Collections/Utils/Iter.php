@@ -6,6 +6,7 @@ use Closure;
 use Generator;
 use Kirameki\Core\Exceptions\InvalidArgumentException;
 use function array_slice;
+use function class_exists;
 use function count;
 use function is_iterable;
 use const PHP_INT_MAX;
@@ -592,6 +593,45 @@ final class Iter
     {
         foreach ($iterable as $key => $val) {
             if (self::verifyBool($condition, $key, $val)) {
+                if ($reindex) {
+                    yield $val;
+                } else {
+                    yield $key => $val;
+                }
+            }
+        }
+    }
+
+    /**
+     * Iterates over each element in $iterable and takes only the elements that are instances of the given class.
+     *
+     * @template TKey of array-key
+     * @template TClass
+     * @param iterable<TKey, mixed> $iterable
+     * Iterable to be traversed.
+     * @param class-string<TClass> $class
+     * Class to be checked with `instanceof`.
+     * @param bool $reindex
+     * [Optional] Result will be re-indexed if **true**.
+     * If **null**, the result will be re-indexed only if it's a list.
+     * Defaults to **null**.
+     * @return Generator<TKey, TClass>
+     */
+    public static function takeInstanceOf(
+        iterable $iterable,
+        string $class,
+        bool $reindex = false,
+    ): Generator
+    {
+        if (!class_exists($class)) {
+            throw new InvalidArgumentException("Class: {$class} does not exist.", [
+                'iterable' => $iterable,
+                'class' => $class,
+            ]);
+        }
+
+        foreach ($iterable as $key => $val) {
+            if ($val instanceof $class) {
                 if ($reindex) {
                     yield $val;
                 } else {

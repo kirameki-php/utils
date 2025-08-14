@@ -8,5 +8,5 @@ parameters:
     ignoreErrors:
         - identifier: new.static
         - message: '#^Generator expects key type TKey of \(int\|string\), int given\.$#'
-          count: 5
+          count: 6
           path: src/Collections/Utils/Iter.php
