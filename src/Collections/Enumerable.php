@@ -1302,7 +1302,7 @@ trait Enumerable
     {
         return $this->newVec(array_map(
             $this->instantiate(...),
-            Arr::splitAfter($this, $condition, $this->reindex())
+            Arr::splitAfter($this, $condition, $this->reindex()),
         ));
     }
 
@@ -1318,7 +1318,7 @@ trait Enumerable
     {
         return $this->newVec(array_map(
             $this->instantiate(...),
-            Arr::splitAfterIndex($this, $index, $this->reindex())
+            Arr::splitAfterIndex($this, $index, $this->reindex()),
         ));
     }
 
@@ -1333,7 +1333,7 @@ trait Enumerable
     {
         return $this->newVec(array_map(
             $this->instantiate(...),
-            Arr::splitBefore($this, $condition, $this->reindex())
+            Arr::splitBefore($this, $condition, $this->reindex()),
         ));
     }
 
@@ -1349,7 +1349,7 @@ trait Enumerable
     {
         return $this->newVec(array_map(
             $this->instantiate(...),
-            Arr::splitBeforeIndex($this, $index, $this->reindex())
+            Arr::splitBeforeIndex($this, $index, $this->reindex()),
         ));
     }
 

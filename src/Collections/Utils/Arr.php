@@ -5792,7 +5792,7 @@ final class Arr
     }
 
     /**
-     * Iterates over each element in iterable and passes them to the callback function.
+     * Iterates over each element in $iterable and passes them to the callback function.
      * If the callback function returns **true** the element is passed on to the new array.
      *
      * Example:
