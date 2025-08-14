@@ -2,12 +2,15 @@
 
 namespace Tests\Kirameki\Storage;
 
-use Kirameki\Core\Exceptions\RuntimeException;
 use Kirameki\Storage\Directory;
 use Kirameki\Storage\File;
 use Kirameki\Storage\FileType;
 use Kirameki\Storage\Symlink;
+use function file_exists;
+use function file_get_contents;
 use function file_put_contents;
+use function is_dir;
+use function is_link;
 use function mkdir;
 use function symlink;
 use function touch;

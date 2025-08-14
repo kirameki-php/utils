@@ -33,20 +33,4 @@ class Symlink extends Storable
     {
         unlink($this->pathname);
     }
-
-    /**
-     * @inheritDoc
-     */
-    protected function callChownCommand(int|string $uid): bool
-    {
-        return lchown($this->pathname, $uid);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function callChGrpCommand(int|string $gid): bool
-    {
-        return lchgrp($this->pathname, $gid);
-    }
 }

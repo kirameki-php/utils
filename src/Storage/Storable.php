@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Kirameki\Storage;
 
-use Kirameki\Core\Exceptions\RuntimeException;
 use Kirameki\Time\Instant;
 use SplFileInfo;
 use function basename;
@@ -13,7 +12,6 @@ use function chmod;
 use function chown;
 use function clearstatcache;
 use function copy;
-use function decoct;
 use function dirname;
 use function file_exists;
 use function rename;
@@ -21,18 +19,9 @@ use function rename;
 abstract class Storable
 {
     /**
-     * @var Directory
+     * @var string
      */
-    public Directory $directory {
-        get => $this->directory ??= new Directory(dirname($this->pathname));
-    }
-
-    /**
-     * @var FileType
-     */
-    public FileType $type {
-        get => $this->type ??= FileType::from($this->info->getType());
-    }
+    public protected(set) string $pathname;
 
     /**
      * @var string
@@ -105,6 +94,20 @@ abstract class Storable
     }
 
     /**
+     * @var FileType
+     */
+    public FileType $type {
+        get => $this->type ??= $this->resolveType();
+    }
+
+    /**
+     * @var Directory
+     */
+    public Directory $directory {
+        get => $this->directory ??= $this->resolveDirectory();
+    }
+
+    /**
      * @var SplFileInfo
      */
     protected SplFileInfo $info;
@@ -114,10 +117,11 @@ abstract class Storable
      * @param SplFileInfo|null $info
      */
     public function __construct(
-        public readonly string $pathname,
+        string $pathname,
         ?SplFileInfo $info = null,
     ) {
-        $this->info = $info ?? new SplFileInfo($pathname);
+        $this->pathname = $pathname;
+        $this->info = $info ?? $this->newFileInfo();
     }
 
     /**
@@ -197,6 +201,7 @@ abstract class Storable
     public function chmod(int $permissions): void
     {
         chmod($this->pathname, $permissions);
+        $this->info = $this->newFileInfo();
     }
 
     /**
@@ -206,22 +211,11 @@ abstract class Storable
      */
     public function chown(int|string $uid, int|string|null $gid = null): void
     {
-        if (!$this->callChownCommand($uid)) {
-            throw new RuntimeException("Failed to change ownership for {$this->pathname} to UID: {$uid}, GID: {$gid}");
-        }
-
+        chown($this->pathname, $uid);
         if ($gid !== null) {
-            $this->chgrp($gid);
+            chgrp($this->pathname, $gid);
         }
-    }
-
-    /**
-     * @param int|string $uid
-     * @return bool
-     */
-    protected function callChownCommand(int|string $uid): bool
-    {
-        return chown($this->pathname, $uid);
+        $this->info = $this->newFileInfo();
     }
 
     /**
@@ -230,25 +224,18 @@ abstract class Storable
      */
     public function chgrp(int|string $gid): void
     {
-        $this->callChGrpCommand($gid);
-    }
-
-    /**
-     * @param int|string $gid
-     * @return bool
-     */
-    protected function callChGrpCommand(int|string $gid): bool
-    {
-        return chgrp($this->pathname, $gid);
+        chgrp($this->pathname, $gid);
+        $this->info = $this->newFileInfo();
     }
 
     /**
      * @param string $destination
-     * @return void
+     * @return static
      */
-    public function copyTo(string $destination): void
+    public function copyTo(string $destination): static
     {
         copy($this->pathname, $destination);
+        return new static($destination, $this->newFileInfo());
     }
 
     /**
@@ -258,6 +245,9 @@ abstract class Storable
     public function moveTo(string $destination): void
     {
         rename($this->pathname, $destination);
+        $this->pathname = $destination;
+        $this->directory = $this->resolveDirectory();
+        $this->info = $this->newFileInfo();
     }
 
     /**
@@ -266,4 +256,25 @@ abstract class Storable
     abstract public function delete(): void;
 
     # endregion Operations ---------------------------------------------------------------------------------------------
+
+    protected function resolveType(): FileType
+    {
+        return FileType::from($this->info->getType());
+    }
+
+    /**
+     * @return Directory
+     */
+    protected function resolveDirectory(): Directory
+    {
+        return new Directory(dirname($this->pathname));
+    }
+
+    /**
+     * @return SplFileInfo
+     */
+    protected function newFileInfo(): SplFileInfo
+    {
+        return new SplFileInfo($this->pathname);
+    }
 }
