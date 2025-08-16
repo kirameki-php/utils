@@ -1421,6 +1421,19 @@ trait Enumerable
     }
 
     /**
+     * Iterates over each element in $iterable and takes only the elements that are instances of the given class.
+     *
+     * @template TClass of object
+     * @param class-string<TClass> $class
+     * Class name to check against.
+     * @return $this
+     */
+    public function takeInstanceOf(string $class): static
+    {
+        return $this->instantiate(Iter::takeInstanceOf($this, $class, $this->reindex()));
+    }
+
+    /**
      * Take the last n elements from the collection and return a new instance
      * with those elements.
      *

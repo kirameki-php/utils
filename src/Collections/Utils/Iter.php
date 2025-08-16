@@ -585,7 +585,7 @@ final class Iter
      * @param Closure(TValue, TKey): bool $condition
      * A condition that should return a boolean.
      * @param bool $reindex
-     * If set to **true** the array will be re-indexed.
+     * [Optional] Result will be re-indexed if **true**.
      * @return Generator<TKey, TValue>
      */
     public static function takeIf(
@@ -601,6 +601,44 @@ final class Iter
                     yield $val;
                 } else {
                     yield $key => $val;
+                }
+            }
+        }
+    }
+
+    /**
+     * Iterates over each element in $iterable and takes only the elements that are instances of the given class.
+     *
+     * @template TKey of array-key
+     * @template TClass
+     * @param iterable<TKey, mixed> $iterable
+     * Iterable to be traversed.
+     * @param class-string<TClass> $class
+     * Class to be checked with `instanceof`.
+     * @param bool $reindex
+     * [Optional] Result will be re-indexed if **true**.
+     * @return Generator<TKey, TClass>
+     */
+    public static function takeInstanceOf(
+        iterable $iterable,
+        string $class,
+        bool $reindex = false,
+    ): Generator
+    {
+        if (!class_exists($class)) {
+            throw new InvalidArgumentException("Class: {$class} does not exist.", [
+                'iterable' => $iterable,
+                'class' => $class,
+            ]);
+        }
+
+        foreach ($iterable as $key => $item) {
+            if ($item instanceof $class) {
+                if ($reindex) {
+                    // @phpstan-ignore generator.keyType
+                    yield $item;
+                } else {
+                    yield $key => $item;
                 }
             }
         }

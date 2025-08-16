@@ -5826,6 +5826,32 @@ final class Arr
     }
 
     /**
+     * Iterates over each element in $iterable and takes only the elements that are instances of the given class.
+     *
+     * @template TKey of array-key
+     * @template TClass
+     * @param iterable<TKey, mixed> $iterable
+     * Iterable to be traversed.
+     * @param class-string<TClass> $class
+     * Class to be checked with `instanceof`.
+     * @param bool|null $reindex
+     * [Optional] Result will be re-indexed if **true**.
+     * If **null**, the result will be re-indexed only if it's a list.
+     * Defaults to **null**.
+     * @return array<TKey, TClass>
+     */
+    public static function takeInstanceOf(
+        iterable $iterable,
+        string $class,
+        ?bool $reindex = null,
+    ): array
+    {
+        $array = self::from($iterable);
+        $reindex ??= array_is_list($array);
+        return iterator_to_array(Iter::takeInstanceOf($array, $class, $reindex));
+    }
+
+    /**
      * Returns a new array which only contain the elements that has matching
      * keys in `$iterable`. Non-existent keys will be ignored.
      * If `$safe` is set to **true**, `MissingKeyException` will be thrown

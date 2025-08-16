@@ -1440,7 +1440,7 @@ final class ArrTest extends TestCase
 
     public function test_keys(): void
     {
-        self::assertSame([], Arr::keys([]), 'on empty');
+        self::assertSame([], Arr::keys([]), 'empty');
         self::assertSame([0, 1], Arr::keys([1, 2]), 'on list');
         self::assertSame(['a', 'b'], Arr::keys(['a' => 1, 'b' => 2]), 'on assoc');
     }
@@ -2677,15 +2677,15 @@ final class ArrTest extends TestCase
 
     public function test_sampleKeys_without_replacement_empty(): void
     {
-        $this->expectExceptionMessage('$iterable must contain at least one element.');
         $this->expectException(EmptyNotAllowedException::class);
+        $this->expectExceptionMessage('$iterable must contain at least one element.');
         Arr::sampleKeys([], 1);
     }
 
     public function test_sampleKeys_with_replacement_empty(): void
     {
-        $this->expectExceptionMessage('$iterable must contain at least one element.');
         $this->expectException(EmptyNotAllowedException::class);
+        $this->expectExceptionMessage('$iterable must contain at least one element.');
         Arr::sampleKeys([], 1, true);
     }
 
@@ -2778,15 +2778,15 @@ final class ArrTest extends TestCase
 
     public function test_sampleMany_empty_without_replacement(): void
     {
-        $this->expectExceptionMessage('$iterable must contain at least one element.');
         $this->expectException(EmptyNotAllowedException::class);
+        $this->expectExceptionMessage('$iterable must contain at least one element.');
         Arr::sampleMany([], 1);
     }
 
     public function test_sampleMany_empty_with_replacement(): void
     {
-        $this->expectExceptionMessage('$iterable must contain at least one element.');
         $this->expectException(EmptyNotAllowedException::class);
+        $this->expectExceptionMessage('$iterable must contain at least one element.');
         Arr::sampleMany([], 1, true);
     }
 
@@ -3072,8 +3072,17 @@ final class ArrTest extends TestCase
 
         $randomizer = new Randomizer(new Xoshiro256StarStar(100));
 
-        self::assertSame([2, 3, 4, 2, 1], Arr::shuffle([1, 2, 2, 3, 4], null, $randomizer));
-        self::assertSame(['a' => 1, 'd' => 4, 'b' => 2, 'c' => 3], Arr::shuffle(['a' => 1, 'b' => 2, 'c' => 3, 'd' => 4], null, $randomizer));
+        self::assertSame(
+            [2, 3, 4, 2, 1],
+            Arr::shuffle([1, 2, 2, 3, 4], null, $randomizer),
+            'list without replacement',
+        );
+
+        self::assertSame(
+            ['a' => 1, 'd' => 4, 'b' => 2, 'c' => 3],
+            Arr::shuffle(['a' => 1, 'b' => 2, 'c' => 3, 'd' => 4], null, $randomizer),
+            'map without replacement',
+        );
 
         // reindex: false
         self::assertSame([0, 2, 4, 1, 3], array_keys(Arr::shuffle([1, 2, 2, 3, 4], false, $randomizer)));
@@ -3519,6 +3528,48 @@ final class ArrTest extends TestCase
 
         // reindex: false
         self::assertSame([1 => ''], Arr::takeIf([null, ''], static fn($v) => $v === '', reindex: false));
+    }
+
+    public function test_takeInstanceOf(): void
+    {
+        // Test with empty array
+        self::assertSame([], Arr::takeInstanceOf([], stdClass::class), 'empty array');
+
+        // Create test objects
+        $obj1 = new stdClass();
+        $obj2 = new DateTime();
+        $obj3 = new stdClass();
+
+        // Test with list - should filter to only stdClass instances
+        $list = [1, $obj1, 'string', $obj2, $obj3, null];
+        $result = Arr::takeInstanceOf($list, stdClass::class);
+        self::assertSame([$obj1, $obj3], $result, 'list with mixed types');
+
+        // Test with map - should preserve keys by default
+        $map = ['a' => 1, 'b' => $obj1, 'c' => 'string', 'd' => $obj2, 'e' => $obj3];
+        $result = Arr::takeInstanceOf($map, stdClass::class);
+        self::assertSame(['b' => $obj1, 'e' => $obj3], $result, 'map with mixed types');
+
+        // Test reindex: true - should reindex even for maps
+        $result = Arr::takeInstanceOf($map, stdClass::class, reindex: true);
+        self::assertSame([$obj1, $obj3], $result, 'map with reindex true');
+
+        // Test reindex: false - should preserve keys even for lists
+        $result = Arr::takeInstanceOf($list, stdClass::class, reindex: false);
+        self::assertSame([1 => $obj1, 4 => $obj3], $result, 'list with reindex false');
+
+        // Test with DateTime class
+        $result = Arr::takeInstanceOf($list, DateTime::class);
+        self::assertSame([$obj2], $result, 'filter for DateTime class');
+
+        // Test with no matching instances
+        $result = Arr::takeInstanceOf([1, 'string', null], stdClass::class);
+        self::assertSame([], $result, 'no matching instances');
+
+        // Test with all matching instances
+        $allObjects = [$obj1, $obj3];
+        $result = Arr::takeInstanceOf($allObjects, stdClass::class);
+        self::assertSame($allObjects, $result, 'all matching instances');
     }
 
     public function test_takeKeys(): void

@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace Kirameki\Storage;
 
-use Kirameki\Core\Exceptions\RuntimeException;
 use SplFileInfo;
-use function lchgrp;
-use function lchown;
 use function unlink;
 
 class Symlink extends Storable
