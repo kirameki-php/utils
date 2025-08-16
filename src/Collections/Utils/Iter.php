@@ -108,6 +108,7 @@ final class Iter
         foreach ($iterable as $key => $val) {
             if (!self::verifyBool($condition, $key, $val)) {
                 if ($reindex) {
+                    // @phpstan-ignore generator.keyType
                     yield $val;
                 } else {
                     yield $key => $val;
@@ -143,6 +144,7 @@ final class Iter
 
             if (!$drop) {
                 if ($reindex) {
+                    // @phpstan-ignore generator.keyType
                     yield $item;
                 } else {
                     yield $key => $item;
@@ -178,6 +180,7 @@ final class Iter
 
             if (!$drop) {
                 if ($reindex) {
+                    // @phpstan-ignore generator.keyType
                     yield $item;
                 } else {
                     yield $key => $item;
@@ -485,6 +488,7 @@ final class Iter
             }
 
             if ($reindex) {
+                // @phpstan-ignore generator.keyType
                 yield $val;
             } else {
                 yield $key => $val;
@@ -593,6 +597,7 @@ final class Iter
         foreach ($iterable as $key => $val) {
             if (self::verifyBool($condition, $key, $val)) {
                 if ($reindex) {
+                    // @phpstan-ignore generator.keyType
                     yield $val;
                 } else {
                     yield $key => $val;
