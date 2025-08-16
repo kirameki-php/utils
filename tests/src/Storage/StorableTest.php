@@ -906,4 +906,168 @@ final class StorableTest extends TestCase
             unlink($relativePath);
         }
     }
+
+    public function test_basename_for_simple_file(): void
+    {
+        $filePath = $this->testDir . '/simple_file.txt';
+        touch($filePath);
+
+        $file = new File($filePath);
+        $basename = $file->basename();
+
+        $this->assertSame('simple_file.txt', $basename);
+    }
+
+    public function test_basename_for_nested_file(): void
+    {
+        $nestedDir = $this->testDir . '/level1/level2';
+        mkdir($nestedDir, 0755, true);
+
+        $filePath = $nestedDir . '/nested_file.txt';
+        touch($filePath);
+
+        $file = new File($filePath);
+        $basename = $file->basename();
+
+        $this->assertSame('nested_file.txt', $basename);
+    }
+
+    public function test_basename_for_directory(): void
+    {
+        $dirPath = $this->testDir . '/test_directory';
+        mkdir($dirPath);
+
+        $directory = new Directory($dirPath);
+        $basename = $directory->basename();
+
+        $this->assertSame('test_directory', $basename);
+    }
+
+    public function test_basename_with_suffix(): void
+    {
+        $filePath = $this->testDir . '/test_file.txt';
+        touch($filePath);
+
+        $file = new File($filePath);
+        $basename = $file->basename('.txt');
+
+        $this->assertSame('test_file', $basename);
+    }
+
+    public function test_basename_with_partial_suffix(): void
+    {
+        $filePath = $this->testDir . '/test_file.txt';
+        touch($filePath);
+
+        $file = new File($filePath);
+        $basename = $file->basename('xt');
+
+        $this->assertSame('test_file.t', $basename);
+    }
+
+    public function test_basename_with_non_matching_suffix(): void
+    {
+        $filePath = $this->testDir . '/test_file.txt';
+        touch($filePath);
+
+        $file = new File($filePath);
+        $basename = $file->basename('.php');
+
+        $this->assertSame('test_file.txt', $basename);
+    }
+
+    public function test_basename_with_empty_suffix(): void
+    {
+        $filePath = $this->testDir . '/test_file.txt';
+        touch($filePath);
+
+        $file = new File($filePath);
+        $basename = $file->basename('');
+
+        $this->assertSame('test_file.txt', $basename);
+    }
+
+    public function test_basename_for_file_without_extension(): void
+    {
+        $filePath = $this->testDir . '/noextension';
+        touch($filePath);
+
+        $file = new File($filePath);
+        $basename = $file->basename();
+
+        $this->assertSame('noextension', $basename);
+    }
+
+    public function test_basename_for_hidden_file(): void
+    {
+        $filePath = $this->testDir . '/.hidden_file';
+        touch($filePath);
+
+        $file = new File($filePath);
+        $basename = $file->basename();
+
+        $this->assertSame('.hidden_file', $basename);
+    }
+
+    public function test_basename_for_file_with_multiple_dots(): void
+    {
+        $filePath = $this->testDir . '/file.with.multiple.dots.txt';
+        touch($filePath);
+
+        $file = new File($filePath);
+        $basename = $file->basename();
+
+        $this->assertSame('file.with.multiple.dots.txt', $basename);
+    }
+
+    public function test_basename_for_symlink(): void
+    {
+        $targetPath = $this->testDir . '/target_file.txt';
+        $symlinkPath = $this->testDir . '/my_symlink.txt';
+
+        touch($targetPath);
+        symlink($targetPath, $symlinkPath);
+
+        $symlink = new Symlink($symlinkPath);
+        $basename = $symlink->basename();
+
+        $this->assertSame('my_symlink.txt', $basename);
+    }
+
+    public function test_basename_with_suffix_for_symlink(): void
+    {
+        $targetPath = $this->testDir . '/target_file.txt';
+        $symlinkPath = $this->testDir . '/my_symlink.txt';
+
+        touch($targetPath);
+        symlink($targetPath, $symlinkPath);
+
+        $symlink = new Symlink($symlinkPath);
+        $basename = $symlink->basename('.txt');
+
+        $this->assertSame('my_symlink', $basename);
+    }
+
+    public function test_basename_consistency(): void
+    {
+        $filePath = $this->testDir . '/consistency_test.txt';
+        touch($filePath);
+
+        $file = new File($filePath);
+        $basename1 = $file->basename();
+        $basename2 = $file->basename();
+
+        $this->assertSame('consistency_test.txt', $basename1);
+        $this->assertSame($basename1, $basename2);
+    }
+
+    public function test_basename_for_root(): void
+    {
+        $rootPath = '/';
+        $directory = new Directory($rootPath);
+        $basename = $directory->basename();
+
+        // The basename for root should be empty or just '/'
+        $this->assertSame('', $basename);
+    }
 }
