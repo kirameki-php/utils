@@ -13,6 +13,8 @@ use function chown;
 use function clearstatcache;
 use function copy;
 use function dirname;
+use function dump;
+use function error_get_last;
 use function file_exists;
 use function rename;
 
@@ -226,16 +228,6 @@ abstract class Storable
     {
         chgrp($this->pathname, $gid);
         $this->info = $this->newFileInfo();
-    }
-
-    /**
-     * @param string $destination
-     * @return static
-     */
-    public function copyTo(string $destination): static
-    {
-        copy($this->pathname, $destination);
-        return new static($destination, $this->newFileInfo());
     }
 
     /**

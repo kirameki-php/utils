@@ -105,11 +105,7 @@ class Directory extends Storable
     public function createFile(string $name, string $contents): File
     {
         $filePath = $this->pathname . '/' . $name;
-
-        if (file_put_contents($filePath, $contents) === false) {
-            throw new RuntimeException("Failed to create file: {$filePath}");
-        }
-
+        file_put_contents($filePath, $contents);
         return new File($filePath);
     }
 

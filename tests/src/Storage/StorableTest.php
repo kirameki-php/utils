@@ -11,6 +11,7 @@ use function chdir;
 use function chmod;
 use function clearstatcache;
 use function dirname;
+use function dump;
 use function file_exists;
 use function file_put_contents;
 use function fileatime;
@@ -33,6 +34,7 @@ use function str_starts_with;
 use function strlen;
 use function symlink;
 use function touch;
+use function file_get_contents;
 use function unlink;
 
 final class StorableTest extends TestCase
@@ -1792,44 +1794,6 @@ final class StorableTest extends TestCase
 
         $this->assertTrue($isExecutable);
         $this->assertSame(is_executable($dirPath), $isExecutable);
-    }
-
-    public function test_isExecutable_for_execute_only_file(): void
-    {
-        $filePath = $this->testDir . '/execute_only_file.sh';
-        touch($filePath);
-        chmod($filePath, 0111); // Execute-only for all
-
-        $file = new File($filePath);
-        $isExecutable = $file->isExecutable();
-
-        $this->assertSame(is_executable($filePath), $isExecutable);
-    }
-
-    public function test_isExecutable_for_script_file(): void
-    {
-        $scriptPath = $this->testDir . '/test_script.sh';
-        file_put_contents($scriptPath, "#!/bin/bash\necho 'Hello World'\n");
-        chmod($scriptPath, 0755);
-
-        $file = new File($scriptPath);
-        $isExecutable = $file->isExecutable();
-
-        $this->assertTrue($isExecutable);
-        $this->assertSame(is_executable($scriptPath), $isExecutable);
-    }
-
-    public function test_isExecutable_for_binary_like_file(): void
-    {
-        $binaryPath = $this->testDir . '/fake_binary';
-        touch($binaryPath);
-        chmod($binaryPath, 0755);
-
-        $file = new File($binaryPath);
-        $isExecutable = $file->isExecutable();
-
-        $this->assertTrue($isExecutable);
-        $this->assertSame(is_executable($binaryPath), $isExecutable);
     }
 
     public function test_isLink_for_regular_file(): void

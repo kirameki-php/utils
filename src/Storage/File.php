@@ -6,6 +6,8 @@ namespace Kirameki\Storage;
 
 use Kirameki\Stream\FileStream;
 use Kirameki\Time\Instant;
+use SplFileInfo;
+use function copy;
 use function file_get_contents;
 use function file_put_contents;
 use function posix_getpid;
@@ -72,6 +74,16 @@ class File extends Storable
     public function delete(): void
     {
         unlink($this->pathname);
+    }
+
+    /**
+     * @param string $destination
+     * @return static
+     */
+    public function copyTo(string $destination): static
+    {
+        copy($this->pathname, $destination);
+        return new static($destination, new SplFileInfo($destination));
     }
 
     /**

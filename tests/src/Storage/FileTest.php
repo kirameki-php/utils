@@ -3,12 +3,20 @@
 namespace Tests\Kirameki\Storage;
 
 use Kirameki\Core\Exceptions\ErrorException;
+use Kirameki\Storage\FileType;
 use RuntimeException;
 use Kirameki\Storage\File;
 use Kirameki\Stream\FileStream;
 use Kirameki\Time\Instant;
+use function chmod;
+use function file_exists;
+use function file_get_contents;
 use function file_put_contents;
 use function filemtime;
+use function hash_file;
+use function mkdir;
+use function str_repeat;
+use function strlen;
 use function touch;
 
 final class FileTest extends TestCase
@@ -383,5 +391,177 @@ final class FileTest extends TestCase
         // Delete
         $file->delete();
         $this->assertFalse($file->exists());
+    }
+
+    public function test_file_copyTo_creates_exact_copy(): void
+    {
+        $originalPath = $this->testDir . '/original_file.txt';
+        $destinationPath = $this->testDir . '/copied_file.txt';
+        $content = 'Test content for File::copyTo()';
+
+        file_put_contents($originalPath, $content);
+        chmod($originalPath, 0644);
+
+        $originalFile = new File($originalPath);
+        $copiedFile = $originalFile->copyTo($destinationPath);
+
+        // Verify return value is a new File instance
+        $this->assertInstanceOf(File::class, $copiedFile);
+        $this->assertSame($destinationPath, $copiedFile->pathname);
+        $this->assertNotSame($originalFile, $copiedFile);
+
+        // Verify both files exist
+        $this->assertTrue(file_exists($originalPath));
+        $this->assertTrue(file_exists($destinationPath));
+
+        // Verify content is identical
+        $this->assertSame($content, $originalFile->read());
+        $this->assertSame($content, $copiedFile->read());
+        $this->assertSame($originalFile->bytes, $copiedFile->bytes);
+    }
+
+    public function test_file_copyTo_preserves_file_content_and_size(): void
+    {
+        $originalPath = $this->testDir . '/binary_test.dat';
+        $destinationPath = $this->testDir . '/binary_copy.dat';
+
+        // Create a file with binary content including null bytes
+        $binaryContent = "\x00\x01\x02\xFF\xFE\xFD" . str_repeat('A', 1000) . "\x00\x00";
+        file_put_contents($originalPath, $binaryContent);
+
+        $originalFile = new File($originalPath);
+        $copiedFile = $originalFile->copyTo($destinationPath);
+
+        // Verify exact content match
+        $this->assertSame($binaryContent, $copiedFile->read());
+        $this->assertSame(strlen($binaryContent), $copiedFile->bytes);
+        $this->assertSame($originalFile->bytes, $copiedFile->bytes);
+
+        // Verify files are byte-for-byte identical
+        $this->assertSame(
+            hash_file('sha256', $originalPath),
+            hash_file('sha256', $destinationPath)
+        );
+    }
+
+    public function test_file_copyTo_handles_large_files(): void
+    {
+        $originalPath = $this->testDir . '/large_file.txt';
+        $destinationPath = $this->testDir . '/large_copy.txt';
+
+        // Create a larger file (10KB)
+        $largeContent = str_repeat('Lorem ipsum dolor sit amet, consectetur adipiscing elit. ', 200);
+        file_put_contents($originalPath, $largeContent);
+
+        $originalFile = new File($originalPath);
+        $copiedFile = $originalFile->copyTo($destinationPath);
+
+        $this->assertInstanceOf(File::class, $copiedFile);
+        $this->assertSame(strlen($largeContent), $copiedFile->bytes);
+        $this->assertSame($originalFile->bytes, $copiedFile->bytes);
+
+        // Verify content integrity
+        $this->assertSame($largeContent, $copiedFile->read());
+    }
+
+    public function test_file_copyTo_updates_destination_file_info(): void
+    {
+        $originalPath = $this->testDir . '/source_file_info.txt';
+        $destinationPath = $this->testDir . '/dest_file_info.txt';
+        $content = 'Content for file info test';
+
+        file_put_contents($originalPath, $content);
+
+        $originalFile = new File($originalPath);
+        $copiedFile = $originalFile->copyTo($destinationPath);
+
+        // Verify the copied file has correct file info
+        $this->assertSame('dest_file_info.txt', $copiedFile->filename);
+        $this->assertSame('dest_file_info', $copiedFile->name);
+        $this->assertSame('txt', $copiedFile->extension);
+        $this->assertSame($this->testDir, $copiedFile->directory->pathname);
+        $this->assertTrue($copiedFile->exists());
+        $this->assertSame(FileType::File, $copiedFile->type);
+    }
+
+    public function test_file_copyTo_to_different_directory(): void
+    {
+        $originalPath = $this->testDir . '/source.txt';
+        $targetDir = $this->testDir . '/target_directory';
+        $destinationPath = $targetDir . '/destination.txt';
+
+        file_put_contents($originalPath, 'Moving to different directory');
+        mkdir($targetDir);
+
+        $originalFile = new File($originalPath);
+        $copiedFile = $originalFile->copyTo($destinationPath);
+
+        $this->assertInstanceOf(File::class, $copiedFile);
+        $this->assertSame($destinationPath, $copiedFile->pathname);
+        $this->assertSame($targetDir, $copiedFile->directory->pathname);
+        $this->assertTrue(file_exists($destinationPath));
+        $this->assertSame('Moving to different directory', $copiedFile->read());
+    }
+
+    public function test_file_copyTo_overwrites_existing_file(): void
+    {
+        $originalPath = $this->testDir . '/original.txt';
+        $destinationPath = $this->testDir . '/existing.txt';
+
+        file_put_contents($originalPath, 'New content');
+        file_put_contents($destinationPath, 'Old content that will be overwritten');
+
+        $originalFile = new File($originalPath);
+        $copiedFile = $originalFile->copyTo($destinationPath);
+
+        // Verify the destination file was overwritten
+        $this->assertSame('New content', $copiedFile->read());
+        $this->assertSame('New content', file_get_contents($destinationPath));
+
+        // Verify original file is unchanged
+        $this->assertSame('New content', $originalFile->read());
+    }
+
+    public function test_file_copyTo_with_special_characters_in_name(): void
+    {
+        $originalPath = $this->testDir . '/file with spaces & symbols!.txt';
+        $destinationPath = $this->testDir . '/copied file with spaces & symbols!.txt';
+        $content = 'Content with special filename';
+
+        file_put_contents($originalPath, $content);
+
+        $originalFile = new File($originalPath);
+        $copiedFile = $originalFile->copyTo($destinationPath);
+
+        $this->assertInstanceOf(File::class, $copiedFile);
+        $this->assertSame($content, $copiedFile->read());
+        $this->assertSame('copied file with spaces & symbols!.txt', $copiedFile->filename);
+        $this->assertTrue(file_exists($destinationPath));
+    }
+
+    public function test_file_copyTo_preserves_original_after_copy(): void
+    {
+        $originalPath = $this->testDir . '/preserve_test.txt';
+        $destinationPath = $this->testDir . '/preserve_copy.txt';
+        $originalContent = 'Original content';
+
+        file_put_contents($originalPath, $originalContent);
+
+        $originalFile = new File($originalPath);
+        $originalSize = $originalFile->bytes;
+        $originalFilename = $originalFile->filename;
+
+        $copiedFile = $originalFile->copyTo($destinationPath);
+
+        // Verify original file is completely unchanged
+        $this->assertSame($originalContent, $originalFile->read());
+        $this->assertSame($originalSize, $originalFile->bytes);
+        $this->assertSame($originalFilename, $originalFile->filename);
+        $this->assertTrue($originalFile->exists());
+
+        // Verify copy was created successfully
+        $this->assertSame($originalContent, $copiedFile->read());
+        $this->assertSame($originalSize, $copiedFile->bytes);
+        $this->assertTrue($copiedFile->exists());
     }
 }
