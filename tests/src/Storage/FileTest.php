@@ -9,12 +9,14 @@ use Kirameki\Storage\File;
 use Kirameki\Stream\FileStream;
 use Kirameki\Time\Instant;
 use function chmod;
+use function dump;
 use function file_exists;
 use function file_get_contents;
 use function file_put_contents;
 use function filemtime;
 use function hash_file;
 use function mkdir;
+use function stat;
 use function str_repeat;
 use function strlen;
 use function touch;
@@ -137,8 +139,8 @@ final class FileTest extends TestCase
         mkdir($dirPath);
 
         $file = new File($dirPath);
-
-        $this->expectErrorMessage("file_get_contents(): Read of 8192 bytes failed with errno=21 Is a directory");
+        $blockSize = (stat($file->pathname)['blksize'] ?? 0) * 2;
+        $this->expectErrorMessage("file_get_contents(): Read of {$blockSize} bytes failed with errno=21 Is a directory");
 
         $file->read();
     }
