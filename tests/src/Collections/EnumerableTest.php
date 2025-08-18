@@ -1705,6 +1705,43 @@ final class EnumerableTest extends TestCase
         $this->assertSame([], $this->map(['a' => 1, 'b' => 2])->takeIf(fn($v) => $v > 2)->all(), 'match none');
     }
 
+    public function test_takeInstanceOf(): void
+    {
+        // Test with empty collections
+        $this->assertSame([], $this->vec()->takeInstanceOf(stdClass::class)->all(), 'empty vec');
+        $this->assertSame([], $this->map()->takeInstanceOf(stdClass::class)->all(), 'empty map');
+
+        // Create test objects
+        $obj1 = new stdClass();
+        $obj2 = new DateTime();
+        $obj3 = new stdClass();
+
+        // Test with Vec - should filter to only stdClass instances
+        $result = $this->vec([1, $obj1, 'string', $obj2, $obj3, null])->takeInstanceOf(stdClass::class);
+        $this->assertSame([$obj1, $obj3], $result->all(), 'vec with mixed types');
+
+        // Test with Map - should preserve keys
+        $result = $this->map(['a' => 1, 'b' => $obj1, 'c' => 'string', 'd' => $obj2, 'e' => $obj3])
+            ->takeInstanceOf(stdClass::class);
+        $this->assertSame(['b' => $obj1, 'e' => $obj3], $result->all(), 'map with mixed types');
+
+        // Test with DateTime class
+        $result = $this->vec([1, $obj1, 'string', $obj2, $obj3, null])->takeInstanceOf(DateTime::class);
+        $this->assertSame([$obj2], $result->all(), 'filter for DateTime class');
+
+        // Test with no matching instances
+        $result = $this->vec([1, 'string', null])->takeInstanceOf(stdClass::class);
+        $this->assertSame([], $result->all(), 'no matching instances');
+
+        // Test with all matching instances
+        $result = $this->vec([$obj1, $obj3])->takeInstanceOf(stdClass::class);
+        $this->assertSame([$obj1, $obj3], $result->all(), 'all matching instances');
+
+        // Test with Map containing all matching instances
+        $result = $this->map(['x' => $obj1, 'y' => $obj3])->takeInstanceOf(stdClass::class);
+        $this->assertSame(['x' => $obj1, 'y' => $obj3], $result->all(), 'map all matching');
+    }
+
     public function test_takeLast(): void
     {
         $this->assertSame([], $this->vec([1, 2])->takeLast(0)->all(), 'take none');

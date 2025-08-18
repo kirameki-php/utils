@@ -626,7 +626,7 @@ final class Iter
     ): Generator
     {
         if (!class_exists($class)) {
-            throw new InvalidArgumentException("Class: {$class} does not exist.", [
+            throw new InvalidArgumentException("Class: \"{$class}\" does not exist.", [
                 'iterable' => $iterable,
                 'class' => $class,
             ]);

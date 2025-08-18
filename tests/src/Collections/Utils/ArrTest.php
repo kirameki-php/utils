@@ -3572,6 +3572,13 @@ final class ArrTest extends TestCase
         self::assertSame($allObjects, $result, 'all matching instances');
     }
 
+    public function test_takeInstanceOf_fail_on_invalid_class(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Class: "NonExistentClass" does not exist.');
+        Arr::takeInstanceOf([1, 2, 3], 'NonExistentClass');
+    }
+
     public function test_takeKeys(): void
     {
         self::assertSame([], Arr::takeKeys([], []), 'empty');
