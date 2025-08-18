@@ -28,6 +28,7 @@ use function is_writable;
 use function mkdir;
 use function posix_getgrgid;
 use function posix_getpwuid;
+use function readlink;
 use function realpath;
 use function rmdir;
 use function str_starts_with;
@@ -2501,5 +2502,163 @@ final class StorableTest extends TestCase
         $this->assertSame($fileGid, $file->gid);
         $this->assertSame($dirGid, $directory->gid);
         $this->assertSame($symlinkGid, $symlink->gid);
+    }
+
+    public function test_moveTo_file_to_same_directory(): void
+    {
+        $originalPath = $this->testDir . '/original_file.txt';
+        $newPath = $this->testDir . '/moved_file.txt';
+
+        file_put_contents($originalPath, 'test content');
+        $file = new File($originalPath);
+
+        // Verify original state
+        $this->assertTrue($file->exists());
+        $this->assertSame($originalPath, $file->pathname);
+        $this->assertSame('test content', $file->read());
+
+        // Move the file
+        $file->moveTo($newPath);
+
+        // Verify new state
+        $this->assertSame($newPath, $file->pathname);
+        $this->assertTrue($file->exists());
+        $this->assertSame('test content', $file->read());
+        $this->assertSame('moved_file.txt', $file->filename);
+
+        // Verify original file no longer exists
+        $this->assertFalse(file_exists($originalPath));
+        $this->assertTrue(file_exists($newPath));
+    }
+
+    public function test_moveTo_file_to_different_directory(): void
+    {
+        $targetDir = $this->testDir . '/target_directory';
+        mkdir($targetDir);
+
+        $originalPath = $this->testDir . '/file_to_move.txt';
+        $newPath = $targetDir . '/moved_file.txt';
+
+        file_put_contents($originalPath, 'content to move');
+        $file = new File($originalPath);
+
+        $originalDirectory = $file->directory;
+
+        // Move the file
+        $file->moveTo($newPath);
+
+        // Verify pathname updated
+        $this->assertSame($newPath, $file->pathname);
+        $this->assertTrue($file->exists());
+        $this->assertSame('content to move', $file->read());
+
+        // Verify directory updated
+        $newDirectory = $file->directory;
+        $this->assertNotSame($originalDirectory, $newDirectory);
+        $this->assertSame($targetDir, $newDirectory->pathname);
+
+        // Verify files moved correctly
+        $this->assertFalse(file_exists($originalPath));
+        $this->assertTrue(file_exists($newPath));
+    }
+
+    public function test_moveTo_directory(): void
+    {
+        $originalDirPath = $this->testDir . '/original_dir';
+        $newDirPath = $this->testDir . '/moved_dir';
+
+        mkdir($originalDirPath);
+        file_put_contents($originalDirPath . '/test_file.txt', 'test content');
+
+        $directory = new Directory($originalDirPath);
+
+        // Verify original state
+        $this->assertTrue($directory->exists());
+        $this->assertSame($originalDirPath, $directory->pathname);
+        $this->assertTrue(file_exists($originalDirPath . '/test_file.txt'));
+
+        // Move the directory
+        $directory->moveTo($newDirPath);
+
+        // Verify new state
+        $this->assertSame($newDirPath, $directory->pathname);
+        $this->assertTrue($directory->exists());
+        $this->assertSame('moved_dir', $directory->filename);
+
+        // Verify directory and contents moved
+        $this->assertFalse(file_exists($originalDirPath));
+        $this->assertTrue(file_exists($newDirPath));
+        $this->assertTrue(file_exists($newDirPath . '/test_file.txt'));
+        $this->assertSame('test content', file_get_contents($newDirPath . '/test_file.txt'));
+    }
+
+    public function test_moveTo_directory_to_nested_path(): void
+    {
+        $originalDirPath = $this->testDir . '/source_dir';
+        $targetParentDir = $this->testDir . '/target/nested';
+        $newDirPath = $targetParentDir . '/moved_dir';
+
+        mkdir($originalDirPath);
+        mkdir($targetParentDir, 0755, true);
+        file_put_contents($originalDirPath . '/nested_file.txt', 'nested content');
+
+        $directory = new Directory($originalDirPath);
+        $originalParentDirectory = $directory->directory;
+
+        // Move the directory
+        $directory->moveTo($newDirPath);
+
+        // Verify pathname and directory updated
+        $this->assertSame($newDirPath, $directory->pathname);
+        $newParentDirectory = $directory->directory;
+        $this->assertNotSame($originalParentDirectory, $newParentDirectory);
+        $this->assertSame($targetParentDir, $newParentDirectory->pathname);
+
+        // Verify move was successful
+        $this->assertFalse(file_exists($originalDirPath));
+        $this->assertTrue(file_exists($newDirPath));
+        $this->assertTrue(file_exists($newDirPath . '/nested_file.txt'));
+    }
+
+    public function test_moveTo_symlink(): void
+    {
+        $targetFile = $this->testDir . '/target_file.txt';
+        $originalSymlinkPath = $this->testDir . '/original_symlink';
+        $newSymlinkPath = $this->testDir . '/moved_symlink';
+
+        file_put_contents($targetFile, 'target content');
+        symlink($targetFile, $originalSymlinkPath);
+
+        $symlink = new Symlink($originalSymlinkPath);
+
+        $this->assertTrue($symlink->exists());
+        $this->assertSame($originalSymlinkPath, $symlink->pathname);
+        $this->assertTrue(is_link($originalSymlinkPath));
+
+        $symlink->moveTo($newSymlinkPath);
+
+        $this->assertSame($newSymlinkPath, $symlink->pathname);
+        $this->assertTrue($symlink->exists());
+        $this->assertSame('moved_symlink', $symlink->filename);
+        $this->assertTrue(is_link($newSymlinkPath));
+
+        $this->assertSame($targetFile, readlink($newSymlinkPath));
+
+        $this->assertFalse(file_exists($originalSymlinkPath));
+        $this->assertFalse(is_link($originalSymlinkPath));
+    }
+
+    public function test_moveTo_updates_info_property(): void
+    {
+        $originalPath = $this->testDir . '/info_test.txt';
+        file_put_contents($originalPath, 'info content');
+        $file = new File($originalPath);
+        $this->assertSame($originalPath, $file->pathname);
+
+        $newPath = $this->testDir . '/moved_info_test.txt';
+        $file->moveTo($newPath);
+
+        $this->assertSame($newPath, $file->pathname);
+        $this->assertSame(filesize($newPath), $file->bytes);
     }
 }
