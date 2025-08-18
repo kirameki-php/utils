@@ -20,7 +20,7 @@ class TestCase extends BaseTestCase
     #[Before]
     protected function createTestDir(): void
     {
-        $this->testDir = '/tmp/phpunit_storage_' . uniqid();
+        $this->testDir = '/tmp/phpunit_storage_' . $this->name() . '_' . uniqid();
         mkdir($this->testDir);
     }
 
