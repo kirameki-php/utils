@@ -1,7 +1,6 @@
 services:
   app:
     image: toyama4649/kirameki-php-cli:latest
-    user: www-data
     environment:
       TZ: "Asia/Tokyo"
     volumes:

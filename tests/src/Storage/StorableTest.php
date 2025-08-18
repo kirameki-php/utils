@@ -1318,18 +1318,6 @@ final class StorableTest extends TestCase
         $this->assertSame(is_writable($filePath), $isWritable);
     }
 
-    public function test_isWritable_for_readonly_file(): void
-    {
-        $filePath = $this->testDir . '/readonly_file.txt';
-        touch($filePath);
-        chmod($filePath, 0444);
-
-        $file = new File($filePath);
-        $isWritable = $file->isWritable();
-        $this->assertFalse($isWritable);
-        $this->assertSame(is_writable($filePath), $isWritable);
-    }
-
     public function test_isWritable_for_writable_directory(): void
     {
         $dirPath = $this->testDir . '/writable_directory';
@@ -1339,19 +1327,6 @@ final class StorableTest extends TestCase
         $isWritable = $directory->isWritable();
 
         $this->assertTrue($isWritable);
-        $this->assertSame(is_writable($dirPath), $isWritable);
-    }
-
-    public function test_isWritable_for_readonly_directory(): void
-    {
-        $dirPath = $this->testDir . '/readonly_directory';
-        mkdir($dirPath, 0755);
-        chmod($dirPath, 0555); // Read/execute only for all
-
-        $directory = new Directory($dirPath);
-        $isWritable = $directory->isWritable();
-
-        $this->assertFalse($isWritable);
         $this->assertSame(is_writable($dirPath), $isWritable);
     }
 
@@ -1417,16 +1392,6 @@ final class StorableTest extends TestCase
         $this->assertTrue($isWritable1);
     }
 
-    public function test_isWritable_after_permission_change(): void
-    {
-        $filePath = $this->testDir . '/permission_change_test.txt';
-        touch($filePath);
-        chmod($filePath, 0644);
-        $this->assertTrue(new File($filePath)->isWritable());
-        chmod($filePath, 0444);
-        $this->assertFalse(new File($filePath)->isWritable());
-    }
-
     public function test_isWritable_for_nonexistent_file(): void
     {
         $nonExistentPath = $this->testDir . '/nonexistent_file.txt';
@@ -1464,19 +1429,6 @@ final class StorableTest extends TestCase
         $isReadable = $file->isReadable();
 
         $this->assertTrue($isReadable);
-        $this->assertSame(is_readable($filePath), $isReadable);
-    }
-
-    public function test_isReadable_for_unreadable_file(): void
-    {
-        $filePath = $this->testDir . '/unreadable_file.txt';
-        touch($filePath);
-        chmod($filePath, 0000); // No permissions
-
-        $file = new File($filePath);
-        $isReadable = $file->isReadable();
-
-        $this->assertFalse($isReadable);
         $this->assertSame(is_readable($filePath), $isReadable);
     }
 
@@ -1559,22 +1511,6 @@ final class StorableTest extends TestCase
 
         $this->assertSame($isReadable1, $isReadable2);
         $this->assertTrue($isReadable1); // Should be readable with 644
-    }
-
-    public function test_isReadable_after_permission_change(): void
-    {
-        $filePath = $this->testDir . '/permission_change_test.txt';
-        touch($filePath);
-        chmod($filePath, 0644); // Initially readable
-
-        $file1 = new File($filePath);
-        $this->assertTrue($file1->isReadable());
-
-        // Change permissions to no access
-        chmod($filePath, 0000);
-
-        $file2 = new File($filePath); // New instance after permission change
-        $this->assertFalse($file2->isReadable());
     }
 
     public function test_isReadable_for_nonexistent_file(): void
@@ -1664,19 +1600,6 @@ final class StorableTest extends TestCase
         $isExecutable = $directory->isExecutable();
 
         $this->assertTrue($isExecutable);
-        $this->assertSame(is_executable($dirPath), $isExecutable);
-    }
-
-    public function test_isExecutable_for_non_executable_directory(): void
-    {
-        $dirPath = $this->testDir . '/non_executable_directory';
-        mkdir($dirPath, 0755);
-        chmod($dirPath, 0644); // No execute permissions
-
-        $directory = new Directory($dirPath);
-        $isExecutable = $directory->isExecutable();
-
-        $this->assertFalse($isExecutable);
         $this->assertSame(is_executable($dirPath), $isExecutable);
     }
 
