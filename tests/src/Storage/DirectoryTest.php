@@ -7,16 +7,22 @@ use Kirameki\Storage\File;
 use Kirameki\Storage\FileType;
 use Kirameki\Storage\Storable;
 use Kirameki\Storage\Symlink;
+use function file_exists;
+use function file_get_contents;
+use function file_put_contents;
+use function fileperms;
+use function filesize;
+use function is_dir;
+use function is_link;
 use function mkdir;
+use function pack;
+use function str_repeat;
 use function symlink;
 use function touch;
+use const PHP_EOL;
 
 final class DirectoryTest extends TestCase
 {
-//    public function test_tt(): void
-//    {
-//    }
-
     public function test_scan_empty_directory(): void
     {
         $directory = new Directory($this->testDir);

@@ -11,7 +11,6 @@ use function chdir;
 use function chmod;
 use function clearstatcache;
 use function dirname;
-use function dump;
 use function file_exists;
 use function file_put_contents;
 use function fileatime;

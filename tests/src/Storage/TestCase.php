@@ -8,7 +8,6 @@ use PHPUnit\Framework\Attributes\After;
 use PHPUnit\Framework\Attributes\Before;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use function is_link;
 use function mkdir;
 use function rmdir;
 use function uniqid;

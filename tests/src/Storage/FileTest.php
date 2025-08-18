@@ -13,12 +13,15 @@ use function dump;
 use function file_exists;
 use function file_get_contents;
 use function file_put_contents;
+use function fileatime;
 use function filemtime;
+use function fileperms;
 use function hash_file;
 use function mkdir;
 use function stat;
 use function str_repeat;
 use function strlen;
+use function strtotime;
 use function touch;
 
 final class FileTest extends TestCase
