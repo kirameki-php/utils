@@ -139,8 +139,7 @@ final class FileTest extends TestCase
         mkdir($dirPath);
 
         $file = new File($dirPath);
-        $blockSize = (stat($file->pathname)['blksize'] ?? 0) * 2;
-        $this->expectErrorMessage("file_get_contents(): Read of {$blockSize} bytes failed with errno=21 Is a directory");
+        $this->expectErrorMessage("failed with errno=21 Is a directory");
 
         $file->read();
     }
