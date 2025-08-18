@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\After;
 use PHPUnit\Framework\Attributes\Before;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use function is_link;
 use function mkdir;
 use function rmdir;
 use function uniqid;
@@ -36,9 +37,15 @@ class TestCase extends BaseTestCase
             RecursiveIteratorIterator::CHILD_FIRST
         );
         foreach ($iterator as $file) {
-            $file->isDir()
-                ? rmdir($file->getPathname())
-                : unlink($file->getPathname());
+            if ($file->isLink()) {
+                unlink($file->getPathname());
+                continue;
+            }
+            if ($file->isFile()) {
+                unlink($file->getPathname());
+                continue;
+            }
+            rmdir($file->getPathname());
         }
         rmdir($this->testDir);
     }
