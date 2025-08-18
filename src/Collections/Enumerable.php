@@ -1426,10 +1426,11 @@ trait Enumerable
      * @template TClass of object
      * @param class-string<TClass> $class
      * Class name to check against.
-     * @return $this
+     * @return static
      */
     public function takeInstanceOf(string $class): static
     {
+        // @phpstan-ignore argument.type
         return $this->instantiate(Iter::takeInstanceOf($this, $class, $this->reindex()));
     }
 
