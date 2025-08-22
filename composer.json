@@ -8,6 +8,7 @@
     "ext-bcmath": "*",
     "ext-intl": "*",
     "ext-mbstring": "*",
+    "ext-pcntl": "*",
     "ext-posix": "*",
     "psr/clock": "^1.0",
     "south-pointe/ansi": "dev-main"
