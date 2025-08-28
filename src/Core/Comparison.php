@@ -13,7 +13,7 @@ trait Comparison
      * @param self $other
      * @return bool
      */
-    public function isEqualTo(self $other): bool
+    public function isEqualTo(Comparable $other): bool
     {
         return $this->compareTo($other) === 0;
     }
@@ -22,7 +22,7 @@ trait Comparison
      * @param self $other
      * @return bool
      */
-    public function isNotEqualTo(self $other): bool
+    public function isNotEqualTo(Comparable $other): bool
     {
         return $this->compareTo($other) !== 0;
     }
@@ -31,7 +31,7 @@ trait Comparison
      * @param self $other
      * @return bool
      */
-    public function isLessThan(self $other): bool
+    public function isLessThan(Comparable $other): bool
     {
         return $this->compareTo($other) < 0;
     }
@@ -40,7 +40,7 @@ trait Comparison
      * @param self $other
      * @return bool
      */
-    public function isLessThanOrEqualTo(self $other): bool
+    public function isLessThanOrEqualTo(Comparable $other): bool
     {
         return $this->compareTo($other) <= 0;
     }
@@ -49,7 +49,7 @@ trait Comparison
      * @param self $other
      * @return bool
      */
-    public function isGreaterThan(self $other): bool
+    public function isGreaterThan(Comparable $other): bool
     {
         return $this->compareTo($other) > 0;
     }
@@ -58,7 +58,7 @@ trait Comparison
      * @param self $other
      * @return bool
      */
-    public function isGreaterThanOrEqualTo(self $other): bool
+    public function isGreaterThanOrEqualTo(Comparable $other): bool
     {
         return $this->compareTo($other) >= 0;
     }
