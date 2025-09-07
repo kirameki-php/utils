@@ -2,7 +2,7 @@
 
 namespace Kirameki\Http;
 
-enum Method: string
+enum HttpMethod: string
 {
     case CONNECT = 'CONNECT';
     case DELETE = 'DELETE';
