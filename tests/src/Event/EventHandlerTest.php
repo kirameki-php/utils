@@ -207,7 +207,7 @@ final class EventHandlerTest extends TestCase
         $emitted = 0;
         $handler->append(new CallbackListener(Event::class, function(Event $e) use (&$emitted) {
             $e->cancel();
-            $this->assertTrue($e->isCanceled());
+            $this->assertTrue($e->isCancelled());
             $emitted++;
         }));
         $handler->append(new CallbackListener(Event::class, function(Event $e) use (&$emitted) {
@@ -216,7 +216,7 @@ final class EventHandlerTest extends TestCase
 
         $canceled = false;
         $this->assertSame(1, $handler->emit($event, $canceled));
-        $this->assertFalse($event->isCanceled());
+        $this->assertFalse($event->isCancelled());
         $this->assertSame(1, $emitted);
         $this->assertTrue($canceled);
         $this->assertSame(1, $handler->emit($event));

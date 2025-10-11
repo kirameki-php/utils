@@ -11,10 +11,7 @@ use function chgrp;
 use function chmod;
 use function chown;
 use function clearstatcache;
-use function copy;
 use function dirname;
-use function dump;
-use function error_get_last;
 use function file_exists;
 use function rename;
 
@@ -113,6 +110,26 @@ abstract class Storable
      * @var SplFileInfo
      */
     protected SplFileInfo $info;
+
+    /**
+     * @param SplFileInfo $info
+     * @param bool $followSymlink
+     * @return Directory|File|Symlink
+     */
+    public static function fromInfo(SplFileInfo $info, bool $followSymlink = true): self
+    {
+        if ($followSymlink) {
+            return ($info->isDir())
+                ? new Directory($info->getPathname(), $info)
+                : new File($info->getPathname(), $info);
+        }
+
+        return match ($info->getType()) {
+            'link' => new Symlink($info->getPathname(), $info),
+            'dir' => new Directory($info->getPathname(), $info),
+            default => new File($info->getPathname(), $info),
+        };
+    }
 
     /**
      * @param string $pathname

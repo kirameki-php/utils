@@ -61,17 +61,8 @@ class Directory extends Storable
             $iterator = new RecursiveIteratorIterator($iterator);
         }
 
-        foreach ($iterator as $pathname => $info) {
-            $type = $info->getType();
-
-            if ($type === 'link' && !$followSymlinks) {
-                yield new Symlink($pathname, $info);
-                continue;
-            }
-
-            yield ($type === 'dir')
-                ? new Directory($pathname, $info)
-                : new File($pathname, $info);
+        foreach ($iterator as $info) {
+            yield Storable::fromInfo($info, $followSymlinks);
         }
     }
 
