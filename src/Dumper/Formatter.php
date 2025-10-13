@@ -11,11 +11,13 @@ use Kirameki\Dumper\Handlers\ClassHandlerFactory;
 use Kirameki\Dumper\Handlers\ClosureHandler;
 use Kirameki\Dumper\Handlers\DateTimeHandler;
 use Kirameki\Dumper\Handlers\EnumHandler;
+use Kirameki\Dumper\Handlers\SplFileInfoHandler;
 use Kirameki\Dumper\Handlers\NullHandler;
 use Kirameki\Dumper\Handlers\PlaceholderHandler;
 use Kirameki\Dumper\Handlers\ResourceHandler;
 use Kirameki\Dumper\Handlers\ScalarHandler;
 use Kirameki\Dumper\Handlers\ThrowableHandler;
+use SplFileInfo;
 use Throwable;
 use UnitEnum;
 use function get_debug_type;
@@ -25,6 +27,7 @@ use function is_object;
 use function is_resource;
 use function is_scalar;
 use function spl_object_id;
+use function var_dump;
 
 class Formatter
 {
@@ -184,6 +187,7 @@ class Formatter
         return [
             Closure::class => fn() => new ClosureHandler($this, $this->decorator, $this->config),
             DateTimeInterface::class => fn() => new DateTimeHandler($this, $this->decorator, $this->config),
+            SplFileInfo::class => fn() => new SplFileInfoHandler($this, $this->decorator, $this->config),
             Throwable::class => fn() => new ThrowableHandler($this, $this->decorator, $this->config),
             Placeholder::class => fn() => new PlaceholderHandler($this, $this->decorator, $this->config),
             UnitEnum::class => fn() => new EnumHandler($this, $this->decorator, $this->config),

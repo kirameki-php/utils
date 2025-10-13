@@ -9,8 +9,8 @@ use Generator;
 use Kirameki\Collections\Vec;
 use Kirameki\Core\Exceptions\RuntimeException;
 use RecursiveDirectoryIterator;
-use RecursiveIterator;
 use RecursiveIteratorIterator;
+use SplFileInfo;
 use function clearstatcache;
 use function file_put_contents;
 use function is_dir;
@@ -26,13 +26,7 @@ class Directory extends Storable
      */
     public function scan(bool $followSymlinks = true): Vec
     {
-        $flags = FilesystemIterator::SKIP_DOTS;
-        if (!$followSymlinks) {
-            $flags |= FilesystemIterator::FOLLOW_SYMLINKS;
-        }
-
-        $iterator = new FilesystemIterator($this->pathname, $flags);
-        return new Vec($this->iterate($iterator, $followSymlinks));
+        return new Vec($this->iterate($followSymlinks));
     }
 
     /**
@@ -41,28 +35,46 @@ class Directory extends Storable
      */
     public function scanRecursively(bool $followSymlinks = true): Vec
     {
+        return new Vec($this->iterateRecursive($followSymlinks));
+    }
+
+    /**
+     * @param bool $followSymlinks
+     * @return ($followSymlinks is true ? Generator<Directory|File> : Generator<Directory|File|Symlink>)
+     */
+    protected function iterate(bool $followSymlinks): Generator
+    {
         $flags = FilesystemIterator::SKIP_DOTS;
+        $flags |= FilesystemIterator::CURRENT_AS_FILEINFO;
+
         if (!$followSymlinks) {
             $flags |= FilesystemIterator::FOLLOW_SYMLINKS;
         }
 
-        $iterator = new RecursiveDirectoryIterator($this->pathname, $flags);
-        return new Vec($this->iterate($iterator, $followSymlinks));
+        foreach (new FilesystemIterator($this->pathname, $flags) as $info) {
+            /** @var SplFileInfo $info */
+            yield Storable::fromInfo($info, $followSymlinks);
+        }
     }
 
-    /**
-     * @param FilesystemIterator $iterator
-     * @param bool $followSymlinks
-     * @return ($followSymlinks is true ? Generator<Directory|File> : Generator<Directory|File|Symlink>)
-     */
-    protected function iterate(iterable $iterator, bool $followSymlinks): Generator
+    protected function iterateRecursive(
+        bool $followSymlinks,
+        int $maxDepth = 10,
+        int $currentDepth = 0,
+    ): Generator
     {
-        if ($iterator instanceof RecursiveIterator) {
-            $iterator = new RecursiveIteratorIterator($iterator);
+        if ($currentDepth > $maxDepth) {
+            throw new RuntimeException("Maximum directory recursion depth of {$maxDepth} exceeded.");
         }
 
-        foreach ($iterator as $info) {
-            yield Storable::fromInfo($info, $followSymlinks);
+        foreach ($this->iterate($followSymlinks) as $storable) {
+            if ($storable instanceof Directory) {
+                foreach ($storable->iterateRecursive($followSymlinks, $maxDepth, $currentDepth + 1) as $child) {
+                    yield $child;
+                }
+            } else {
+                yield $storable;
+            }
         }
     }
 

@@ -7,6 +7,7 @@ use Kirameki\Storage\File;
 use Kirameki\Storage\FileType;
 use Kirameki\Storage\Storable;
 use Kirameki\Storage\Symlink;
+use function dump;
 use function file_exists;
 use function file_get_contents;
 use function file_put_contents;
@@ -89,8 +90,8 @@ final class DirectoryTest extends TestCase
         $files = $directory->scan();
 
         $this->assertCount(4, $files); // original.txt + symlink_file.txt + original_dir + symlink_dir
-        $this->assertCount(3, $files->filter(fn($s) => $s instanceof File)); // both treated as files
-        $this->assertCount(1, $files->filter(fn($s) => $s instanceof Directory)); // both treated as directories
+        $this->assertCount(2, $files->filter(fn($s) => $s instanceof File)); // both treated as files
+        $this->assertCount(2, $files->filter(fn($s) => $s instanceof Directory)); // both treated as directories
         $this->assertCount(0, $files->filter(fn($s) => $s instanceof Symlink)); // no symlinks when following
 
         $this->assertSame([
@@ -189,14 +190,19 @@ final class DirectoryTest extends TestCase
         touch($this->testDir . '/dir1/file1.txt');
         mkdir($this->testDir . '/dir2');
         touch($this->testDir . '/dir2/file2.txt');
+        mkdir('/tmp/dir3');
+        touch('/tmp/dir3/file3.txt');
+        $this->runAfterTearDown(fn() => file_exists('/tmp/dir3/file3.txt') ? unlink('/tmp/dir3/file3.txt') : null);
+        $this->runAfterTearDown(fn() => is_dir('/tmp/dir3') ? rmdir('/tmp/dir3') : null);
         symlink($this->testDir . '/dir1/file1.txt', $this->testDir . '/symlink_file.txt');
         symlink($this->testDir . '/dir2', $this->testDir . '/symlink_dir');
+        symlink('/tmp/dir3', $this->testDir . '/symlink_outside_dir');
 
         $files = new Directory($this->testDir)->scanRecursively();
 
-        $this->assertCount(4, $files);
+        $this->assertCount(5, $files);
         $this->assertCount(0, $files->filter(fn($s) => $s instanceof Symlink));
-        $this->assertCount(4, $files->filter(fn($s) => $s instanceof File));
+        $this->assertCount(5, $files->filter(fn($s) => $s instanceof File));
         $this->assertCount(0, $files->filter(fn($s) => $s instanceof Directory));
     }
 
@@ -212,8 +218,8 @@ final class DirectoryTest extends TestCase
         $files = new Directory($this->testDir)->scanRecursively(false);
 
         $this->assertCount(4, $files);
-        $this->assertCount(1, $files->filter(fn($s) => $s instanceof Symlink));
-        $this->assertCount(3, $files->filter(fn($s) => $s instanceof File));
+        $this->assertCount(2, $files->filter(fn($s) => $s instanceof Symlink));
+        $this->assertCount(2, $files->filter(fn($s) => $s instanceof File));
         $this->assertCount(0, $files->filter(fn($s) => $s instanceof Directory));
     }
 

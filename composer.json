@@ -14,14 +14,16 @@
     "south-pointe/ansi": "dev-main"
   },
   "require-dev": {
-    "kirameki/dumper": "dev-main",
     "phpstan/phpstan": "^2",
     "phpunit/phpunit": "^12"
   },
   "autoload": {
     "psr-4": {
       "Kirameki\\": "src/"
-    }
+    },
+    "files": [
+      "src/Dumper/functions.php"
+    ]
   },
   "autoload-dev": {
     "psr-4": {
