@@ -2,11 +2,13 @@
 
 namespace Tests\Kirameki\Storage;
 
+use Kirameki\Core\Exceptions\OverLimitException;
 use Kirameki\Storage\Directory;
 use Kirameki\Storage\File;
 use Kirameki\Storage\FileType;
 use Kirameki\Storage\Storable;
 use Kirameki\Storage\Symlink;
+use RuntimeException;
 use function dump;
 use function file_exists;
 use function file_get_contents;
@@ -242,6 +244,22 @@ final class DirectoryTest extends TestCase
             'file2.txt',
             'file3.txt',
         ], $files->map(fn(Storable $s) => $s->basename())->sortAsc()->toArray());
+    }
+
+    public function test_scanRecursively_depth_over_limit(): void
+    {
+        $this->expectException(OverLimitException::class);
+        $this->expectExceptionMessage('Maximum directory recursion depth of 2 exceeded.');
+
+        $currentPath = $this->testDir;
+        for ($i = 1; $i <= 3; $i++) {
+            $currentPath .= "/level{$i}";
+            mkdir($currentPath);
+            touch($currentPath . "/file{$i}.txt");
+        }
+
+        $directory = new Directory($this->testDir);
+        $files = $directory->scanRecursively(maxDepth: 2);
     }
 
     public function test_createSubDirectory_new_directory(): void

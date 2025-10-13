@@ -7,6 +7,7 @@ namespace Kirameki\Storage;
 use FilesystemIterator;
 use Generator;
 use Kirameki\Collections\Vec;
+use Kirameki\Core\Exceptions\OverLimitException;
 use Kirameki\Core\Exceptions\RuntimeException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -33,9 +34,9 @@ class Directory extends Storable
      * @param bool $followSymlinks
      * @return ($followSymlinks is true ? Vec<Directory|File> : Vec<Directory|File|Symlink>)
      */
-    public function scanRecursively(bool $followSymlinks = true): Vec
+    public function scanRecursively(bool $followSymlinks = true, int $maxDepth = 30): Vec
     {
-        return new Vec($this->iterateRecursive($followSymlinks));
+        return new Vec($this->iterateRecursive($followSymlinks, $maxDepth));
     }
 
     /**
@@ -59,12 +60,12 @@ class Directory extends Storable
 
     protected function iterateRecursive(
         bool $followSymlinks,
-        int $maxDepth = 10,
+        int $maxDepth = 30,
         int $currentDepth = 0,
     ): Generator
     {
         if ($currentDepth > $maxDepth) {
-            throw new RuntimeException("Maximum directory recursion depth of {$maxDepth} exceeded.");
+            throw new OverLimitException("Maximum directory recursion depth of {$maxDepth} exceeded.");
         }
 
         foreach ($this->iterate($followSymlinks) as $storable) {

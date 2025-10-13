@@ -6,11 +6,12 @@ namespace Kirameki\Storage;
 
 use SplFileInfo;
 use Stringable;
+use function array_filter;
 use function array_pop;
 use function explode;
 use function implode;
 
-class Path implements Stringable
+final class Path implements Stringable
 {
     /**
      * Combines multiple paths into one, ensuring there are no duplicate slashes.
@@ -24,10 +25,15 @@ class Path implements Stringable
         return preg_replace('#/+#', '/', implode('/', $filtered)) ?: '';
     }
 
+    public static function of(string $path): self
+    {
+        return new self($path);
+    }
+
     /**
      * @param string $value
      */
-    public function __construct(
+    protected function __construct(
         protected string $value,
     )
     {
@@ -61,34 +67,51 @@ class Path implements Stringable
     /**
      * Splits the path into its segments.
      *
-     * @param bool $normalized Whether to normalize the segments by resolving `.` and `..`.
+     * @param bool $normalize Whether to normalize the segments by resolving `.` and `..`.
      * @return array<int, string>
      */
-    public function segments(bool $normalized = true): array
+    public function segments(bool $normalize = true): array
     {
-        $parts = explode('/', $this->value);
-        if (!$normalized) {
-            return $parts;
-        }
+        $parts = $normalize
+            ? $this->normalizeSegments(true)
+            : explode('/', $this->value);
+
         $result = [];
         foreach ($parts as $part) {
-            match ($part) {
-                '', '.' => null,
-                '..' => array_pop($result),
-                default => $result[] = $part,
-            };
+            if ($part !== '') {
+                $result[] = $part;
+            }
         }
         return $result;
     }
 
     /**
-     * Normalizes a path by resolving `.` and `..` segments.
+     * Normalizes a path by resolving `.` and `..` segments and removing redundant slashes.
      *
      * @return string
      */
     public function normalize(): string
     {
-        return implode('/', $this->segments());
+        return implode('/', $this->normalizeSegments(true));
+    }
+
+    /**
+     * Normalizes an array of path segments by resolving `.` and `..` segments and removing redundant slashes.
+     *
+     * @return list<string>
+     */
+    protected function normalizeSegments(bool $preserveLeadingSlash = false): array
+    {
+        $result = [];
+        foreach (explode('/', $this->value) as $i => $part) {
+            match ($part) {
+                '' => ($preserveLeadingSlash && $i === 0) ? $result[] = $part : null,
+                '.' => null,
+                '..' => array_pop($result),
+                default => $result[] = $part,
+            };
+        }
+        return $result;
     }
 
     /**
