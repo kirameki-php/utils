@@ -3,7 +3,6 @@
 namespace Kirameki\Core;
 
 use function assert;
-use function dump;
 use function implode;
 use function parse_url;
 
