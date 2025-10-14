@@ -8,7 +8,6 @@ use FilesystemIterator;
 use Generator;
 use Kirameki\Collections\Vec;
 use Kirameki\Core\Exceptions\OverLimitException;
-use Kirameki\Core\Exceptions\RuntimeException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
@@ -22,21 +21,17 @@ use function unlink;
 class Directory extends Storable
 {
     /**
+     * Maximum depth when scanning directories recursively.
+     */
+    protected const int DEFAULT_MAX_DEPTH = 30;
+
+    /**
      * @param bool $followSymlinks
      * @return ($followSymlinks is true ? Vec<Directory|File> : Vec<Directory|File|Symlink>)
      */
     public function scan(bool $followSymlinks = true): Vec
     {
         return new Vec($this->iterate($followSymlinks));
-    }
-
-    /**
-     * @param bool $followSymlinks
-     * @return ($followSymlinks is true ? Vec<Directory|File> : Vec<Directory|File|Symlink>)
-     */
-    public function scanRecursively(bool $followSymlinks = true, int $maxDepth = 30): Vec
-    {
-        return new Vec($this->iterateRecursive($followSymlinks, $maxDepth));
     }
 
     /**
@@ -58,9 +53,29 @@ class Directory extends Storable
         }
     }
 
+    /**
+     * @param bool $followSymlinks
+     * @param int $maxDepth
+     * @return ($followSymlinks is true ? Vec<Directory|File> : Vec<Directory|File|Symlink>)
+     */
+    public function scanRecursively(
+        bool $followSymlinks = true,
+        int $maxDepth = self::DEFAULT_MAX_DEPTH,
+    ): Vec
+    {
+        return new Vec($this->iterateRecursive($followSymlinks, $maxDepth));
+    }
+
+    /**
+     * @param bool $followSymlinks
+     * @param int $maxDepth
+     * @param int $currentDepth
+     * @return ($followSymlinks is true ? Generator<Directory|File> : Generator<Directory|File|Symlink>)
+     * @throws OverLimitException  Thrown if maximum depth is exceeded.
+     */
     protected function iterateRecursive(
         bool $followSymlinks,
-        int $maxDepth = 30,
+        int $maxDepth = self::DEFAULT_MAX_DEPTH,
         int $currentDepth = 0,
     ): Generator
     {

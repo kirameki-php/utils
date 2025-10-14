@@ -259,7 +259,7 @@ final class DirectoryTest extends TestCase
         }
 
         $directory = new Directory($this->testDir);
-        $files = $directory->scanRecursively(maxDepth: 2);
+        $directory->scanRecursively(maxDepth: 2);
     }
 
     public function test_createSubDirectory_new_directory(): void

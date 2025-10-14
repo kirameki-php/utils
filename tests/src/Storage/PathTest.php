@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Tests\Kirameki\Storage;
 
 use Kirameki\Storage\Directory;
+use Kirameki\Storage\File;
 use Kirameki\Storage\Path;
-use PHPUnit\Framework\TestCase;
+use Kirameki\Storage\Symlink;
 
 class PathTest extends TestCase
 {
@@ -85,10 +86,32 @@ class PathTest extends TestCase
         $this->assertSame('', $path->toString());
     }
 
-    public function test_toStorable(): void
+    public function test_toStorable_directory(): void
     {
         $storable = Path::of('/tmp')->toStorable();
         $this->assertInstanceOf(Directory::class, $storable);
         $this->assertSame('/tmp', $storable->pathname);
+    }
+
+    public function test_toStorable_symlink(): void
+    {
+        $symlinkPath = $this->testDir . '/test_symlink';
+        $targetPath = $this->testDir . '/target_file.txt';
+
+        // Ensure target file exists
+        file_put_contents($targetPath, 'Test content');
+
+        // Create symlink
+        if (!file_exists($symlinkPath)) {
+            symlink($targetPath, $symlinkPath);
+        }
+
+        $storable = Path::of($symlinkPath)->toStorable();
+        $this->assertInstanceOf(File::class, $storable);
+        $this->assertSame($symlinkPath, $storable->pathname);
+
+        $storable = Path::of($symlinkPath)->toStorable(false);
+        $this->assertInstanceOf(Symlink::class, $storable);
+        $this->assertSame($symlinkPath, $storable->pathname);
     }
 }
