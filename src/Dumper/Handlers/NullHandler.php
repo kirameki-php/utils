@@ -2,6 +2,8 @@
 
 namespace Kirameki\Dumper\Handlers;
 
+use SouthPointe\Ansi\Codes\Color;
+
 class NullHandler extends Handler
 {
     /**
@@ -10,6 +12,6 @@ class NullHandler extends Handler
      */
     public function handle(mixed $var): string
     {
-        return $this->colorizeScalar('null');
+        return $this->colorize('null', Color::Orange3);
     }
 }
