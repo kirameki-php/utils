@@ -63,7 +63,7 @@ abstract class ResourceStreamable implements Streamable
      */
     public function getUri(): string
     {
-        return $this->meta['uri'];
+        return $this->meta['uri'] ?? '';
     }
 
     /**
@@ -104,7 +104,7 @@ abstract class ResourceStreamable implements Streamable
     public function __debugInfo(): ?array
     {
         return [
-            'uri' => $this->meta['uri'],
+            'uri' => $this->meta['uri'] ?? '',
             'mode' => $this->meta['mode'],
         ];
     }

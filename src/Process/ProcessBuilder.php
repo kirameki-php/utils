@@ -155,11 +155,6 @@ class ProcessBuilder
     {
         $shellCommand = $this->buildShellCommand();
 
-        $envs = $this->envs;
-        $envVars = $envs !== null
-            ? array_map(static fn($k, $v) => "{$k}={$v}", array_keys($envs), $envs)
-            : null;
-
         // Observation of exit MUST be started before proc_open() is called.
         // @see ProcessObserver::observeSignal() for more info.
         $observer = ProcessObserver::observe();
@@ -169,7 +164,7 @@ class ProcessBuilder
             $this->getFileDescriptorSpec(),
             $pipes,
             $this->directory,
-            $envVars,
+            $this->envs,
         );
 
         if ($process === false) {
