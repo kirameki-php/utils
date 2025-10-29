@@ -3,6 +3,7 @@
 namespace Kirameki\Collections;
 
 use Closure;
+use Generator;
 use Kirameki\Collections\Utils\Arr;
 use Kirameki\Collections\Utils\Iter;
 use Kirameki\Core\Exceptions\InvalidArgumentException;
@@ -121,6 +122,21 @@ trait Enumerable
     public function coalesceOrNull(): mixed
     {
         return Arr::coalesceOrNull($this);
+    }
+
+    /**
+     * Returns a new `Vec` that contains the results sent from the Generator returned by the `$callback`.
+     *
+     * @template TMapValue
+     * @param Closure(TValue, TKey): Generator<int, TMapValue> $callback
+     * Closure that will be called for each key/value. The returned value will be yielded.
+     * @return Vec<TMapValue>
+     */
+    public function collect(
+        Closure $callback,
+    ): Vec
+    {
+        return $this->newVec(Iter::collect($this, $callback));
     }
 
     /**

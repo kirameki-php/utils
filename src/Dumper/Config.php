@@ -15,11 +15,13 @@ use const PHP_SAPI;
  */
 class Config
 {
-    protected const PROPERTY_FILTER_DEFAULT =
+    protected const int PROPERTY_FILTER_DEFAULT =
         ReflectionProperty::IS_STATIC |
         ReflectionProperty::IS_PUBLIC |
         ReflectionProperty::IS_PROTECTED |
-        ReflectionProperty::IS_PRIVATE;
+        ReflectionProperty::IS_PRIVATE |
+        ReflectionProperty::IS_PRIVATE_SET |
+        ReflectionProperty::IS_PROTECTED_SET;
 
     /**
      * @var static|null

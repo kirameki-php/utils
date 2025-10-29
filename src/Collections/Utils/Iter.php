@@ -58,6 +58,30 @@ final class Iter
     }
 
     /**
+     * Creates a Generator that will send the result of the Generator returned by the `$callback`.
+     *
+     * @template TKey of array-key
+     * @template TValue
+     * @template TMapValue
+     * @param iterable<TKey, TValue> $iterable
+     * Iterable to be traversed.
+     * @param Closure(TValue, TKey): Generator<int, TMapValue> $callback
+     * Closure that will be called for each key/value. The returned value will be yielded.
+     * @return Generator<int, TMapValue>
+     */
+    public static function collect(
+        iterable $iterable,
+        Closure $callback,
+    ): Generator
+    {
+        foreach ($iterable as $key => $val) {
+            foreach (self::verifyIterable($callback, $key, $val) as $v) {
+                yield $v;
+            }
+        }
+    }
+
+    /**
      * Creates a Generator which iterates after the given amount.
      *
      * @template TKey of array-key

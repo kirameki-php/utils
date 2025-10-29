@@ -155,6 +155,16 @@ final class EnumerableTest extends TestCase
         $this->assertSame(2, $this->map(['b' => null, 'a' => 2])->coalesceOrNull(), 'reverse alphabetical');
     }
 
+    public function test_collect(): void
+    {
+        $this->assertSame([], $this->vec()->collect(fn($v) => yield $v)->all(), 'empty');
+        $this->assertSame([2, 4, 6], $this->vec([1, 2, 3])->collect(fn(int $n) => yield $n * 2)->all(), 'double values');
+        $this->assertSame([1, 2, 3], $this->vec([[1], [2, 3]])->collect(fn($n) => yield from $n)->all(), 'flattened values');
+        $this->assertSame([], $this->map()->collect(fn($v) => yield $v)->all(), 'empty');
+        $this->assertSame([2, 4, 6], $this->map(['a' => 1, 'b' => 2, 'c' => 3])->collect(fn(int $n) => yield $n * 2)->all(), 'double values');
+        $this->assertSame([1, 2, 3], $this->map(['a' => [1], 'b' => [2, 3]])->collect(fn($n) => yield from $n)->all(), 'flattened values');
+    }
+
     public function test_contains(): void
     {
         $this->assertFalse($this->vec()->contains(0), 'empty');
