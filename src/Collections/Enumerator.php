@@ -20,7 +20,7 @@ abstract class Enumerator implements Countable, IteratorAggregate
 {
     /** @use Enumerable<TKey, TValue> */
     use Enumerable {
-        count as traitCount;
+        count as protected traitCount;
     }
 
     /**

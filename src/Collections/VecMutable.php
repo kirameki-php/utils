@@ -17,8 +17,8 @@ class VecMutable extends Vec
      * @use MutatesSelf<int, TValue>
      */
     use MutatesSelf {
-        offsetSet as traitOffsetSet;
-        offsetUnset as traitOffsetUnset;
+        offsetSet as protected traitOffsetSet;
+        offsetUnset as protected traitOffsetUnset;
     }
 
     /**
