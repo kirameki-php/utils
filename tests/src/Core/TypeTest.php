@@ -18,17 +18,6 @@ use Traversable;
 
 final class TypeTest extends TestCase
 {
-    public function test_for(): void
-    {
-        $this->assertSame('int', Type::for(1));
-        $this->assertSame('string', Type::for('1'));
-        $this->assertSame('float', Type::for(1.0));
-        $this->assertSame('bool', Type::for(true));
-        $this->assertSame('array', Type::for([]));
-        $this->assertSame('stdClass', Type::for(new stdClass()));
-        $this->assertSame('null', Type::for(null));
-    }
-
     public function test_is(): void
     {
         $this->assertTrue(Type::is(null, 'null'));

@@ -20,17 +20,6 @@ use function substr;
 final class Type extends StaticClass
 {
     /**
-     * Get the name of the type of `$value` as string.
-     *
-     * @param mixed $value
-     * @return string
-     */
-    public static function for(mixed $value): string
-    {
-        return get_debug_type($value);
-    }
-
-    /**
      * Check if `$value` matches the given type(s).
      *
      * @param mixed $value

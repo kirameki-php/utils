@@ -1313,7 +1313,7 @@ final class Arr
                 continue;
             }
 
-            $given = Type::for($val);
+            $given = get_debug_type($val);
             throw new TypeMismatchException("Expected type: {$type}, Got: {$given} at {$key}.", [
                 'iterable' => $iterable,
                 'type' => $type,
