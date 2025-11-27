@@ -195,9 +195,9 @@ class Vec extends Enumerator implements ArrayAccess, JsonSerializable
     /**
      * Returns all the indices as `Vec`.
      *
-     * @return Vec<int>
+     * @return self<int>
      */
-    public function indices(): Vec
+    public function indices(): self
     {
         return $this->newVec(Iter::keys($this));
     }
@@ -396,7 +396,7 @@ class Vec extends Enumerator implements ArrayAccess, JsonSerializable
      *
      * @param iterable<int, TValue> ...$iterables
      * Iterables to be zipped.
-     * @return Vec<Vec<TValue|null>>
+     * @return self<self<TValue|null>>
      */
     public function zip(iterable ...$iterables): self
     {
