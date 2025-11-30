@@ -2,9 +2,9 @@
 
 namespace Kirameki\System;
 
-use Kirameki\Core\Exceptions\KeyNotFoundException;
-use Kirameki\Core\Exceptions\TypeMismatchException;
 use Kirameki\Core\StaticClass;
+use Kirameki\Exceptions\KeyNotFoundException;
+use Kirameki\Exceptions\TypeMismatchException;
 use function array_key_exists;
 use function filter_var;
 use function gettype;
@@ -17,8 +17,10 @@ use const FILTER_VALIDATE_INT;
 use const INF;
 use const NAN;
 
-class Env extends StaticClass
+final class Env
 {
+    use StaticClass;
+
     /**
      * Returns all environment variables.
      *

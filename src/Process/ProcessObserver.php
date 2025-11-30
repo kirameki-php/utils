@@ -3,9 +3,9 @@
 namespace Kirameki\Process;
 
 use Closure;
-use Kirameki\Core\Exceptions\UnreachableException;
 use Kirameki\Event\Listeners\CallbackListener;
 use Kirameki\Event\Listeners\EventListener;
+use Kirameki\Exceptions\UnreachableException;
 use function array_key_exists;
 use function assert;
 use function in_array;

@@ -6,7 +6,7 @@ use DateTime;
 use DateTimeImmutable;
 use DateTimeZone;
 use JsonSerializable;
-use Kirameki\Core\Exceptions\InvalidArgumentException;
+use Kirameki\Exceptions\InvalidArgumentException;
 use Stringable;
 use function date_default_timezone_get;
 use function in_array;

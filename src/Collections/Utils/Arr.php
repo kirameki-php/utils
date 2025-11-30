@@ -14,11 +14,11 @@ use Kirameki\Collections\Exceptions\InvalidKeyException;
 use Kirameki\Collections\Exceptions\MissingKeyException;
 use Kirameki\Collections\Exceptions\NoMatchFoundException;
 use Kirameki\Collections\SortOrder;
-use Kirameki\Core\Exceptions\InvalidArgumentException;
-use Kirameki\Core\Exceptions\TypeMismatchException;
-use Kirameki\Core\Exceptions\UnreachableException;
+use Kirameki\Collections\Support\TypeChecker;
 use Kirameki\Core\Func;
-use Kirameki\Core\Type;
+use Kirameki\Exceptions\InvalidArgumentException;
+use Kirameki\Exceptions\TypeMismatchException;
+use Kirameki\Exceptions\UnreachableException;
 use Random\Randomizer;
 use function array_diff_ukey;
 use function array_fill;
@@ -1309,7 +1309,7 @@ final class Arr
     ): void
     {
         foreach ($iterable as $key => $val) {
-            if (Type::is($val, $type)) {
+            if (TypeChecker::check($val, $type)) {
                 continue;
             }
 

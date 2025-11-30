@@ -7,7 +7,7 @@ use Kirameki\Collections\Exceptions\EmptyNotAllowedException;
 use Kirameki\Collections\Exceptions\InvalidKeyException;
 use Kirameki\Collections\Map;
 use Kirameki\Collections\MapMutable;
-use Kirameki\Core\Exceptions\InvalidArgumentException;
+use Kirameki\Exceptions\InvalidArgumentException;
 
 final class MapMutableTest extends TestCase
 {

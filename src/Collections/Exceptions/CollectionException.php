@@ -2,7 +2,7 @@
 
 namespace Kirameki\Collections\Exceptions;
 
-use Kirameki\Core\Exceptions\LogicException;
+use Kirameki\Exceptions\LogicException;
 
 abstract class CollectionException extends LogicException
 {

@@ -2,7 +2,7 @@
 
 namespace Kirameki\Text\Exceptions;
 
-use Kirameki\Core\Exceptions\RuntimeException;
+use Kirameki\Exceptions\RuntimeException;
 
 class NoMatchException extends RuntimeException
 {

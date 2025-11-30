@@ -3,7 +3,7 @@
 namespace Tests\Kirameki\Core;
 
 use Kirameki\Core\Version;
-use Kirameki\Core\Exceptions\InvalidArgumentException;
+use Kirameki\Exceptions\InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 class VersionTest extends TestCase

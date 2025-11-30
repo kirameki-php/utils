@@ -2,7 +2,7 @@
 
 namespace Kirameki\Stream;
 
-use Kirameki\Core\Exceptions\UnreachableException;
+use Kirameki\Exceptions\UnreachableException;
 use Kirameki\Stream\Exceptions\StreamErrorException;
 use function error_clear_last;
 use function error_get_last;

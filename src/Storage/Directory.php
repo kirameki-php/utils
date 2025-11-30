@@ -7,7 +7,7 @@ namespace Kirameki\Storage;
 use FilesystemIterator;
 use Generator;
 use Kirameki\Collections\Vec;
-use Kirameki\Core\Exceptions\OverLimitException;
+use Kirameki\Exceptions\OverLimitException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;

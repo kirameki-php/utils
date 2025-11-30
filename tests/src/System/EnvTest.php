@@ -2,9 +2,9 @@
 
 namespace Tests\Kirameki\System;
 
-use Kirameki\Core\Exceptions\KeyNotFoundException;
-use Kirameki\Core\Exceptions\NotSupportedException;
-use Kirameki\Core\Exceptions\TypeMismatchException;
+use Kirameki\Exceptions\KeyNotFoundException;
+use Kirameki\Exceptions\NotSupportedException;
+use Kirameki\Exceptions\TypeMismatchException;
 use Kirameki\System\Env;
 use Kirameki\Testing\TestCase;
 use function array_keys;

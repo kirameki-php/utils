@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Kirameki\Clock;
 
-use Kirameki\Core\Exceptions\LogicException;
+use Kirameki\Exceptions\LogicException;
 use function hrtime;
 use function max;
 

@@ -2,14 +2,12 @@
 
 namespace Tests\Kirameki\Storage;
 
-use Kirameki\Core\Exceptions\ErrorException;
-use Kirameki\Storage\FileType;
-use RuntimeException;
 use Kirameki\Storage\File;
+use Kirameki\Storage\FileType;
 use Kirameki\Stream\FileStream;
 use Kirameki\Time\Instant;
+use RuntimeException;
 use function chmod;
-use function dump;
 use function file_exists;
 use function file_get_contents;
 use function file_put_contents;
@@ -18,7 +16,6 @@ use function filemtime;
 use function fileperms;
 use function hash_file;
 use function mkdir;
-use function stat;
 use function str_repeat;
 use function strlen;
 use function strtotime;

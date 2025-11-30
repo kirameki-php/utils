@@ -3,7 +3,7 @@
 namespace Kirameki\Core;
 
 use JsonException as PhpJsonException;
-use Kirameki\Core\Exceptions\JsonException;
+use Kirameki\Exceptions\JsonException;
 use function json_decode;
 use function json_encode;
 use function json_validate;
@@ -13,8 +13,10 @@ use const JSON_THROW_ON_ERROR;
 use const JSON_UNESCAPED_SLASHES;
 use const JSON_UNESCAPED_UNICODE;
 
-final class Json extends StaticClass
+final class Json
 {
+    use StaticClass;
+
     /**
      * Encode data as JSON string.
      *

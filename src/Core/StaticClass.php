@@ -2,9 +2,9 @@
 
 namespace Kirameki\Core;
 
-use Kirameki\Core\Exceptions\NotSupportedException;
+use Kirameki\Exceptions\NotSupportedException;
 
-abstract class StaticClass
+trait StaticClass
 {
     final public function __construct()
     {

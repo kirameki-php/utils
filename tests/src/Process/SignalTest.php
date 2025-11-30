@@ -2,15 +2,14 @@
 
 namespace Tests\Kirameki\Process;
 
-use Kirameki\Core\Exceptions\LogicException;
-use Kirameki\Core\Exceptions\NotSupportedException;
-use Kirameki\Core\Exceptions\UnreachableException;
 use Kirameki\Event\Listeners\CallbackListener;
+use Kirameki\Exceptions\LogicException;
+use Kirameki\Exceptions\NotSupportedException;
+use Kirameki\Exceptions\UnreachableException;
 use Kirameki\Process\Signal;
 use Kirameki\Process\SignalEvent;
 use PHPUnit\Framework\Attributes\Before;
 use function assert;
-use function dump;
 use function getmypid;
 use function is_resource;
 use function posix_kill;
@@ -20,7 +19,6 @@ use function proc_terminate;
 use function usleep;
 use const CLD_EXITED;
 use const CLD_KILLED;
-use const CLD_STOPPED;
 use const SIGCHLD;
 use const SIGINT;
 use const SIGKILL;

@@ -3,7 +3,7 @@
 namespace Kirameki\Text;
 
 use Closure;
-use Kirameki\Core\Exceptions\InvalidArgumentException;
+use Kirameki\Exceptions\InvalidArgumentException;
 use Kirameki\Text\Exceptions\NoMatchException;
 use Kirameki\Text\Exceptions\ParseException;
 use ValueError;

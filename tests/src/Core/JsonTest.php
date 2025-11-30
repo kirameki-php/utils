@@ -3,9 +3,9 @@
 namespace Tests\Kirameki\Core;
 
 use DateTime;
-use Kirameki\Core\Exceptions\JsonException;
-use Kirameki\Core\Exceptions\NotSupportedException;
 use Kirameki\Core\Json;
+use Kirameki\Exceptions\JsonException;
+use Kirameki\Exceptions\NotSupportedException;
 use Kirameki\Testing\TestCase;
 use stdClass;
 use Tests\Kirameki\Core\_JsonTest\IntEnum;

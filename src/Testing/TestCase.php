@@ -3,7 +3,7 @@
 namespace Kirameki\Testing;
 
 use Closure;
-use Kirameki\Core\Exceptions\ErrorException;
+use Kirameki\Exceptions\ErrorException;
 use PHPUnit\Framework\TestCase as BaseTestCase;
 use function array_map;
 use function restore_error_handler;

@@ -4,7 +4,7 @@ namespace Kirameki\Collections;
 
 use Countable;
 use IteratorAggregate;
-use Kirameki\Core\Exceptions\InvalidArgumentException;
+use Kirameki\Exceptions\InvalidArgumentException;
 use Traversable;
 
 /**

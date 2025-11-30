@@ -2,7 +2,7 @@
 
 namespace Tests\Kirameki\Stream;
 
-use Kirameki\Core\Exceptions\UnreachableException;
+use Kirameki\Exceptions\UnreachableException;
 use Kirameki\Stream\CanSeek;
 use Kirameki\Stream\Exceptions\StreamErrorException;
 use Kirameki\Stream\FileReader;

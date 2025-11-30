@@ -4,8 +4,10 @@ namespace Kirameki\Core;
 
 use Closure;
 
-final class Func extends StaticClass
+final class Func
 {
+    use StaticClass;
+
     /**
      * @return Closure(): bool
      */

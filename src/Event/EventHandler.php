@@ -3,11 +3,11 @@
 namespace Kirameki\Event;
 
 use Closure;
-use Kirameki\Core\Exceptions\InvalidArgumentException;
-use Kirameki\Core\Exceptions\InvalidTypeException;
 use Kirameki\Event\Listeners\CallbackListener;
 use Kirameki\Event\Listeners\CallbackOnceListener;
 use Kirameki\Event\Listeners\EventListener;
+use Kirameki\Exceptions\InvalidArgumentException;
+use Kirameki\Exceptions\InvalidTypeException;
 use function array_unshift;
 use function count;
 use function current;

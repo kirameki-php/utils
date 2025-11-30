@@ -2,7 +2,7 @@
 
 namespace Kirameki\Core;
 
-use Kirameki\Core\Exceptions\InvalidArgumentException;
+use Kirameki\Exceptions\InvalidArgumentException;
 use function preg_match;
 use function version_compare;
 

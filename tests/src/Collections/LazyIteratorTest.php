@@ -3,7 +3,7 @@
 namespace Tests\Kirameki\Collections;
 
 use Kirameki\Collections\LazyIterator;
-use Kirameki\Core\Exceptions\UnreachableException;
+use Kirameki\Exceptions\UnreachableException;
 use Traversable;
 
 final class LazyIteratorTest extends TestCase

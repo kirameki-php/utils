@@ -2,7 +2,7 @@
 
 namespace Kirameki\Stream\Exceptions;
 
-use Kirameki\Core\Exceptions\ErrorException;
+use Kirameki\Exceptions\ErrorException;
 
 class StreamErrorException extends ErrorException
 {

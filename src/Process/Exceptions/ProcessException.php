@@ -2,7 +2,7 @@
 
 namespace Kirameki\Process\Exceptions;
 
-use Kirameki\Core\Exceptions\RuntimeException;
+use Kirameki\Exceptions\RuntimeException;
 
 class ProcessException extends RuntimeException
 {

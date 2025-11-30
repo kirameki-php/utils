@@ -3,7 +3,7 @@
 namespace Kirameki\Backoff;
 
 use Closure;
-use Kirameki\Core\Exceptions\LogicException;
+use Kirameki\Exceptions\LogicException;
 use Kirameki\System\Sleep;
 use Random\Randomizer;
 use Throwable;

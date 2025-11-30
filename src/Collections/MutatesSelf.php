@@ -3,7 +3,7 @@
 namespace Kirameki\Collections;
 
 use Kirameki\Collections\Utils\Arr;
-use Kirameki\Core\Exceptions\InvalidArgumentException;
+use Kirameki\Exceptions\InvalidArgumentException;
 use function gettype;
 use function is_int;
 

@@ -3,14 +3,12 @@
 namespace Kirameki\Process;
 
 use Closure;
-use Kirameki\Core\Exceptions\RuntimeException;
 use Kirameki\Event\EventHandler;
+use Kirameki\Exceptions\RuntimeException;
 use Kirameki\Process\Events\ProcessFinished;
 use Kirameki\Process\Events\ProcessStarted;
 use Kirameki\Process\Exceptions\ProcessException;
 use Kirameki\Stream\FileStream;
-use function array_keys;
-use function array_map;
 use function array_merge;
 use function array_values;
 use function getcwd;

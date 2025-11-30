@@ -2,14 +2,12 @@
 
 namespace Tests\Kirameki\Storage;
 
-use Kirameki\Core\Exceptions\OverLimitException;
+use Kirameki\Exceptions\OverLimitException;
 use Kirameki\Storage\Directory;
 use Kirameki\Storage\File;
 use Kirameki\Storage\FileType;
 use Kirameki\Storage\Storable;
 use Kirameki\Storage\Symlink;
-use RuntimeException;
-use function dump;
 use function file_exists;
 use function file_get_contents;
 use function file_put_contents;

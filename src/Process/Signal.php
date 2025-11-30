@@ -3,12 +3,12 @@
 namespace Kirameki\Process;
 
 use Closure;
-use Kirameki\Core\Exceptions\LogicException;
-use Kirameki\Core\Exceptions\UnreachableException;
 use Kirameki\Core\StaticClass;
 use Kirameki\Event\EventHandler;
 use Kirameki\Event\Listeners\CallbackListener;
 use Kirameki\Event\Listeners\EventListener;
+use Kirameki\Exceptions\LogicException;
+use Kirameki\Exceptions\UnreachableException;
 use function array_keys;
 use function compact;
 use function in_array;
@@ -56,8 +56,10 @@ use const SIGXFSZ;
 use const WNOHANG;
 use const WUNTRACED;
 
-final class Signal extends StaticClass
+final class Signal
 {
+    use StaticClass;
+
     /**
      * @see https://www.gnu.org/software/libc/manual/html_node/Termination-Signals.html
      */

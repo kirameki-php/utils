@@ -3,9 +3,9 @@
 namespace Kirameki\Text;
 
 use IntlException;
-use Kirameki\Core\Exceptions\ExtensionRequiredException;
-use Kirameki\Core\Exceptions\InvalidArgumentException;
-use Kirameki\Core\Exceptions\LogicException;
+use Kirameki\Exceptions\ExtensionRequiredException;
+use Kirameki\Exceptions\InvalidArgumentException;
+use Kirameki\Exceptions\LogicException;
 use RuntimeException;
 use ValueError;
 use function array_reverse;

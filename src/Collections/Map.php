@@ -7,7 +7,7 @@ use Closure;
 use JsonSerializable;
 use Kirameki\Collections\Utils\Arr;
 use Kirameki\Collections\Utils\Iter;
-use Kirameki\Core\Exceptions\NotSupportedException;
+use Kirameki\Exceptions\NotSupportedException;
 use Override;
 use Random\Randomizer;
 use function is_array;

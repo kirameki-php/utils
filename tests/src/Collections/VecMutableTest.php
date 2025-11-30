@@ -6,7 +6,7 @@ use Kirameki\Collections\Exceptions\IndexOutOfBoundsException;
 use Kirameki\Collections\Exceptions\InvalidKeyException;
 use Kirameki\Collections\Vec;
 use Kirameki\Collections\VecMutable;
-use Kirameki\Core\Exceptions\TypeMismatchException;
+use Kirameki\Exceptions\TypeMismatchException;
 
 final class VecMutableTest extends TestCase
 {

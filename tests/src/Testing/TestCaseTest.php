@@ -2,7 +2,7 @@
 
 namespace Tests\Kirameki\Testing;
 
-use Kirameki\Core\Exceptions\ErrorException;
+use Kirameki\Exceptions\ErrorException;
 use Kirameki\Testing\TestCase;
 use const E_WARNING;
 

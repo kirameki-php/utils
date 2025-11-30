@@ -2,7 +2,7 @@
 
 namespace Tests\Kirameki\Text;
 
-use Kirameki\Core\Exceptions\InvalidArgumentException;
+use Kirameki\Exceptions\InvalidArgumentException;
 use Kirameki\Testing\TestCase;
 use Kirameki\Text\Exceptions\NoMatchException;
 use Kirameki\Text\Exceptions\ParseException;

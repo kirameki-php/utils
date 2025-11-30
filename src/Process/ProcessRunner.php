@@ -2,16 +2,15 @@
 
 namespace Kirameki\Process;
 
+use Iterator;
 use IteratorAggregate;
-use Kirameki\Core\Exceptions\UnreachableException;
 use Kirameki\Event\EventHandler;
+use Kirameki\Exceptions\UnreachableException;
 use Kirameki\Process\Events\ProcessFinished;
 use Kirameki\Process\Exceptions\ProcessFailedException;
 use Kirameki\Stream\FileStream;
 use Kirameki\Stream\TempStream;
-use Iterator;
 use TypeError;
-use function dump;
 use function fwrite;
 use function in_array;
 use function is_int;

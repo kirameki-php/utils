@@ -8,9 +8,9 @@ use Kirameki\Collections\Exceptions\MissingKeyException;
 use Kirameki\Collections\LazyIterator;
 use Kirameki\Collections\Vec;
 use Kirameki\Collections\VecMutable;
-use Kirameki\Core\Exceptions\InvalidArgumentException;
-use Kirameki\Core\Exceptions\NotSupportedException;
-use Kirameki\Core\Exceptions\TypeMismatchException;
+use Kirameki\Exceptions\InvalidArgumentException;
+use Kirameki\Exceptions\NotSupportedException;
+use Kirameki\Exceptions\TypeMismatchException;
 use Random\Engine\Xoshiro256StarStar;
 use Random\Randomizer;
 

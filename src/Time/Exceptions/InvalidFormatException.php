@@ -2,8 +2,8 @@
 
 namespace Kirameki\Time\Exceptions;
 
-use Kirameki\Core\Exceptions\InvalidArgumentException;
 use Kirameki\Core\Json;
+use Kirameki\Exceptions\InvalidArgumentException;
 use Throwable;
 use function array_merge;
 

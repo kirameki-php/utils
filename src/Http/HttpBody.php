@@ -1,0 +1,29 @@
+<?php declare(strict_types=1);
+
+namespace Kirameki\Http;
+
+use Stringable;
+
+class HttpBody implements Stringable
+{
+    public function __construct(
+        public string $body = '',
+    ) {
+    }
+
+    /**
+     * @return string
+     */
+    public function toString(): string
+    {
+        return $this->body;
+    }
+
+    /**
+     * @return string
+     */
+    public function __toString(): string
+    {
+        return $this->toString();
+    }
+}

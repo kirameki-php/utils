@@ -4,7 +4,7 @@ namespace Kirameki\Collections\Utils;
 
 use Closure;
 use Generator;
-use Kirameki\Core\Exceptions\InvalidArgumentException;
+use Kirameki\Exceptions\InvalidArgumentException;
 use function array_slice;
 use function count;
 use function is_iterable;

@@ -2,12 +2,12 @@
 
 namespace Tests\Kirameki\Event;
 
-use Kirameki\Core\Exceptions\InvalidArgumentException;
-use Kirameki\Core\Exceptions\InvalidTypeException;
 use Kirameki\Event\Event;
 use Kirameki\Event\EventHandler;
 use Kirameki\Event\Listeners\CallbackListener;
 use Kirameki\Event\Listeners\CallbackOnceListener;
+use Kirameki\Exceptions\InvalidArgumentException;
+use Kirameki\Exceptions\InvalidTypeException;
 use stdClass;
 use Tests\Kirameki\Event\Samples\EventA;
 use Tests\Kirameki\Event\Samples\EventB;

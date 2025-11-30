@@ -3,8 +3,8 @@
 namespace Tests\Kirameki\Text;
 
 use IntlException;
-use Kirameki\Core\Exceptions\InvalidArgumentException;
-use Kirameki\Core\Exceptions\LogicException;
+use Kirameki\Exceptions\InvalidArgumentException;
+use Kirameki\Exceptions\LogicException;
 use Kirameki\Testing\TestCase;
 use Kirameki\Text\Exceptions\NoMatchException;
 use Kirameki\Text\Utf8;
