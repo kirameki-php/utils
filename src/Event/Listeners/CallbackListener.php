@@ -13,20 +13,14 @@ use Override;
 class CallbackListener implements EventListener
 {
     /**
-     * @var class-string<TEvent>
-     */
-    public protected(set) string $eventClass;
-
-    /**
      * @param class-string<TEvent> $eventClass
      * @param Closure(TEvent): mixed $callback
      */
     public function __construct(
-        string $eventClass,
+        public protected(set) string $eventClass,
         protected readonly Closure $callback,
     )
     {
-        $this->eventClass = $eventClass;
     }
 
     /**
