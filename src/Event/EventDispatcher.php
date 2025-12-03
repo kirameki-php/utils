@@ -28,7 +28,7 @@ class EventDispatcher implements EventEmitter
      * @param class-string<TEvent> $name
      * @return bool
      */
-    protected function hasListeners(string $name): bool
+    public function hasListeners(string $name): bool
     {
         return (bool) $this->getOrNull($name)?->hasListeners();
     }
@@ -38,7 +38,7 @@ class EventDispatcher implements EventEmitter
      * @param class-string<TEvent> $name
      * @return EventHandler<TEvent>
      */
-    protected function get(string $name): EventHandler
+    public function get(string $name): EventHandler
     {
         /** @var EventHandler<TEvent> */
         return $this->handlers[$name] ??= new EventHandler($name);
@@ -49,7 +49,7 @@ class EventDispatcher implements EventEmitter
      * @param class-string<TEvent> $name
      * @return EventHandler<TEvent>|null
      */
-    protected function getOrNull(string $name): ?EventHandler
+    public function getOrNull(string $name): ?EventHandler
     {
         /** @var EventHandler<TEvent>|null */
         return $this->handlers[$name] ?? null;
@@ -60,7 +60,7 @@ class EventDispatcher implements EventEmitter
      * @param class-string<TEvent> $name
      * @return bool
      */
-    protected function remove(string $name): bool
+    public function remove(string $name): bool
     {
         if (array_key_exists($name, $this->handlers)) {
             unset($this->handlers[$name]);
