@@ -11,14 +11,14 @@ class HttpRequest
      * @param float $version
      * @param Url $url
      * @param HttpRequestHeaders $headers
-     * @param HttpBody $body
+     * @param HttpRequestBody $body
      */
     public function __construct(
         public readonly HttpMethod $method,
         public readonly float $version,
         public readonly Url $url,
         public readonly HttpRequestHeaders $headers,
-        public readonly HttpBody $body = new HttpBody(),
+        public readonly HttpRequestBody $body = new HttpRequestBody(),
     ) {
     }
 
@@ -63,5 +63,7 @@ class HttpRequest
         $this->url = clone $this->url;
         // @phpstan-ignore property.readOnlyAssignNotInConstructor
         $this->headers = clone $this->headers;
+        // @phpstan-ignore property.readOnlyAssignNotInConstructor
+        $this->body = clone $this->body;
     }
 }

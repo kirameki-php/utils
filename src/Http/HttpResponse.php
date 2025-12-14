@@ -10,13 +10,13 @@ class HttpResponse
      * @param float $version
      * @param int $statusCode
      * @param HttpResponseHeaders $headers
-     * @param HttpBody $body
+     * @param HttpResponseBody $body
      */
     public function __construct(
         public readonly float $version,
         public readonly int $statusCode,
         public readonly HttpResponseHeaders $headers,
-        public readonly HttpBody $body = new HttpBody(),
+        public readonly HttpResponseBody $body = new HttpResponseBody(),
     ) {
     }
 
@@ -59,5 +59,7 @@ class HttpResponse
     {
         // @phpstan-ignore property.readOnlyAssignNotInConstructor
         $this->headers = clone $this->headers;
+        // @phpstan-ignore property.readOnlyAssignNotInConstructor
+        $this->body = clone $this->body;
     }
 }

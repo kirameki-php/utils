@@ -9,14 +9,14 @@ class HttpRequestBuilder
      * @param string|Url $url
      * @param float $version
      * @param HttpRequestHeaders $headers
-     * @param HttpBody $body
+     * @param HttpRequestBody $body
      */
     public function __construct(
         public readonly HttpMethod $method,
         public readonly string|Url $url,
         public float $version = 1.1,
         public HttpRequestHeaders $headers = new HttpRequestHeaders(),
-        public HttpBody $body = new HttpBody(),
+        public HttpRequestBody $body = new HttpRequestBody(),
     ) {
     }
 
@@ -49,10 +49,10 @@ class HttpRequestBuilder
     }
 
     /**
-     * @param HttpBody $body
+     * @param HttpRequestBody $body
      * @return $this
      */
-    public function setBody(HttpBody $body): static
+    public function setBody(HttpRequestBody $body): static
     {
         $this->body = $body;
         return $this;

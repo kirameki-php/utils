@@ -3,12 +3,22 @@
 namespace Kirameki\Http;
 
 use Stringable;
+use function flush;
 
-class HttpBody implements Stringable
+class HttpResponseBody implements Stringable
 {
     public function __construct(
         public string $body = '',
     ) {
+    }
+
+    /**
+     * @return void
+     */
+    public function send(): void
+    {
+        echo $this->toString();
+        flush();
     }
 
     /**
