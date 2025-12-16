@@ -15,7 +15,7 @@ class HttpResponse
     public function __construct(
         public readonly float $version,
         public readonly int $statusCode,
-        public readonly HttpResponseHeaders $headers,
+        public readonly HttpResponseHeaders $headers = new HttpResponseHeaders(),
         public readonly HttpResponseBody $body = new HttpResponseBody(),
     ) {
     }
