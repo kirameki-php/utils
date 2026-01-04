@@ -8,6 +8,7 @@ use Kirameki\Dumper\Decorators\Decorator;
 use Kirameki\Dumper\Decorators\HtmlDecorator;
 use Kirameki\Dumper\Decorators\PlainDecorator;
 use ReflectionProperty;
+use function in_array;
 use const PHP_SAPI;
 
 /**
@@ -96,10 +97,14 @@ class Config
 
     protected function guessDecoratorName(): string
     {
-        return match (true) {
-            PHP_SAPI === 'cli' => 'cli',
-            isset($_SERVER['HTTPS']) => 'html',
-            default => 'plain',
-        };
+        if (in_array(PHP_SAPI, ['cli', 'frankenphp'], true)) {
+            return 'cli';
+        }
+
+        if (isset($_SERVER['HTTPS'])) {
+            return 'html';
+        }
+
+        return 'plain';
     }
 }
