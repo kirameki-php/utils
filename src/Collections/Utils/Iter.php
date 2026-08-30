@@ -38,6 +38,31 @@ final class Iter
             ]);
         }
 
+        // A PHP function containing yield is a generator function, whose body does
+        // not run until first iteration. Delegating the yields to a separate method
+        // keeps this one a plain function, so the validation above throws on call.
+        return self::chunkImpl($iterable, $size, $reindex);
+    }
+
+    /**
+     * Actual implementation for chunk.
+     *
+     * @template TKey of array-key
+     * @template TValue
+     * @param iterable<TKey, TValue> $iterable
+     * Iterable to be traversed.
+     * @param int $size
+     * Size of each chunk. Must be >= 1.
+     * @param bool $reindex
+     * If set to **true** the result will be re-indexed.
+     * @return Generator<int, array<TKey, TValue>>
+     */
+    protected static function chunkImpl(
+        iterable $iterable,
+        int $size,
+        bool $reindex,
+    ): Generator
+    {
         $remaining = $size;
         $chunk = [];
         foreach ($iterable as $key => $val) {
@@ -281,6 +306,9 @@ final class Iter
             ]);
         }
 
+        // A PHP function containing yield is a generator function, whose body does
+        // not run until first iteration. Delegating the yields to a separate method
+        // keeps this one a plain function, so the validation above throws on call.
         return self::flattenImpl($iterable, $depth);
     }
 
@@ -340,7 +368,7 @@ final class Iter
         int &$count = 0,
     ): Generator
     {
-        if ($limit < 0) {
+        if ($limit !== null && $limit < 0) {
             throw new InvalidArgumentException("Expected: \$limit >= 0. Got: {$limit}.", [
                 'iterable' => $iterable,
                 'search' => $search,
@@ -351,6 +379,41 @@ final class Iter
         }
 
         $count = 0;
+
+        // A PHP function containing yield is a generator function, whose body does
+        // not run until first iteration. Delegating the yields to a separate method
+        // keeps this one a plain function, so the validation above throws and the
+        // $count reset applies on call.
+        return self::replaceImpl($iterable, $search, $replacement, $limit, $count);
+    }
+
+    /**
+     * Actual implementation for replace.
+     *
+     * @template TKey of array-key
+     * @template TValue
+     * @param iterable<TKey, TValue> $iterable
+     * Iterable to be traversed.
+     * @param TValue $search
+     * The value to replace.
+     * @param TValue $replacement
+     * Replacement for the searched value.
+     * @param int|null $limit
+     * Sets a limit to number of times a replacement can take place.
+     * Must be >= 0. If **null**, there is no limit.
+     * @param int &$count
+     * [Reference] Sets the number of times replacements occurred.
+     * @param-out int $count
+     * @return Generator<TKey, TValue>
+     */
+    protected static function replaceImpl(
+        iterable $iterable,
+        mixed $search,
+        mixed $replacement,
+        ?int $limit,
+        int &$count,
+    ): Generator
+    {
         $limit ??= -1;
         $atLimit = false;
         foreach ($iterable as $key => $val) {
@@ -454,6 +517,28 @@ final class Iter
             ]);
         }
 
+        // A PHP function containing yield is a generator function, whose body does
+        // not run until first iteration. Delegating the yields to a separate method
+        // keeps this one a plain function, so the validation above throws on call.
+        return self::repeatImpl($iterable, $times);
+    }
+
+    /**
+     * Actual implementation for repeat.
+     *
+     * @template TKey of array-key
+     * @template TValue
+     * @param iterable<TKey, TValue> $iterable
+     * Iterable to be traversed.
+     * @param int $times
+     * Amount of times the iterable will be repeated. Must be >= 0.
+     * @return Generator<TKey, TValue>
+     */
+    protected static function repeatImpl(
+        iterable $iterable,
+        int $times,
+    ): Generator
+    {
         for ($i = 0; $i < $times; $i++) {
             foreach ($iterable as $key => $val) {
                 yield $key => $val;
@@ -576,6 +661,31 @@ final class Iter
             ]);
         }
 
+        // A PHP function containing yield is a generator function, whose body does
+        // not run until first iteration. Delegating the yields to a separate method
+        // keeps this one a plain function, so the validation above throws on call.
+        return self::slideImpl($iterable, $size, $reindex);
+    }
+
+    /**
+     * Actual implementation for slide.
+     *
+     * @template TKey of array-key
+     * @template TValue
+     * @param iterable<TKey, TValue> $iterable
+     * Iterable to be traversed.
+     * @param int $size
+     * Size of the window. Must be >= 1.
+     * @param bool $reindex
+     * If set to **true** the result will be re-indexed.
+     * @return Generator<int, array<TKey, TValue>>
+     */
+    protected static function slideImpl(
+        iterable $iterable,
+        int $size,
+        bool $reindex,
+    ): Generator
+    {
         $window = [];
         $filled = false;
         foreach ($iterable as $key => $val) {
@@ -658,6 +768,31 @@ final class Iter
             ]);
         }
 
+        // A PHP function containing yield is a generator function, whose body does
+        // not run until first iteration. Delegating the yields to a separate method
+        // keeps this one a plain function, so the validation above throws on call.
+        return self::takeInstanceOfImpl($iterable, $class, $reindex);
+    }
+
+    /**
+     * Actual implementation for takeInstanceOf.
+     *
+     * @template TKey of array-key
+     * @template TClass
+     * @param iterable<TKey, mixed> $iterable
+     * Iterable to be traversed.
+     * @param class-string<TClass> $class
+     * Class to be checked with `instanceof`.
+     * @param bool $reindex
+     * If set to **true** the result will be re-indexed.
+     * @return Generator<TKey, TClass>
+     */
+    protected static function takeInstanceOfImpl(
+        iterable $iterable,
+        string $class,
+        bool $reindex,
+    ): Generator
+    {
         foreach ($iterable as $key => $item) {
             if ($item instanceof $class) {
                 if ($reindex) {
