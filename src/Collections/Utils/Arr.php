@@ -154,10 +154,11 @@ final class Arr
         int $index,
     ): mixed
     {
-        $result = self::atOr($iterable, $index, self::miss());
+        $array = self::from($iterable);
+        $result = self::atOr($array, $index, self::miss());
 
         if ($result instanceof self) {
-            $count = self::count($iterable);
+            $count = self::count($array);
             throw new IndexOutOfBoundsException("Size: $count index: $index.", [
                 'iterable' => $iterable,
                 'index' => $index,
@@ -710,7 +711,7 @@ final class Arr
                 return true;
             }
         }
-        return $array === $values;
+        return false;
     }
 
     /**
@@ -1949,7 +1950,7 @@ final class Arr
         $reindex ??= array_is_list($array);
 
         $map = [];
-        foreach ($iterable as $key => $val) {
+        foreach ($array as $key => $val) {
             $groupKey = $callback($val, $key);
             if (!is_int($groupKey) && !is_string($groupKey)) {
                 $type = gettype($groupKey);
@@ -2871,7 +2872,7 @@ final class Arr
                 $maxVal = $val;
             }
 
-            if (is_nan($result)) {
+            if (is_float($result) && is_nan($result)) {
                 throw new InvalidElementException('$iterable cannot contain NAN.', [
                     'iterable' => $iterable,
                     'result' => $result,
@@ -3081,7 +3082,7 @@ final class Arr
                 $minVal = $val;
             }
 
-            if (is_nan($result)) {
+            if (is_float($result) && is_nan($result)) {
                 throw new InvalidElementException('$iterable cannot contain NAN.', [
                     'iterable' => $iterable,
                     'result' => $result,
@@ -3179,7 +3180,7 @@ final class Arr
                 $maxVal = $val;
             }
 
-            if (is_nan($result)) {
+            if (is_float($result) && is_nan($result)) {
                 throw new InvalidElementException('$iterable cannot contain NAN.', [
                     'iterable' => $iterable,
                     'result' => $result,
