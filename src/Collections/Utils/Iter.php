@@ -311,7 +311,7 @@ final class Iter
     }
 
     /**
-     * Returns an array which contains keys and values from `$iterable`
+     * Creates a Generator which yields the keys and values from `$iterable`
      * but with the `$search` value replaced with the `$replacement` value.
      *
      * @template TKey of array-key
@@ -324,10 +324,12 @@ final class Iter
      * Replacement for the searched value.
      * @param int|null $limit
      * [Optional] Sets a limit to number of times a replacement can take place.
+     * Must be >= 0. If **null**, there is no limit.
      * Defaults to **null**.
      * @param int &$count
      * [Optional][Reference] Sets the number of times replacements occurred.
      * Any value previously set will be reset.
+     * @param-out int $count
      * @return Generator<TKey, TValue>
      */
     public static function replace(
@@ -437,7 +439,7 @@ final class Iter
      * @param iterable<TKey, TValue> $iterable
      * Iterable to be traversed.
      * @param int $times
-     * Amount of times the iterable will be repeated.
+     * Amount of times the iterable will be repeated. Must be >= 0.
      * @return Generator<TKey, TValue>
      */
     public static function repeat(
@@ -526,7 +528,7 @@ final class Iter
      * @template TKey of array-key
      * @template TValue
      * @param iterable<TKey, TValue> $iterable
-     * $iterable Iterable to be traversed.
+     * Iterable to be traversed.
      * @param int $amount
      * Amount of elements to take. Must be >= 0.
      * @return Generator<TKey, TValue>
@@ -676,7 +678,7 @@ final class Iter
      * @param iterable<TKey, TValue> $iterable
      * Iterable to be traversed.
      * @param Closure(TValue, TKey): bool $condition
-     * A break condition that should return false when loop should stop.
+     * A break condition that should return **true** when the loop should stop.
      * @return Generator<TKey, TValue>
      */
     public static function takeUntil(
@@ -759,14 +761,14 @@ final class Iter
     }
 
     /**
-     * Invoke the condition closure and make sure that it returns an iterable value.
+     * Invoke the closure and make sure that it returns an iterable value.
      *
      * @template TKey of array-key
      * @template TValue
      * @template TMapKey of array-key
      * @template TMapValue
      * @param Closure(TValue, TKey): iterable<TMapKey, TMapValue> $condition
-     * The condition that returns a boolean value.
+     * The closure that returns an iterable value.
      * @param TKey $key
      * the 2nd argument for the condition closure.
      * @param TValue $val
