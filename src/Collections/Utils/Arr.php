@@ -2818,15 +2818,15 @@ final class Arr
         ?Closure $by = null,
     ): mixed
     {
-        $maxVal = self::maxOrNull($iterable, $by);
+        $array = self::from($iterable);
 
-        if ($maxVal === null) {
+        if (count($array) === 0) {
             throw new EmptyNotAllowedException('$iterable must contain at least one element.', [
                 'iterable' => $iterable,
             ]);
         }
 
-        return $maxVal;
+        return self::maxOrNull($array, $by);
     }
 
     /**
@@ -3026,16 +3026,16 @@ final class Arr
         ?Closure $by = null,
     ): mixed
     {
-        $minVal = self::minOrNull($iterable, $by);
+        $array = self::from($iterable);
 
-        if ($minVal === null) {
+        if (count($array) === 0) {
             throw new EmptyNotAllowedException('$iterable must contain at least one element.', [
                 'iterable' => $iterable,
                 'condition' => $by,
             ]);
         }
 
-        return $minVal;
+        return self::minOrNull($array, $by);
     }
 
     /**
@@ -3162,12 +3162,14 @@ final class Arr
     {
         $by ??= static fn(mixed $val, int|string $key): mixed => $val;
 
+        $found = false;
         $minResult = null;
         $minVal = null;
         $maxResult = null;
         $maxVal = null;
 
         foreach ($iterable as $key => $val) {
+            $found = true;
             $result = $by($val, $key);
 
             if ($minResult === null || $result < $minResult) {
@@ -3192,7 +3194,7 @@ final class Arr
             }
         }
 
-        if ($minVal === null || $maxVal === null) {
+        if (!$found) {
             return null;
         }
 
@@ -3393,15 +3395,13 @@ final class Arr
         array &$array,
     ): mixed
     {
-        $popped = self::popOrNull($array);
-
-        if ($popped === null) {
+        if (count($array) === 0) {
             throw new EmptyNotAllowedException('&$array must contain at least one element.', [
                 'array' => $array,
             ]);
         }
 
-        return $popped;
+        return self::popOrNull($array);
     }
 
     /**
@@ -4794,15 +4794,13 @@ final class Arr
         array &$array,
     ): mixed
     {
-        $shifted = self::shiftOrNull($array);
-
-        if ($shifted === null) {
+        if (count($array) === 0) {
             throw new EmptyNotAllowedException('&$array must contain at least one element.', [
                 'array' => $array,
             ]);
         }
 
-        return $shifted;
+        return self::shiftOrNull($array);
     }
 
     /**

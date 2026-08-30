@@ -1645,6 +1645,11 @@ final class ArrTest extends TestCase
         self::assertSame(100, Arr::max(['a' => 1, 'b' => 100, 'c' => 10]), 'assoc');
         self::assertSame(2, Arr::max(['a' => 2, 'b' => 1], static fn($v, $k) => $v), 'max by value');
         self::assertSame(1, Arr::max(['a' => 2, 'b' => 1], static fn($v, $k) => ord($k)), 'max by key');
+
+        // null is a valid element and must not be mistaken for an empty iterable
+        self::assertNull(Arr::max([null]), 'only null');
+        self::assertSame(-5, Arr::max([null, -5]), 'null loses regardless of position');
+        self::assertSame(-5, Arr::max([-5, null]), 'null loses regardless of position');
     }
 
     public function test_max_with_empty(): void
@@ -1748,6 +1753,9 @@ final class ArrTest extends TestCase
         self::assertSame(1, Arr::min(['a' => 100, 'b' => 10, 'c' => 1]), 'assoc');
         self::assertSame(1, Arr::min(['a' => 2, 'b' => 1], static fn($v, $k) => $v), 'min by value');
         self::assertSame(2, Arr::min(['a' => 2, 'b' => 1], static fn($v, $k) => ord($k)), 'min by key');
+
+        // null is a valid element and must not be mistaken for an empty iterable
+        self::assertNull(Arr::min([null]), 'only null');
     }
 
     public function test_min_with_empty(): void
@@ -1785,6 +1793,11 @@ final class ArrTest extends TestCase
             ['min' => 1, 'max' => 2],
             Arr::minMax(['a' => 2, 'b' => 1], static fn($v, $k) => $v),
             'with condition assoc',
+        );
+        self::assertSame(
+            ['min' => null, 'max' => null],
+            Arr::minMax([null]),
+            'null is a valid element, not an empty iterable',
         );
     }
 
@@ -1927,6 +1940,11 @@ final class ArrTest extends TestCase
         $assoc = ['a' => 1, 'b' => 2];
         self::assertSame(2, Arr::pop($assoc));
         self::assertSame(['a' => 1], $assoc);
+
+        // null is a valid element and must not be mistaken for an empty array
+        $nulls = [1, null];
+        self::assertNull(Arr::pop($nulls));
+        self::assertSame([1], $nulls);
     }
 
     public function test_pop_on_empty(): void
@@ -2995,6 +3013,11 @@ final class ArrTest extends TestCase
         $assoc = ['a' => ['b' => 1]];
         self::assertSame(['b' => 1], Arr::shift($assoc));
         self::assertSame([], $assoc);
+
+        // null is a valid element and must not be mistaken for an empty array
+        $nulls = [null, 1];
+        self::assertNull(Arr::shift($nulls));
+        self::assertSame([1], $nulls);
     }
 
     public function test_shift_on_empty(): void
