@@ -43,6 +43,7 @@ use function ceil;
 use function count;
 use function current;
 use function end;
+use function get_debug_type;
 use function get_resource_id;
 use function gettype;
 use function http_build_query;
@@ -1220,7 +1221,9 @@ final class Arr
         Closure $callback,
     ): void
     {
-        iterator_to_array(Iter::each($iterable, $callback));
+        foreach (Iter::each($iterable, $callback) as $key => $val) {
+            // do nothing
+        }
     }
 
     /**
@@ -1838,7 +1841,7 @@ final class Arr
     public static function get(
         iterable $iterable,
         int|string $key,
-    )
+    ): mixed
     {
         $result = self::getOr($iterable, $key, self::miss());
 
@@ -3574,7 +3577,7 @@ final class Arr
      */
     public static function product(
         iterable $iterable,
-    ): mixed
+    ): int|float
     {
         $product = 1;
         foreach ($iterable as $val) {
