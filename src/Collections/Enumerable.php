@@ -731,7 +731,7 @@ trait Enumerable
      * Throws `InvalidElementException`, If collection contains NAN.
      * Throws `EmptyNotAllowedException` if collection is empty.
      *
-     * @param Closure(TValue, TKey): mixed|null $by
+     * @param Closure(TValue, TKey): (int|float)|null $by
      * [Optional] Called for every element in the collection.
      * Returned value will be used to determine the largest number.
      * @return TValue

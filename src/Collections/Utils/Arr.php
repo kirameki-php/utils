@@ -248,11 +248,11 @@ final class Arr
     /**
      * Get the average of the elements inside `$iterable`.
      * The elements must be af type int or float.
-     * Throws `InvalidElementException` if the `$iterable` is empty.
-     * Throws `EmptyNotAllowedException` if `$iterable` contains NAN.
+     * Throws `EmptyNotAllowedException` if the `$iterable` is empty.
+     * Throws `InvalidElementException` if `$iterable` contains NAN.
      * Example:
      * ```php
-     * Arr::average([]); // 0
+     * Arr::average([]); // EmptyNotAllowedException
      * Arr::average([1, 2, 3]); // 2
      * Arr::average([0.1, 0.1]); // 0.1
      * ```
@@ -869,10 +869,10 @@ final class Arr
      *
      * Example:
      * ```php
-     * Arr::notContainsKey([1, 2], 0); // false
-     * Arr::notContainsKey([1, 2], 2); // true
-     * Arr::notContainsKey(['a' => 1], 'a'); // false
-     * Arr::notContainsKey(['a' => 1], 1); // true
+     * Arr::doesNotContainKey([1, 2], 0); // false
+     * Arr::doesNotContainKey([1, 2], 2); // true
+     * Arr::doesNotContainKey(['a' => 1], 'a'); // false
+     * Arr::doesNotContainKey(['a' => 1], 1); // true
      * ```
      *
      * @template TKey of array-key
@@ -893,12 +893,21 @@ final class Arr
     /**
      * Drop every `$nth` elements from `$iterable`.
      *
+     * Example:
+     * ```php
+     * Arr::dropEvery([1, 2, 3, 4, 5, 6], 2); // [1, 3, 5]
+     * ```
+     *
      * @template TKey of array-key
      * @template TValue
      * @param iterable<TKey, TValue> $iterable
      * Iterable to be traversed.
      * @param int $nth
      * Nth value to drop. Must be >= 1.
+     * @param bool|null $reindex
+     * [Optional] Result will be re-indexed if **true**.
+     * If **null**, the result will be re-indexed only if it's a list.
+     * Defaults to **null**.
      * @return array<TKey, TValue>
      */
     public static function dropEvery(
@@ -1009,7 +1018,7 @@ final class Arr
      * @param bool $safe
      * [Optional] If this is set to **true**, `MissingKeyException` will be
      * thrown if key does not exist in `$iterable`.
-     * If set to **false**, non-existing keys will be filled with **null**.
+     * If set to **false**, non-existing keys will be ignored.
      * Defaults to **true**.
      * @param bool|null $reindex
      * [Optional] Result will be re-indexed if **true**.
@@ -1449,7 +1458,7 @@ final class Arr
      * Example:
      * ```php
      * Arr::firstIndex([1, 2, 3], fn($val) => $val > 1); // 1
-     * Arr::firstIndex([1, 2, 3], fn($val) => $val > 3); // null
+     * Arr::firstIndex([1, 2, 3], fn($val) => $val > 3); // NoMatchFoundException
      * Arr::firstIndex(['a' => 1, 'b' => 2], fn($val, $key) => $key === 'b'); // 1
      * Arr::firstIndex([1], fn($v, $k) => false); // NoMatchFoundException
      * ```
@@ -1504,13 +1513,14 @@ final class Arr
         mixed $condition,
     ): ?int
     {
-        if (!($condition instanceof Closure)) {
-            $condition = Func::same($condition);
-        }
+        /** @var Closure(TValue, TKey): bool $callback */
+        $callback = ($condition instanceof Closure)
+            ? $condition
+            : static fn(mixed $val): bool => $val === $condition;
 
         $count = 0;
         foreach ($iterable as $key => $val) {
-            if (self::verifyBool($condition, $key, $val)) {
+            if (self::verifyBool($callback, $key, $val)) {
                 return $count;
             }
             ++$count;
@@ -2800,11 +2810,11 @@ final class Arr
      * Arr::max([], fn($i) => true) // EmptyNotAllowedException
      * Arr::max([1, 2, 3]) // 3
      * Arr::max([-1, -2, -3]) // -1
-     * Arr::max([-1, -2, -3], abs(...)) // 3
+     * Arr::max([-1, -2, -3], fn($i) => abs($i)) // -3
      * ```
      *
      * @template TKey of array-key
-     * @template TValue of int|float
+     * @template TValue
      * @param iterable<TKey, TValue> $iterable
      * Iterable to be traversed.
      * @param Closure(TValue, TKey): (int|float)|null $by
@@ -2841,11 +2851,11 @@ final class Arr
      * Arr::maxOrNull([], fn($i) => true) // null
      * Arr::maxOrNull([1, 2, 3]) // 3
      * Arr::maxOrNull([-1, -2, -3]) // -1
-     * Arr::maxOrNull([-1, -2, -3], abs(...)) // 3
+     * Arr::maxOrNull([-1, -2, -3], fn($i) => abs($i)) // -3
      * ```
      *
      * @template TKey of array-key
-     * @template TValue of int|float
+     * @template TValue
      * @param iterable<TKey, TValue> $iterable
      * Iterable to be traversed.
      * @param Closure(TValue, TKey): (int|float)|null $by
@@ -3007,12 +3017,12 @@ final class Arr
      * Arr::min([], fn($i) => true) // EmptyNotAllowedException
      * Arr::min([1, 2, 3]) // 1
      * Arr::min([-1, -2, -3]) // -3
-     * Arr::min([-1, -2, -3], abs(...)) // 3
-     * Arr::min([-INF, 0.0, INF]) // INF
+     * Arr::min([-1, -2, -3], fn($i) => abs($i)) // -1
+     * Arr::min([-INF, 0.0, INF]) // -INF
      * ```
      *
      * @template TKey of array-key
-     * @template TValue of int|float
+     * @template TValue
      * @param iterable<TKey, TValue> $iterable
      * Iterable to be traversed.
      * @param Closure(TValue, TKey): (int|float)|null $by
@@ -3050,12 +3060,12 @@ final class Arr
      * Arr::minOrNull([], fn($i) => true) // null
      * Arr::minOrNull([1, 2, 3]) // 1
      * Arr::minOrNull([-1, -2, -3]) // -3
-     * Arr::minOrNull([-1, -2, -3], abs(...)) // 3
-     * Arr::minOrNull([-INF, 0.0, INF]) // INF
+     * Arr::minOrNull([-1, -2, -3], fn($i) => abs($i)) // -1
+     * Arr::minOrNull([-INF, 0.0, INF]) // -INF
      * ```
      *
      * @template TKey of array-key
-     * @template TValue of int|float
+     * @template TValue
      * @param iterable<TKey, TValue> $iterable
      * Iterable to be traversed.
      * @param Closure(TValue, TKey): (int|float)|null $by
@@ -3110,7 +3120,7 @@ final class Arr
      * ```
      *
      * @template TKey of array-key
-     * @template TValue of int|float
+     * @template TValue
      * @param iterable<TKey, TValue> $iterable
      * Iterable to be traversed.
      * @param Closure(TValue, TKey): (int|float)|null $by
@@ -3147,7 +3157,7 @@ final class Arr
      * ```
      *
      * @template TKey of array-key
-     * @template TValue of int|float
+     * @template TValue
      * @param iterable<TKey, TValue> $iterable
      * Iterable to be traversed.
      * @param Closure(TValue, TKey): (int|float)|null $by
@@ -3401,6 +3411,7 @@ final class Arr
             ]);
         }
 
+        /** @var TValue */
         return self::popOrNull($array);
     }
 
@@ -3411,8 +3422,8 @@ final class Arr
      * Example:
      * ```php
      * $array = [1, 2, 3];
-     * Arr::popMany($array, 2); // [1] (and $array will be [2, 3])
-     * Arr::popMany($array, 1); // null
+     * Arr::popMany($array, 2); // [2, 3] (and $array will be [1])
+     * Arr::popMany($array, 2); // [1] (and $array will be [])
      * ```
      *
      * @template TKey of array-key
@@ -3558,8 +3569,8 @@ final class Arr
     }
 
     /**
-     * Get the sum of the elements inside `$iterable`.
-     * The elements must be af type int or float.
+     * Get the product of the elements inside `$iterable`.
+     * The elements must be of type int or float.
      * Returns `1` if empty.
      * Throws `InvalidElementException` if the iterable contains NAN.
      *
@@ -3731,8 +3742,8 @@ final class Arr
      * Example:
      * ```php
      * $array = ['a' => 1, 'b' => 2, 'c' => 3];
-     * Arr::pullMany($array, 'a'); // ['b' => 2, 'c' => 3]
-     * Arr::pullMany($array, 'a'); // []
+     * Arr::pullMany($array, ['a', 'c']); // ['a' => 1, 'c' => 3] (and $array will be ['b' => 2])
+     * Arr::pullMany($array, ['a'], missed: $missed); // [] (and $missed will be ['a'])
      * ```
      *
      * @template TKey of array-key
@@ -3821,7 +3832,7 @@ final class Arr
      * ```php
      * Arr::ratio([1, 2, 3], fn($r, $v) => true); // 1.0
      * Arr::ratio([0, 1, 1], fn($r, $v) => false); // 0.0
-     * Arr::ratio([], fn($r, $v) => true); // null
+     * Arr::ratio([], fn($r, $v) => true); // EmptyNotAllowedException
      * ```
      *
      * @template TKey of array-key
@@ -4748,6 +4759,7 @@ final class Arr
      * @template TKey of array-key
      * @template TValue
      * @param array<TKey, TValue> $array
+     * @param-out array<TKey, TValue> $array
      * Reference to the target array.
      * @param TKey $key
      * Key to set to in the array.
@@ -4800,6 +4812,7 @@ final class Arr
             ]);
         }
 
+        /** @var TValue */
         return self::shiftOrNull($array);
     }
 
@@ -5006,8 +5019,8 @@ final class Arr
      *
      * Example:
      * ```php
-     * Arr::windows(range(0, 4), 3) // [[0, 1, 2], [1, 2, 3], [2, 3, 4]]
-     * Arr::windows(['a' => 1, 'b' => 2, 'c' => 3], 2) // [['a' => 1, 'b' => 2], ['b' => 2, 'c' => 3]]
+     * Arr::slide(range(0, 4), 3) // [[0, 1, 2], [1, 2, 3], [2, 3, 4]]
+     * Arr::slide(['a' => 1, 'b' => 2, 'c' => 3], 2) // [['a' => 1, 'b' => 2], ['b' => 2, 'c' => 3]]
      * ```
      *
      * @template TKey of array-key
@@ -5126,11 +5139,12 @@ final class Arr
     }
 
     /**
-     * Sort `$iterable` by key in ascending order.
+     * Sort `$iterable` by key in the given order.
      *
      * Example:
      * ```php
-     * Arr::sortByKey(['b' => 0, 'a' => 1]);  // ['a' => 1, 'b' => 0]
+     * Arr::sortByKey(['b' => 0, 'a' => 1], true);  // ['a' => 1, 'b' => 0]
+     * Arr::sortByKey(['a' => 1, 'b' => 0], false);  // ['b' => 0, 'a' => 1]
      * ```
      *
      * @template TKey of array-key
@@ -5163,7 +5177,7 @@ final class Arr
      *
      * Example:
      * ```php
-     * Arr::sortByKey(['b' => 0, 'a' => 1]);  // ['a' => 1, 'b' => 0]
+     * Arr::sortByKeyAsc(['b' => 0, 'a' => 1]);  // ['a' => 1, 'b' => 0]
      * ```
      *
      * @template TKey of array-key
@@ -5364,9 +5378,9 @@ final class Arr
      *
      * Example:
      * ```php
-     * Arr::splitBeforeIndex([1, 2, 3], 1) // [[1, 2], [3]]
-     * Arr::splitBeforeIndex([1, 2, 3], -2) // [[1, 2], [3]]
-     * Arr::splitBeforeIndex([1, 2, 3], 10) // [[1, 2, 3], []]
+     * Arr::splitAfterIndex([1, 2, 3], 1) // [[1, 2], [3]]
+     * Arr::splitAfterIndex([1, 2, 3], -2) // [[1, 2], [3]]
+     * Arr::splitAfterIndex([1, 2, 3], 10) // [[1, 2, 3], []]
      * ```
      *
      * @template TKey of array-key
@@ -5631,11 +5645,12 @@ final class Arr
 
     /**
      * Returns a copy of `$iterable` with the given keys swapped.
-     * Throws `InvalidArgumentException` if the given key does not exist.
+     * Throws `InvalidKeyException` if the given key does not exist.
      *
      * Example:
      * ```php
      * Arr::swap([1, 2, 3], 0, 2); // [3, 2, 1]
+     * Arr::swap(['a' => 1, 'b' => 2, 'c' => 3], 'a', 'c'); // ['c' => 3, 'b' => 2, 'a' => 1]
      * ```
      *
      * @template TKey of array-key
@@ -5646,6 +5661,10 @@ final class Arr
      * Key to be swapped.
      * @param TKey $key2
      * Key to be swapped.
+     * @param bool|null $reindex
+     * [Optional] Result will be re-indexed if **true**.
+     * If **null**, the result will be re-indexed only if it's a list.
+     * Defaults to **null**.
      * @return array<TKey, TValue>
      */
     public static function swap(
@@ -5747,12 +5766,21 @@ final class Arr
     /**
      * Take every `$nth` element from `$iterable`.
      *
+     * Example:
+     * ```php
+     * Arr::takeEvery([1, 2, 3, 4, 5, 6], 2); // [2, 4, 6]
+     * ```
+     *
      * @template TKey of array-key
      * @template TValue
      * @param iterable<TKey, TValue> $iterable
      * Iterable to be traversed.
      * @param int $nth
      * Nth value to take. Must be >= 1.
+     * @param bool|null $reindex
+     * [Optional] Result will be re-indexed if **true**.
+     * If **null**, the result will be re-indexed only if it's a list.
+     * Defaults to **null**.
      * @return array<TKey, TValue>
      */
     public static function takeEvery(
@@ -5873,7 +5901,7 @@ final class Arr
      * Arr::takeKeys([1, 2, 3], [1]); // [2]
      * ```
      *
-     * @template TKey of int|string
+     * @template TKey of array-key
      * @template TValue
      * @param iterable<TKey, TValue> $iterable
      * Iterable to be traversed.
@@ -5882,7 +5910,7 @@ final class Arr
      * @param bool $safe
      * [Optional] If this is set to **true**, `MissingKeyException` will be
      * thrown if key does not exist in `$iterable`.
-     * If set to **false**, non-existing keys will be filled with **null**.
+     * If set to **false**, non-existing keys will be ignored.
      * Defaults to **true**.
      * @param bool|null $reindex
      * [Optional] Result will be re-indexed if **true**.
@@ -6144,12 +6172,12 @@ final class Arr
     }
 
     /**
-     * Returns a copy of `$iterable` as array without the specified `$value` excluded.
+     * Returns a copy of `$iterable` as array with the specified `$value` excluded.
      *
      * Example:
      * ```php
-     * Arr::values(['a' => 1, 'b' => 2]) // [1, 2]
-     * Arr::values([1 => 1, 0 => 2]) // [1, 2]
+     * Arr::without(['a' => 1, 'b' => 2], 1) // ['b' => 2]
+     * Arr::without([1, 2, 1], 1) // [2]
      * ```
      *
      * @template TKey of array-key

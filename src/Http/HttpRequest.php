@@ -59,11 +59,8 @@ class HttpRequest
      */
     public function __clone()
     {
-        // @phpstan-ignore property.readOnlyAssignNotInConstructor
         $this->url = clone $this->url;
-        // @phpstan-ignore property.readOnlyAssignNotInConstructor
         $this->headers = clone $this->headers;
-        // @phpstan-ignore property.readOnlyAssignNotInConstructor
         $this->body = clone $this->body;
     }
 }

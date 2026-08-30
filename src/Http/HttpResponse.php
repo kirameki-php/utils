@@ -57,9 +57,7 @@ class HttpResponse
      */
     public function __clone()
     {
-        // @phpstan-ignore property.readOnlyAssignNotInConstructor
         $this->headers = clone $this->headers;
-        // @phpstan-ignore property.readOnlyAssignNotInConstructor
         $this->body = clone $this->body;
     }
 }
