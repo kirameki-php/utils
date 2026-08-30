@@ -2453,7 +2453,8 @@ final class ArrTest extends TestCase
         self::assertSame([], array_keys(Arr::rotate([], 1)));
 
         // none
-        self::assertSame([], array_keys(Arr::rotate([1], 0)));
+        self::assertSame([1], Arr::rotate([1], 0));
+        self::assertSame(['a' => 1, 'b' => 2], Arr::rotate(['a' => 1, 'b' => 2], 0));
 
         // once
         self::assertSame(['b', 'c', 'a'], array_keys(Arr::rotate(['a' => 1, 'b' => 2, 'c' => 3], 1)));
@@ -2471,6 +2472,14 @@ final class ArrTest extends TestCase
         self::assertSame([2, 3, 1], Arr::rotate([1, 2, 3], 1));
         self::assertSame([3, 1, 2], Arr::rotate([1, 2, 3], 2));
         self::assertSame([1, 2, 3], Arr::rotate([1, 2, 3], 3));
+
+        // wraps around when steps exceed the size of the array
+        self::assertSame([2, 3, 1], Arr::rotate([1, 2, 3], 4));
+        self::assertSame([3, 1, 2], Arr::rotate([1, 2, 3], 5));
+        self::assertSame([1, 2, 3], Arr::rotate([1, 2, 3], 6));
+        self::assertSame([3, 1, 2], Arr::rotate([1, 2, 3], -4));
+        self::assertSame([1, 2, 3], Arr::rotate([1, 2, 3], -3));
+        self::assertSame(['b', 'c', 'a'], array_keys(Arr::rotate(['a' => 1, 'b' => 2, 'c' => 3], 4)));
 
         // reindex: true on list
         self::assertSame([2, 3, 1], Arr::rotate([1, 2, 3], 1, reindex: true));

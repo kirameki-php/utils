@@ -4191,6 +4191,8 @@ final class Arr
      * ```php
      * Arr::rotate([1, 2, 3], 1);  // [2, 3, 1]
      * Arr::rotate([1, 2, 3], -1); // [3, 1, 2]
+     * Arr::rotate([1, 2, 3], 0);  // [1, 2, 3]
+     * Arr::rotate([1, 2, 3], 4);  // [2, 3, 1] <- wraps around
      * Arr::rotate(['a' => 1, 'b' => 2, 'c' => 3], 1); // ['b' => 2, 'c' => 3, 'a' => 1]
      * ```
      *
@@ -4200,6 +4202,7 @@ final class Arr
      * Iterable to be traversed.
      * @param int $steps
      * Number of times the key/value will be rotated.
+     * Steps beyond the size of the array will wrap around.
      * @param bool|null $reindex
      * [Optional] Result will be re-indexed if **true**.
      * If **null**, the result will be re-indexed only if it's a list.
@@ -4213,30 +4216,35 @@ final class Arr
     ): array
     {
         $array = self::from($iterable);
+        $reindex ??= array_is_list($array);
+        $count = count($array);
+
+        // Steps larger than the size of the array wrap around, so only the
+        // remainder is applied. Negative steps are converted to the equivalent
+        // number of steps to the right.
+        $steps = $count > 0 ? $steps % $count : 0;
+        if ($steps < 0) {
+            $steps += $count;
+        }
+
         $ptr = 0;
         $result = [];
         $rotated = [];
 
-        if ($steps < 0) {
-            $steps = count($array) + $steps;
-        }
-
-        if ($steps !== 0) {
-            foreach ($array as $key => $val) {
-                if ($ptr < $steps) {
-                    $rotated[$key] = $val;
-                } else {
-                    $result[$key] = $val;
-                }
-                ++$ptr;
-            }
-
-            foreach ($rotated as $key => $val) {
+        foreach ($array as $key => $val) {
+            if ($ptr < $steps) {
+                $rotated[$key] = $val;
+            } else {
                 $result[$key] = $val;
             }
+            ++$ptr;
         }
 
-        return ($reindex ?? array_is_list($array))
+        foreach ($rotated as $key => $val) {
+            $result[$key] = $val;
+        }
+
+        return $reindex
             ? array_values($result)
             : $result;
     }
