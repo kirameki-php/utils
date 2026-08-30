@@ -63,7 +63,7 @@ final class Signal
     /**
      * @see https://www.gnu.org/software/libc/manual/html_node/Termination-Signals.html
      */
-    public final const TermSignals = [
+    public final const array TermSignals = [
         SIGHUP,  // 1
         SIGINT,  // 2
         SIGQUIT, // 3
