@@ -1645,11 +1645,13 @@ final class ArrTest extends TestCase
         self::assertSame(100, Arr::max(['a' => 1, 'b' => 100, 'c' => 10]), 'assoc');
         self::assertSame(2, Arr::max(['a' => 2, 'b' => 1], static fn($v, $k) => $v), 'max by value');
         self::assertSame(1, Arr::max(['a' => 2, 'b' => 1], static fn($v, $k) => ord($k)), 'max by key');
+    }
 
-        // null is a valid element and must not be mistaken for an empty iterable
-        self::assertNull(Arr::max([null]), 'only null');
-        self::assertSame(-5, Arr::max([null, -5]), 'null loses regardless of position');
-        self::assertSame(-5, Arr::max([-5, null]), 'null loses regardless of position');
+    public function test_max_with_non_numeric_throws_type_error(): void
+    {
+        $this->expectException(TypeError::class);
+        $this->expectExceptionMessage('Return value must be of type int|float, string returned');
+        Arr::max([1, 2, '3']);
     }
 
     public function test_max_with_empty(): void
@@ -1753,9 +1755,13 @@ final class ArrTest extends TestCase
         self::assertSame(1, Arr::min(['a' => 100, 'b' => 10, 'c' => 1]), 'assoc');
         self::assertSame(1, Arr::min(['a' => 2, 'b' => 1], static fn($v, $k) => $v), 'min by value');
         self::assertSame(2, Arr::min(['a' => 2, 'b' => 1], static fn($v, $k) => ord($k)), 'min by key');
+    }
 
-        // null is a valid element and must not be mistaken for an empty iterable
-        self::assertNull(Arr::min([null]), 'only null');
+    public function test_min_with_non_numeric_returns_type_error(): void
+    {
+        $this->expectException(TypeError::class);
+        $this->expectExceptionMessage('Return value must be of type int|float, null returned');
+        Arr::min([null]);
     }
 
     public function test_min_with_empty(): void
@@ -1794,11 +1800,13 @@ final class ArrTest extends TestCase
             Arr::minMax(['a' => 2, 'b' => 1], static fn($v, $k) => $v),
             'with condition assoc',
         );
-        self::assertSame(
-            ['min' => null, 'max' => null],
-            Arr::minMax([null]),
-            'null is a valid element, not an empty iterable',
-        );
+    }
+
+    public function test_minMax_with_non_numeric_returns_type_error(): void
+    {
+        $this->expectException(TypeError::class);
+        $this->expectExceptionMessage('Return value must be of type int|float, null returned');
+        Arr::minMax([null]);
     }
 
     public function test_minMax_with_NAN(): void

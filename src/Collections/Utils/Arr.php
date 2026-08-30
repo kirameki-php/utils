@@ -2804,7 +2804,7 @@ final class Arr
      * ```
      *
      * @template TKey of array-key
-     * @template TValue
+     * @template TValue of int|float
      * @param iterable<TKey, TValue> $iterable
      * Iterable to be traversed.
      * @param Closure(TValue, TKey): (int|float)|null $by
@@ -2818,15 +2818,15 @@ final class Arr
         ?Closure $by = null,
     ): mixed
     {
-        $array = self::from($iterable);
+        $maxVal = self::maxOrNull($iterable, $by);
 
-        if (count($array) === 0) {
+        if ($maxVal === null) {
             throw new EmptyNotAllowedException('$iterable must contain at least one element.', [
                 'iterable' => $iterable,
             ]);
         }
 
-        return self::maxOrNull($array, $by);
+        return $maxVal;
     }
 
     /**
@@ -2845,7 +2845,7 @@ final class Arr
      * ```
      *
      * @template TKey of array-key
-     * @template TValue
+     * @template TValue of int|float
      * @param iterable<TKey, TValue> $iterable
      * Iterable to be traversed.
      * @param Closure(TValue, TKey): (int|float)|null $by
@@ -2859,7 +2859,7 @@ final class Arr
         ?Closure $by = null,
     ): mixed
     {
-        $by ??= static fn(mixed $val, int|string $key): mixed => $val;
+        $by ??= static fn(mixed $val, int|string $key): int|float => $val;
 
         $maxResult = null;
         $maxVal = null;
@@ -3012,7 +3012,7 @@ final class Arr
      * ```
      *
      * @template TKey of array-key
-     * @template TValue
+     * @template TValue of int|float
      * @param iterable<TKey, TValue> $iterable
      * Iterable to be traversed.
      * @param Closure(TValue, TKey): (int|float)|null $by
@@ -3026,16 +3026,16 @@ final class Arr
         ?Closure $by = null,
     ): mixed
     {
-        $array = self::from($iterable);
+        $minVal = self::minOrNull($iterable, $by);
 
-        if (count($array) === 0) {
+        if ($minVal === null) {
             throw new EmptyNotAllowedException('$iterable must contain at least one element.', [
                 'iterable' => $iterable,
                 'condition' => $by,
             ]);
         }
 
-        return self::minOrNull($array, $by);
+        return $minVal;
     }
 
     /**
@@ -3055,7 +3055,7 @@ final class Arr
      * ```
      *
      * @template TKey of array-key
-     * @template TValue
+     * @template TValue of int|float
      * @param iterable<TKey, TValue> $iterable
      * Iterable to be traversed.
      * @param Closure(TValue, TKey): (int|float)|null $by
@@ -3069,7 +3069,7 @@ final class Arr
         ?Closure $by = null,
     ): mixed
     {
-        $by ??= static fn(mixed $val, int|string $key): mixed => $val;
+        $by ??= static fn(mixed $val, int|string $key): int|float => $val;
 
         $minResult = null;
         $minVal = null;
@@ -3110,7 +3110,7 @@ final class Arr
      * ```
      *
      * @template TKey of array-key
-     * @template TValue
+     * @template TValue of int|float
      * @param iterable<TKey, TValue> $iterable
      * Iterable to be traversed.
      * @param Closure(TValue, TKey): (int|float)|null $by
@@ -3147,7 +3147,7 @@ final class Arr
      * ```
      *
      * @template TKey of array-key
-     * @template TValue
+     * @template TValue of int|float
      * @param iterable<TKey, TValue> $iterable
      * Iterable to be traversed.
      * @param Closure(TValue, TKey): (int|float)|null $by
@@ -3160,7 +3160,7 @@ final class Arr
         ?Closure $by = null,
     ): ?array
     {
-        $by ??= static fn(mixed $val, int|string $key): mixed => $val;
+        $by ??= static fn(mixed $val, int|string $key): int|float => $val;
 
         $found = false;
         $minResult = null;
