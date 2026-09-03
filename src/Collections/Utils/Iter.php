@@ -6,7 +6,9 @@ use Closure;
 use Generator;
 use Kirameki\Exceptions\InvalidArgumentException;
 use function array_slice;
+use function class_exists;
 use function count;
+use function interface_exists;
 use function is_iterable;
 use const PHP_INT_MAX;
 
@@ -706,7 +708,9 @@ final class Iter
             $window = array_slice($window, 1, null, !$reindex);
         }
 
-        if (!$filled) {
+        // An unfilled window is only yielded when there was something to fill it with,
+        // so an empty $iterable produces no windows at all.
+        if (!$filled && count($window) > 0) {
             yield $window;
         }
     }
@@ -761,7 +765,8 @@ final class Iter
         bool $reindex = false,
     ): Generator
     {
-        if (!class_exists($class)) {
+        // instanceof also accepts interfaces, which class_exists() does not report on.
+        if (!class_exists($class) && !interface_exists($class)) {
             throw new InvalidArgumentException("Class: \"{$class}\" does not exist.", [
                 'iterable' => $iterable,
                 'class' => $class,

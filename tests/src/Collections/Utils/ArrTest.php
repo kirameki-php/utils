@@ -4,6 +4,7 @@ namespace Tests\Kirameki\Collections\Utils;
 
 use Closure;
 use DateTime;
+use DateTimeInterface;
 use Kirameki\Collections\Exceptions\CountMismatchException;
 use Kirameki\Collections\Exceptions\DuplicateKeyException;
 use Kirameki\Collections\Exceptions\EmptyNotAllowedException;
@@ -3198,7 +3199,13 @@ final class ArrTest extends TestCase
 
     public function test_slide(): void
     {
+        self::assertSame([], Arr::slide([], 1), 'empty, size 1');
+        self::assertSame([], Arr::slide([], 3), 'empty, size larger than count');
+        self::assertSame([], Arr::slide([], 3, true), 'empty, reindex');
+        self::assertSame([], Arr::slide([], 3, false), 'empty, no reindex');
         self::assertSame([[1]], Arr::slide([1], 1, true), 'list 1 size 1 (exact)');
+        self::assertSame([[1, 2]], Arr::slide([1, 2], 3, true), 'size larger than count');
+        self::assertSame([['a' => 1]], Arr::slide(['a' => 1], 3), 'map, size larger than count');
         self::assertSame([[1, 2]], Arr::slide([1, 2], 2, true), 'list 2 size 2 (exact)');
         self::assertSame([[1, 2], [2, 3]], Arr::slide([1, 2, 3], 2, true), 'list 3 size 2');
         self::assertSame([[1, 2], [1 => 2, 2 => 3]], Arr::slide([1, 2, 3], 2, false), 'list but no reindex');
@@ -3601,6 +3608,13 @@ final class ArrTest extends TestCase
         // Test with DateTime class
         $result = Arr::takeInstanceOf($list, DateTime::class);
         self::assertSame([$obj2], $result, 'filter for DateTime class');
+
+        // Interfaces are valid for instanceof, not just classes
+        $result = Arr::takeInstanceOf($list, DateTimeInterface::class);
+        self::assertSame([$obj2], $result, 'filter for interface');
+
+        $result = Arr::takeInstanceOf($map, DateTimeInterface::class);
+        self::assertSame(['d' => $obj2], $result, 'filter for interface on map');
 
         // Test with no matching instances
         $result = Arr::takeInstanceOf([1, 'string', null], stdClass::class);

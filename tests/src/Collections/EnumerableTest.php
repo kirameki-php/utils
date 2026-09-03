@@ -4,6 +4,7 @@ namespace Tests\Kirameki\Collections;
 
 use Closure;
 use DateTime;
+use DateTimeInterface;
 use Kirameki\Collections\Exceptions\CountMismatchException;
 use Kirameki\Collections\Exceptions\DuplicateKeyException;
 use Kirameki\Collections\Exceptions\EmptyNotAllowedException;
@@ -1481,6 +1482,10 @@ final class EnumerableTest extends TestCase
 
     public function test_slide(): void
     {
+        $this->assertSame([], $this->vec()->slide(1)->map(fn(Vec $a) => $a->all())->all(), 'empty size 1');
+        $this->assertSame([], $this->vec()->slide(3)->map(fn(Vec $a) => $a->all())->all(), 'empty size overflow');
+        $this->assertSame([], $this->map()->slide(2)->map(fn(Map $a) => $a->all())->all(), 'empty map');
+
         $arr = range(0, 2);
         $this->assertSame([[0], [1], [2]], $this->vec($arr)->slide(1)->map(fn(Vec $a) => $a->all())->all(), 'size 1');
         $this->assertSame([[0, 1], [1, 2]], $this->vec($arr)->slide(2)->map(fn(Vec $a) => $a->all())->all(), 'size 2');
@@ -1738,6 +1743,13 @@ final class EnumerableTest extends TestCase
         // Test with DateTime class
         $result = $this->vec([1, $obj1, 'string', $obj2, $obj3, null])->takeInstanceOf(DateTime::class);
         $this->assertSame([$obj2], $result->all(), 'filter for DateTime class');
+
+        // Interfaces are valid for instanceof, not just classes
+        $result = $this->vec([1, $obj1, 'string', $obj2, $obj3, null])->takeInstanceOf(DateTimeInterface::class);
+        $this->assertSame([$obj2], $result->all(), 'filter for interface');
+
+        $result = $this->map(['a' => 1, 'b' => $obj1, 'd' => $obj2])->takeInstanceOf(DateTimeInterface::class);
+        $this->assertSame(['d' => $obj2], $result->all(), 'filter for interface on map');
 
         // Test with no matching instances
         $result = $this->vec([1, 'string', null])->takeInstanceOf(stdClass::class);
