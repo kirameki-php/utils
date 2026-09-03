@@ -416,16 +416,12 @@ final class Iter
         int &$count,
     ): Generator
     {
-        $limit ??= -1;
-        $atLimit = false;
+        $remaining = $limit ?? PHP_INT_MAX;
         foreach ($iterable as $key => $val) {
-            if (!$atLimit && $val === $search) {
+            if ($remaining > 0 && $val === $search) {
                 yield $key => $replacement;
                 ++$count;
-                --$limit;
-                if ($limit === 0) {
-                    $atLimit = true;
-                }
+                --$remaining;
             } else {
                 yield $key => $val;
             }

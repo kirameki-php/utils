@@ -1282,6 +1282,11 @@ final class EnumerableTest extends TestCase
         $this->assertSame(['a' => 3, 'b' => 2, 'c' => 3], $this->map(['a' => 1, 'b' => 2, 'c' => 1])->replace(1, 3, 10, $count)->all(), 'with count and limit (not hit limit)');
         $this->assertSame(2, $count);
 
+        $count = 3;
+        $this->assertSame([1, 2, 1], $this->vec([1, 2, 1])->replace(1, 3, 0, $count)->all(), 'vec limit 0 replaces nothing');
+        $this->assertSame(0, $count);
+        $this->assertSame(['a' => 1, 'b' => 2], $this->map(['a' => 1, 'b' => 2])->replace(1, 3, 0, $count)->all(), 'map limit 0 replaces nothing');
+        $this->assertSame(0, $count);
     }
 
     public function test_replace_negative_limit(): void
