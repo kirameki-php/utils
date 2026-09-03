@@ -2402,6 +2402,12 @@ final class ArrTest extends TestCase
 
         // Repeat 0 times (does nothing)
         self::assertSame([], Arr::repeat([1], 0));
+
+        // Generators can only be traversed once, so repeating must not re-iterate the source.
+        self::assertSame([1, 2, 1, 2], Arr::repeat($this->toGenerator([1, 2]), 2), 'generator repeated');
+        self::assertSame([1, 2], Arr::repeat($this->toGenerator([1, 2]), 1), 'generator once');
+        self::assertSame([], Arr::repeat($this->toGenerator([1, 2]), 0), 'generator zero times');
+        self::assertSame([1, 2, 1, 2, 1, 2], Arr::repeat($this->toGenerator(['a' => 1, 'b' => 2]), 3), 'generator with keys');
     }
 
     public function test_repeat_negative_times(): void

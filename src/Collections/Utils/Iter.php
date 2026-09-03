@@ -537,8 +537,24 @@ final class Iter
         int $times,
     ): Generator
     {
-        for ($i = 0; $i < $times; $i++) {
-            foreach ($iterable as $key => $val) {
+        if ($times === 0) {
+            return;
+        }
+
+        // Buffer the first pass so $iterable is only traversed once.
+        // Re-iterating it would fail for non-rewindable iterables such as Generators.
+        // Pairs are used instead of a keyed array so duplicate keys are preserved.
+        $buffered = [];
+        $repeats = $times > 1;
+        foreach ($iterable as $key => $val) {
+            if ($repeats) {
+                $buffered[] = [$key, $val];
+            }
+            yield $key => $val;
+        }
+
+        for ($i = 1; $i < $times; ++$i) {
+            foreach ($buffered as [$key, $val]) {
                 yield $key => $val;
             }
         }
