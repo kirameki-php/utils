@@ -11,7 +11,7 @@ use Override;
 class EventDispatcher implements EventEmitter
 {
     /**
-     * @var array<class-string<Event>, EventHandler<Event>>
+     * @var array<class-string<Event>, EventHandler<covariant Event>>
      */
     protected array $handlers = [];
 
